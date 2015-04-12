@@ -229,11 +229,14 @@
                 onEventTrack:function(e) {
                     var minuteHeight = this.hourHeight / (60.0 / this.dragMinuteStep);
                     var minutes = Math.round((e.clientY - this._initialDragInfos.mouseY) / minuteHeight) * this.dragMinuteStep;
+
                     var to = new Date(this._initialDragInfos.to);
                     to.setMinutes(this._initialDragInfos.to.getMinutes() + minutes);
                     var dayDiff = this._dayOver.day - to.getDate();
                     to.setDate(to.getDate() + dayDiff);
-                    if (dayDiff != 0 || Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60) > this.dragMinuteStep) {
+                    var minDiff = Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60);
+                    if (dayDiff != 0 || (minDiff >= this.dragMinuteStep || minDiff == 0)) {
+                        // TODO room for perf optimisation here. lots of redraw for nothing when minute step are reached
                         var from = new Date(this._initialDragInfos.from);
                         from.setDate(from.getDate() + dayDiff);
                         from.setMinutes(from.getMinutes() + minutes);
@@ -245,7 +248,6 @@
                     }
                 },
                 onEventTrackEnd:function(e) {
-                    this.fire("event-changed", this._initialDragInfos.event);
                     if (this._initialDragInfos.event.dragging) {
                         this._initialDragInfos.event.to = this._initialDragInfos.event.dragging.to;
                         this._initialDragInfos.event.from = this._initialDragInfos.event.dragging.from;
