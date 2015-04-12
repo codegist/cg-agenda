@@ -1,4 +1,5 @@
 <link href="../polymer/polymer.html" rel="import">
+<link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 
 <polymer-element name="cg-agenda">
@@ -43,12 +44,14 @@
             }
         </style>
         <div id="agenda" layout vertical flex>
+            <paper-button on-tap="{{toggleCache}}">toggle cache</paper-button>
+            <paper-button on-tap="{{redrawAll}}">redraw all</paper-button>
             <div class="weekdays noselect" layout horizontal >
                 <template repeat="{{_weekDays as day}}">
                     <div flex class="weekday noselect" data-value="{{day.day}}">{{day.name}} {{day.day}}</div>
                 </template>
             </div>
-            <div class="agendadays noselect" layout horizontal>
+            <div class="agendadays noselect" layout horizontal id="agendadays">
                 <template repeat="{{_weekDays as day}}">
                     <div flex class="agengaday noselect" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{onDayOver}}" relative>
                         <template repeat="{{_events as e}}">
@@ -59,7 +62,7 @@
                                      on-trackstart="{{onEventTrackStart}}"
                                      on-track="{{onEventTrack}}"
                                      on-trackend="{{onEventTrackEnd}}"
-                                        >
+                                    >
                                     <div class="header noselect">{{eventRangeDisplay(e, e.redraw)}}</div>
                                 </div>
                             </template>
@@ -73,6 +76,17 @@
     <script>
         (function(){
             var CalendarHelper = {
+                cache:true,
+                _collisionGroupCache:{
+                    id:0
+                },
+                between: function(events, date1, date2){
+                    var between = [];
+
+
+
+                    return between;
+                },
                 intersects: function(e1, e2){
                     var s1 = e1.from.getTime();
                     var e1 = e1.to.getTime();
@@ -80,26 +94,82 @@
                     var e2 = e2.to.getTime();
                     return (s1 < s2 && e1 > s2) || (s1 >= s2 && (e1 < e2 || (s1 < e2))) || s1 <= s2 && e1 >= e2;
                 },
-                orderEvent:function(a,b){
+                orderEvents:function(events, copy){
+                    events = copy === false ? events : events.slice();
+                    events.sort(this.eventComparator);
+                    return events;
+                },
+                eventComparator:function(a,b){
                     var aFrom = a.from.getTime();
                     var bFrom = b.from.getTime();
                     var aTo = a.to.getTime();
                     var bTo = b.to.getTime();
                     return  aFrom < bFrom ? -1 : aFrom > bFrom ? 1 : aTo < bTo ? 1 : aTo > bTo ? -1 : 0;
                 },
-                findCollisionGroups:function(events, event){
+                primeCache:function(events, from, to){
+                    events.forEach(function(e){
+                        if(this.intersects({
+                                    from:from,
+                                    to:to
+                                }, e) && e.collisionGroupId === undefined) {
+                            this.findCollisionGroups(events, e, false);
+                        }
+                    }.bind(this));
+                },
+                findCollisionGroups:function(events, event, order, invalidateCache){
+                    if(this.cache == false) {
+                        return this.getCollisionGroups(events, event, order);
+                    }
+                    if(invalidateCache) {
+                        console.log("invalidateCache")
+                        var oldGroup = this._collisionGroupCache[event.collisionGroupId];
+                        if(oldGroup) {
+                            for(var i = 0; i < oldGroup.length; i++){
+                                var indexOf = oldGroup[i].indexOf(event);
+                                if(indexOf != -1) {
+                                    console.log("removed from cached group")
+                                    oldGroup[i].splice(indexOf, 1);
+                                    break;
+                                }
+                            }
+                        }
+                        delete event.collisionGroupId;
+                    }
+                    var collisionGroup = this._collisionGroupCache[event.collisionGroupId];
+                    if(!collisionGroup) {
+                        console.log("refreshing cache")
+                        collisionGroup = this.getCollisionGroups(events, event, order);
+                        var collisionGroupId = this._collisionGroupCache.id++;
+                        for(var groupIndex = 0; groupIndex < collisionGroup.length; groupIndex++){
+                            var group = collisionGroup[groupIndex];
+                            for(var eventIndex = 0; eventIndex < group.length; eventIndex++){
+                                group[eventIndex].collisionGroupId = collisionGroupId;
+                                event.collisionGroupId = collisionGroupId;
+                            }
+                        }
+                        this._collisionGroupCache[collisionGroupId] = collisionGroup;
+                    }else{
+                        console.log("cache hit")
+                    }
+                    collisionGroup = collisionGroup.slice();
+                    for(var i = 0; i < collisionGroup.length; i++){
+                        collisionGroup[i] = collisionGroup[i].slice();
+                    }
+                    return collisionGroup.slice();
+                },
+                getCollisionGroups:function(events, event, order){
                     if(events.length == 0) {
                         return [];
                     }
-                    var copy = events.slice().sort(this.orderEvent);
+                    events = order === false ? events.slice() : this.orderEvents(events);
                     var groups = [];
 
-                    groups.push(copy.splice(event ? copy.indexOf(event) : 0, 1));
+                    groups.push(events.splice(event ? events.indexOf(event) : 0, 1));
 
                     var c = 0;
-                    while(copy.length > 0){
+                    while(events.length > 0){
                         var found = false;
-                        var e = copy[c];
+                        var e = events[c];
                         out: for(var i = 0; i < groups.length; i++){
                             var group = groups[i];
                             for(var j = 0; j < group.length; j++){
@@ -113,27 +183,27 @@
                         if(!found) {
                             if(event) {
                                 c++;
-                                if(c == copy.length) {
-                                    copy.splice(0, 1);
+                                if(c == events.length) {
+                                    events.splice(0, 1);
                                     c = 0;
                                 }
                                 continue;
                             }else{
-                                copy.splice(0, 1);
+                                events.splice(0, 1);
                                 groups.push([e]);
                             }
                         }else{
+                            events.splice(c, 1);
                             c = 0;
-                            copy.splice(0, 1);
                         }
                     }
                     if(event) {
-                        groups[0].sort(this.orderEvent);
+                        this.orderEvents(groups[0], false);
                     }
                     return groups;
                 },
-                generateCollisionFreeMatrix:function(collisionGroup){
-                    collisionGroup = collisionGroup.slice();
+                getCollisionFreeMatrix:function(collisionGroup, copy){
+                    collisionGroup = copy === false ? collisionGroup : collisionGroup.slice();
                     var matrix = [collisionGroup.splice(0,1)];
                     var columnIndex = 0;
                     while(collisionGroup.length > 0){
@@ -161,12 +231,12 @@
                     }
                     return matrix;
                 },
-                findCollisionGroupsForSingleEvent:function(events, event){
-                    return this.findCollisionGroups(events, event)[0];
+                findCollisionGroupsForSingleEvent:function(events, event, order, invalidateCache){
+                    return this.findCollisionGroups(events, event, order, invalidateCache)[0];
                 },
-                getCollisionMatrixInfoForSingleEvent:function(events, event){
-                    var groups = this.findCollisionGroups(events, event);
-                    var matrix = this.generateCollisionFreeMatrix(groups[0]);
+                findCollisionMatrixInfoForSingleEvent:function(events, event, order, invalidateCache){
+                    var groups = this.findCollisionGroups(events, event, order, invalidateCache);
+                    var matrix = this.getCollisionFreeMatrix(groups[0], false);
                     var columnIndex = 0;
                     var totalColumns = matrix.length;
                     out: for(; columnIndex < matrix.length; columnIndex++){
@@ -192,10 +262,29 @@
                 startDayOfWeek:1,
                 hourHeight:40,
                 dragMinuteStep:15,
+                _viewFrom:null,
+                _viewTo:null,
                 _weekDays:[],
                 _events:[],
                 _initialDragInfos:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
+                toggleCache:function(){
+                    CalendarHelper.cache = !CalendarHelper.cache;
+                    this.redrawAll();
+                },
+                set events(events){
+                    CalendarHelper.orderEvents(events, false);
+                    console.log("priming cache")
+                    CalendarHelper.primeCache(events, this._viewFrom, this._viewTo);
+                    console.log("priming cache done")
+                    events.forEach(function(e){
+                        e.redraw = true;
+                    });
+                    this._events = events;
+                },
+                get events(){
+                    return this._events;
+                },
                 onDayOver:function(e){
                     this._dayOver = {
                         day: Number(e.currentTarget.dataset.day),
@@ -206,7 +295,8 @@
                 eventRangeDisplay:function(e){
                     var from = this._timeFormat.format(e.dragging ? e.dragging.from : e.from);
                     var to = this._timeFormat.format(e.dragging ? e.dragging.to : e.to);
-                    return from + " - " + to;
+                    return e.id;
+//                    return from + " - " + to;
                 },
                 _getEventById:function(id) {
                     for(var i = 0; i < this._events.length; i++){
@@ -221,6 +311,7 @@
                     this._initialDragInfos = {
                         event:event,
                         mouseY:e.clientY,
+                        lastMinStep:null,
                         dayOver:this._dayOver.day,
                         to:new Date(event.to),
                         from:new Date(event.from)
@@ -235,8 +326,8 @@
                     var dayDiff = this._dayOver.day - to.getDate();
                     to.setDate(to.getDate() + dayDiff);
                     var minDiff = Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60);
-                    if (dayDiff != 0 || (minDiff >= this.dragMinuteStep || minDiff == 0)) {
-                        // TODO room for perf optimisation here. lots of redraw for nothing when minute step are reached
+                    if (dayDiff != 0 || ((minDiff >= this.dragMinuteStep || minDiff == 0) && this._initialDragInfos.lastMinStep != minDiff)) {
+                        this._initialDragInfos.lastMinStep = minDiff;
                         var from = new Date(this._initialDragInfos.from);
                         from.setDate(from.getDate() + dayDiff);
                         from.setMinutes(from.getMinutes() + minutes);
@@ -244,15 +335,17 @@
                             from:from,
                             to:to
                         };
-                        this.fire("event-changed", this._initialDragInfos.event);
+                        this.fire("event-changing", this._initialDragInfos.event);
                     }
                 },
                 onEventTrackEnd:function(e) {
                     if (this._initialDragInfos.event.dragging) {
-                        this._initialDragInfos.event.to = this._initialDragInfos.event.dragging.to;
-                        this._initialDragInfos.event.from = this._initialDragInfos.event.dragging.from;
+                        var position = this._initialDragInfos.event.dragging;
                         delete this._initialDragInfos.event.dragging;
-                        this.fire("event-changed", this._initialDragInfos.event);
+                        this.fire("event-change-committed", {
+                            event:this._initialDragInfos.event,
+                            newPosition: position
+                        });
                     }
                     this._initialDragInfos = null;
                 },
@@ -264,8 +357,17 @@
                             date.getMonth() == day.month &&
                             date.getFullYear() == day.year;
                 },
+                redrawAll:function(){
+                    this._events.forEach(function(e){
+                        e.redraw = true;
+                    });
+                },
                 calcEventStyle:function(event){
-                    event.redraw = undefined;
+                    if(!event.redraw) {
+                        var el = this.$.agendadays.querySelector(".event[data-id='"+event.id+"']");
+                        return el && el.getAttribute("style");
+                    }
+                    var time = new Date().getTime();
 
                     var from, to, opacity, zIndex, width, left;
                     if(event.dragging) {
@@ -280,30 +382,45 @@
                         to = event.to;
                         opacity = 1;
                         zIndex = 0;
-                        var info = CalendarHelper.getCollisionMatrixInfoForSingleEvent(this._events, event);
+                        var info = CalendarHelper.findCollisionMatrixInfoForSingleEvent(this._events, event);
                         width = 100 / info.totalColumns;
                         left = (100 / info.totalColumns) * (info.column - 1);
                     }
+                    time = new Date().getTime() - time;
+//                    console.log("redrawing " + JSON.stringify(event) + " -- " + time + "ms")
+
+//                    delete event.orderEvents;
+                    delete event.redraw;
 
                     var top = ((from.getHours() + (from.getMinutes() / 60.0)) * this.hourHeight);
                     var duration = ((to.getHours() + (to.getMinutes() / 60.0)) - (from.getHours() + (from.getMinutes() / 60.0))) * this.hourHeight;
 
                     return "top:" + top + "px;height:" + duration + "px;width:" + width + "%;left:" + left + "%;opacity:" + opacity + ";z-index:" + zIndex;
                 },
-                _onEventChanged:function(e){
+                _onEventChanging:function(e){
                     e.detail.redraw = true;
-                    if(!event.dragging) {
-                        var groups = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail);
-                        groups.forEach(function (e) {
-                            e.redraw = true;
-                        });
-                    }
+                },
+                _onEventChangeCommitted:function(e){
+                    var oldGroup = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail.event, true);
+                    oldGroup.forEach(function (e) {
+                        e.redraw = true;
+                    });
+                    e.detail.event.from = e.detail.newPosition.from;
+                    e.detail.event.to = e.detail.newPosition.to;
+                    var newGroup = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail.event, true, true);
+                    newGroup.forEach(function (e) {
+                        e.redraw = true;
+                    });
+                    e.detail.event.redraw = true;
                 },
                 ready:function(){
-                    this.addEventListener("event-changed", this._onEventChanged.bind(this));
+                    this.addEventListener("event-changing", this._onEventChanging.bind(this));
+                    this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
                     var date = new Date();
                     var startDay = date.getDate() + (this.startDayOfWeek + 7) % 7;
                     var weekDays = [];
+                    date.setDate(startDay);
+                    this._viewFrom = new Date(date);
                     for(var i = startDay; i < startDay + 7; i++){
                         date.setDate(i);
                         weekDays.push({
@@ -313,6 +430,7 @@
                             year:date.getFullYear(),
                             redraw:false
                         });
+                        this._viewTo = new Date(date);
                     }
                     this._weekDays = weekDays;
 
@@ -385,7 +503,38 @@
                             to:new Date("2015-04-16T11:30:00.000-0500")
                         }
                     ];
-                    this._events = events.sort(CalendarHelper.orderEvent);
+
+                    var startDay = 0;
+                    var nEvents = 300;
+                    var startDate = new Date();
+                    var endDate = new Date();
+                    startDate.setDate(startDate.getDate() - startDay);
+                    startDate.setHours(9);
+                    startDate.setMinutes(15);
+                    var rdm = function(e){
+                        return parseInt(Math.random() * e);
+                    };
+                    var lastId = events.length + 1;
+                    for(var i = 0; i < nEvents; i++){
+                        startDate.setMinutes(startDate.getMinutes() - (rdm(2) * 15));
+                        endDate = new Date(startDate);
+                        endDate.setMinutes(endDate.getMinutes() + 45 + (rdm(2) * 15));
+
+                        var e = {
+                            id:i + lastId,
+                            from:new Date(startDate),
+                            to:new Date(endDate),
+                        };
+                        events.push(e);
+
+                        startDate = new Date(endDate);
+                        if(startDate.getHours() > 19) {
+                            startDate.setHours(9);
+                            startDate.setMinutes((rdm(2) * 15));
+                            startDate.setDate(startDate.getDate() + 1);
+                        }
+                    }
+                    this.events = events;
                 }
 
             });
