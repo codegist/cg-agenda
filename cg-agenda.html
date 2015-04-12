@@ -1,0 +1,417 @@
+<link href="../polymer/polymer.html" rel="import">
+<link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
+
+<polymer-element name="cg-agenda">
+    <template>
+        <style>
+            .noselect {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            :host  {
+                width: 100%;
+            }
+            :host .weekday,
+            :host .agengaday {
+                border-left:1px solid #ccc;
+                text-align: center;
+            }
+            :host .weekday,
+            :host .agengaday {
+                margin:0 5px 0 5px;
+            }
+            :host .agengaday {
+                height:{{hourHeight * 24}}px;
+            }
+            :host .event {
+                background-color:#008800;
+                position:absolute;
+                border:1px solid white;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            :host .event .header {
+                font-weight: bold;
+                font-size: 12px;
+                color: white;
+                text-align: left;
+                margin-left: 3px;
+            }
+        </style>
+        <div id="agenda" layout vertical flex>
+            <div class="weekdays noselect" layout horizontal >
+                <template repeat="{{_weekDays as day}}">
+                    <div flex class="weekday noselect" data-value="{{day.day}}">{{day.name}} {{day.day}}</div>
+                </template>
+            </div>
+            <div class="agendadays noselect" layout horizontal>
+                <template repeat="{{_weekDays as day}}">
+                    <div flex class="agengaday noselect" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{onDayOver}}" relative>
+                        <template repeat="{{_events as e}}">
+                            <template if="{{isEventOfDay(e, day, e.redraw)}}">
+                                <div class="event noselect"
+                                     style="{{calcEventStyle(e, e.redraw)}}"
+                                     data-id="{{e.id}}"
+                                     on-trackstart="{{onEventTrackStart}}"
+                                     on-track="{{onEventTrack}}"
+                                     on-trackend="{{onEventTrackEnd}}"
+                                        >
+                                    <div class="header noselect">{{eventRangeDisplay(e, e.redraw)}}</div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </template>
+    <script>
+        (function(){
+            var CalendarHelper = {
+                intersects: function(e1, e2){
+                    var s1 = e1.from.getTime();
+                    var e1 = e1.to.getTime();
+                    var s2 = e2.from.getTime();
+                    var e2 = e2.to.getTime();
+                    return (s1 < s2 && e1 > s2) || (s1 >= s2 && (e1 < e2 || (s1 < e2))) || s1 <= s2 && e1 >= e2;
+                },
+                orderEvent:function(a,b){
+                    var aFrom = a.from.getTime();
+                    var bFrom = b.from.getTime();
+                    var aTo = a.to.getTime();
+                    var bTo = b.to.getTime();
+                    return  aFrom < bFrom ? -1 : aFrom > bFrom ? 1 : aTo < bTo ? 1 : aTo > bTo ? -1 : 0;
+                },
+                findCollisionGroups:function(events, event){
+                    if(events.length == 0) {
+                        return [];
+                    }
+                    var copy = events.slice().sort(this.orderEvent);
+                    var groups = [];
+
+                    groups.push(copy.splice(event ? copy.indexOf(event) : 0, 1));
+
+                    var c = 0;
+                    while(copy.length > 0){
+                        var found = false;
+                        var e = copy[c];
+                        out: for(var i = 0; i < groups.length; i++){
+                            var group = groups[i];
+                            for(var j = 0; j < group.length; j++){
+                                if(this.intersects(e, group[j])){
+                                    group.push(e);
+                                    found = true;
+                                    break out;
+                                }
+                            }
+                        }
+                        if(!found) {
+                            if(event) {
+                                c++;
+                                if(c == copy.length) {
+                                    copy.splice(0, 1);
+                                    c = 0;
+                                }
+                                continue;
+                            }else{
+                                copy.splice(0, 1);
+                                groups.push([e]);
+                            }
+                        }else{
+                            c = 0;
+                            copy.splice(0, 1);
+                        }
+                    }
+                    if(event) {
+                        groups[0].sort(this.orderEvent);
+                    }
+                    return groups;
+                },
+                generateCollisionFreeMatrix:function(collisionGroup){
+                    collisionGroup = collisionGroup.slice();
+                    var matrix = [collisionGroup.splice(0,1)];
+                    var columnIndex = 0;
+                    while(collisionGroup.length > 0){
+                        var column = matrix[columnIndex];
+                        var b = collisionGroup[0];
+                        var found = false;
+                        for(var c = 0; c < column.length; c++){
+                            if(this.intersects(column[c], b)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(!found) {
+                            column.push(b);
+                            collisionGroup.splice(0, 1);
+                            columnIndex = 0;
+                        }else{
+                            columnIndex++;
+                            if(columnIndex == matrix.length) {
+                                matrix.push([b]);
+                                collisionGroup.splice(0, 1);
+                                columnIndex = 0;
+                            }
+                        }
+                    }
+                    return matrix;
+                },
+                findCollisionGroupsForSingleEvent:function(events, event){
+                    return this.findCollisionGroups(events, event)[0];
+                },
+                getCollisionMatrixInfoForSingleEvent:function(events, event){
+                    var groups = this.findCollisionGroups(events, event);
+                    var matrix = this.generateCollisionFreeMatrix(groups[0]);
+                    var columnIndex = 0;
+                    var totalColumns = matrix.length;
+                    out: for(; columnIndex < matrix.length; columnIndex++){
+                        var column = matrix[columnIndex];
+                        for(var i=0; i < column.length; i++){
+                            if(column[i] == event) {
+                                break out;
+                            }
+                        }
+                    }
+                    return {
+                        column:columnIndex + 1,
+                        totalColumns:totalColumns
+                    };
+                },
+                shuffle:function(o){
+                    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+                    return o;
+                }
+            };
+
+            Polymer("cg-agenda", {
+                startDayOfWeek:1,
+                hourHeight:40,
+                dragMinuteStep:15,
+                _weekDays:[],
+                _events:[],
+                _initialDragInfos:null,
+                _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
+                onDayOver:function(e){
+                    this._dayOver = {
+                        day: Number(e.currentTarget.dataset.day),
+                        month: Number(e.currentTarget.dataset.month),
+                        year: Number(e.currentTarget.dataset.year)
+                    };
+                },
+                eventRangeDisplay:function(e){
+                    var from = this._timeFormat.format(e.dragging ? e.dragging.from : e.from);
+                    var to = this._timeFormat.format(e.dragging ? e.dragging.to : e.to);
+                    return from + " - " + to;
+                },
+                _getEventById:function(id) {
+                    for(var i = 0; i < this._events.length; i++){
+                        if(id == this._events[i].id) {
+                            return this._events[i];
+                        }
+                    }
+                    return null;
+                },
+                onEventTrackStart:function(e){
+                    var event = this._getEventById(e.currentTarget.dataset.id);
+                    this._initialDragInfos = {
+                        event:event,
+                        mouseY:e.clientY,
+                        dayOver:this._dayOver.day,
+                        to:new Date(event.to),
+                        from:new Date(event.from)
+                    };
+                },
+                onEventTrack:function(e) {
+                    var minuteHeight = this.hourHeight / (60.0 / this.dragMinuteStep);
+                    var minutes = Math.round((e.clientY - this._initialDragInfos.mouseY) / minuteHeight) * this.dragMinuteStep;
+                    var to = new Date(this._initialDragInfos.to);
+                    to.setMinutes(this._initialDragInfos.to.getMinutes() + minutes);
+                    var dayDiff = this._dayOver.day - to.getDate();
+                    to.setDate(to.getDate() + dayDiff);
+                    if (dayDiff != 0 || Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60) > this.dragMinuteStep) {
+                        var from = new Date(this._initialDragInfos.from);
+                        from.setDate(from.getDate() + dayDiff);
+                        from.setMinutes(from.getMinutes() + minutes);
+                        this._initialDragInfos.event.dragging = {
+                            from:from,
+                            to:to
+                        };
+                        this.fire("event-changed", this._initialDragInfos.event);
+                    }
+                },
+                onEventTrackEnd:function(e) {
+                    this.fire("event-changed", this._initialDragInfos.event);
+                    if (this._initialDragInfos.event.dragging) {
+                        this._initialDragInfos.event.to = this._initialDragInfos.event.dragging.to;
+                        this._initialDragInfos.event.from = this._initialDragInfos.event.dragging.from;
+                        delete this._initialDragInfos.event.dragging;
+                        this.fire("event-changed", this._initialDragInfos.event);
+                    }
+                    this._initialDragInfos = null;
+                },
+                isEventOfDay:function(event, d){
+                    return this._isInDay(event.from, d) || this._isInDay(event.to, d);
+                },
+                _isInDay:function(date, day){
+                    return date.getDate() == day.day &&
+                            date.getMonth() == day.month &&
+                            date.getFullYear() == day.year;
+                },
+                calcEventStyle:function(event){
+                    event.redraw = undefined;
+                    var from = event.dragging ? event.dragging.from : event.from;
+                    var to = event.dragging ? event.dragging.to : event.to;
+                    var opacity = event.dragging ? 0.5 : 1;
+                    var zIndex = event.dragging ? 10 : 0;
+                    var top = (from.getHours() * this.hourHeight);
+                    var duration = ((to.getHours() + (to.getMinutes() / 60.0)) - (from.getHours() + (from.getMinutes() / 60.0))) * this.hourHeight;
+                    var info = !event.dragging && CalendarHelper.getCollisionMatrixInfoForSingleEvent(this._events, event);
+                    var width = event.dragging ? 100 : 100 / info.totalColumns;
+                    var left = event.dragging ? 0 : (100 / info.totalColumns) * (info.column - 1);
+                    return "top:" + top + "px;height:" + duration + "px;width:" + width + "%;left:" + left + "%;opacity:" + opacity + ";zindex:" + zIndex;
+                },
+                _onEventChanged:function(e){
+                    var groups = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail);
+                    e.detail.redraw = true;
+                    groups.forEach(function(e){
+                        e.redraw = true;
+                    });
+                },
+                ready:function(){
+                    this.addEventListener("event-changed", this._onEventChanged.bind(this));
+                    var date = new Date();
+                    var startDay = date.getDate() + (this.startDayOfWeek + 7) % 7;
+                    var weekDays = [];
+                    for(var i = startDay; i < startDay + 7; i++){
+                        date.setDate(i);
+                        weekDays.push({
+                            name:Intl.DateTimeFormat(this.locale, {weekday:'narrow'}).format(date),
+                            day:i,
+                            month:date.getMonth(),
+                            year:date.getFullYear(),
+                            redraw:false
+                        });
+                    }
+                    this._weekDays = weekDays;
+
+                    // TEST DATA
+                    var id=0;
+                    var events = [
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T09:00:00.000-0500"),
+                            to:new Date("2015-04-15T12:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T09:00:00.000-0500"),
+                            to:new Date("2015-04-15T10:00:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T10:00:00.000-0500"),
+                            to:new Date("2015-04-15T11:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T11:30:00.000-0500"),
+                            to:new Date("2015-04-15T12:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T09:30:00.000-0500"),
+                            to:new Date("2015-04-15T14:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T10:30:00.000-0500"),
+                            to:new Date("2015-04-15T12:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T11:00:00.000-0500"),
+                            to:new Date("2015-04-15T13:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T12:30:00.000-0500"),
+                            to:new Date("2015-04-15T14:00:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T14:00:00.000-0500"),
+                            to:new Date("2015-04-15T17:00:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-15T17:30:00.000-0500"),
+                            to:new Date("2015-04-15T18:00:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-16T09:00:00.000-0500"),
+                            to:new Date("2015-04-16T12:30:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-16T09:00:00.000-0500"),
+                            to:new Date("2015-04-16T10:00:00.000-0500")
+                        },
+                        {
+                            id:id++,
+                            from:new Date("2015-04-16T10:00:00.000-0500"),
+                            to:new Date("2015-04-16T11:30:00.000-0500")
+                        }
+                    ];
+//                    CalendarHelper.shuffle(events);
+
+
+//                    var startDay = 1;
+//                    var nEvents = 150;
+//                    var startDate = new Date();
+//                    var endDate = new Date();
+//                    startDate.setDate(startDate.getDate() - startDay);
+//                    startDate.setHours(9);
+//                    startDate.setMinutes(15);
+//                    var rdm = function(e){
+//                        return parseInt(Math.random() * e);
+//                    };
+//                    var events = [];
+//                    for(var i = 0; i < nEvents; i++){
+//                        startDate.setMinutes(startDate.getMinutes() - (rdm(2) * 15));
+//                        endDate = new Date(startDate);
+//                        endDate.setMinutes(endDate.getMinutes() + 45 + (rdm(2) * 15));
+//
+//                        var e = {
+//                            id:i,
+////                            className:classes[rdm(classes.length)],
+////                            "label":labels[rdm(labels.length)] + " " + labels[rdm(labels.length)] + " " + labels[rdm(labels.length)],
+////                            "notes":notes[rdm(notes.length)] + " " + notes[rdm(notes.length)],
+//                            from:new Date(startDate),
+//                            to:new Date(endDate),
+////                            allDay: false,
+////                            recurring: false,
+////                            categories:[categories[rdm(categories.length)], categories[rdm(categories.length)], categories[rdm(categories.length)]]
+//                        };
+//                        events.push(e);
+//
+//                        startDate = new Date(endDate);
+//                        if(startDate.getHours() > 19) {
+//                            startDate.setHours(9);
+//                            startDate.setMinutes((rdm(2) * 15));
+//                            startDate.setDate(startDate.getDate() + 1);
+//                        }
+//                    }
+
+                    this._events = events.sort(CalendarHelper.orderEvent);
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>

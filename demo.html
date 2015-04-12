@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>cg-datetime-input Demo</title>
+    <link rel="import" href="cg-agenda.html">
+    <style>
+        .demo {
+            margin-boottom:60px;
+            min-height: 300px;
+        }
+        .demo-item {
+            padding: 2px;
+            min-height: 300px;
+        }
+    </style>
+</head>
+
+
+<body unresolved fullbleed layout vertical center center-justified>
+
+<template id="sandbox" is="auto-binding">
+    <!--<div layout vertical left>-->
+        <!--<div>-->
+            <cg-agenda></cg-agenda>
+        <!--</div>-->
+    <!--</div>-->
+</template>
+
+<script>
+    window.addEventListener('template-bound', function(){
+        var sandbox = document.getElementById('sandbox');
+
+//        sandbox.tags = o;
+//        sandbox.selected = ["banana 11","banana 12"];
+    });
+</script>
+
+</body>
+</html>
