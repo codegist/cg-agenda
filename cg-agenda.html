@@ -264,23 +264,38 @@
                 },
                 calcEventStyle:function(event){
                     event.redraw = undefined;
-                    var from = event.dragging ? event.dragging.from : event.from;
-                    var to = event.dragging ? event.dragging.to : event.to;
-                    var opacity = event.dragging ? 0.5 : 1;
-                    var zIndex = event.dragging ? 10 : 0;
-                    var top = (from.getHours() * this.hourHeight);
+
+                    var from, to, opacity, zIndex, width, left;
+                    if(event.dragging) {
+                        from = event.dragging.from;
+                        to = event.dragging.to;
+                        opacity = 0.5;
+                        zIndex = 1;
+                        width = 100;
+                        left = 0;
+                    }else{
+                        from = event.from;
+                        to = event.to;
+                        opacity = 1;
+                        zIndex = 0;
+                        var info = CalendarHelper.getCollisionMatrixInfoForSingleEvent(this._events, event);
+                        width = 100 / info.totalColumns;
+                        left = (100 / info.totalColumns) * (info.column - 1);
+                    }
+
+                    var top = ((from.getHours() + (from.getMinutes() / 60.0)) * this.hourHeight);
                     var duration = ((to.getHours() + (to.getMinutes() / 60.0)) - (from.getHours() + (from.getMinutes() / 60.0))) * this.hourHeight;
-                    var info = !event.dragging && CalendarHelper.getCollisionMatrixInfoForSingleEvent(this._events, event);
-                    var width = event.dragging ? 100 : 100 / info.totalColumns;
-                    var left = event.dragging ? 0 : (100 / info.totalColumns) * (info.column - 1);
-                    return "top:" + top + "px;height:" + duration + "px;width:" + width + "%;left:" + left + "%;opacity:" + opacity + ";zindex:" + zIndex;
+
+                    return "top:" + top + "px;height:" + duration + "px;width:" + width + "%;left:" + left + "%;opacity:" + opacity + ";z-index:" + zIndex;
                 },
                 _onEventChanged:function(e){
-                    var groups = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail);
                     e.detail.redraw = true;
-                    groups.forEach(function(e){
-                        e.redraw = true;
-                    });
+                    if(!event.dragging) {
+                        var groups = CalendarHelper.findCollisionGroupsForSingleEvent(this._events, e.detail);
+                        groups.forEach(function (e) {
+                            e.redraw = true;
+                        });
+                    }
                 },
                 ready:function(){
                     this.addEventListener("event-changed", this._onEventChanged.bind(this));
@@ -368,46 +383,6 @@
                             to:new Date("2015-04-16T11:30:00.000-0500")
                         }
                     ];
-//                    CalendarHelper.shuffle(events);
-
-
-//                    var startDay = 1;
-//                    var nEvents = 150;
-//                    var startDate = new Date();
-//                    var endDate = new Date();
-//                    startDate.setDate(startDate.getDate() - startDay);
-//                    startDate.setHours(9);
-//                    startDate.setMinutes(15);
-//                    var rdm = function(e){
-//                        return parseInt(Math.random() * e);
-//                    };
-//                    var events = [];
-//                    for(var i = 0; i < nEvents; i++){
-//                        startDate.setMinutes(startDate.getMinutes() - (rdm(2) * 15));
-//                        endDate = new Date(startDate);
-//                        endDate.setMinutes(endDate.getMinutes() + 45 + (rdm(2) * 15));
-//
-//                        var e = {
-//                            id:i,
-////                            className:classes[rdm(classes.length)],
-////                            "label":labels[rdm(labels.length)] + " " + labels[rdm(labels.length)] + " " + labels[rdm(labels.length)],
-////                            "notes":notes[rdm(notes.length)] + " " + notes[rdm(notes.length)],
-//                            from:new Date(startDate),
-//                            to:new Date(endDate),
-////                            allDay: false,
-////                            recurring: false,
-////                            categories:[categories[rdm(categories.length)], categories[rdm(categories.length)], categories[rdm(categories.length)]]
-//                        };
-//                        events.push(e);
-//
-//                        startDate = new Date(endDate);
-//                        if(startDate.getHours() > 19) {
-//                            startDate.setHours(9);
-//                            startDate.setMinutes((rdm(2) * 15));
-//                            startDate.setDate(startDate.getDate() + 1);
-//                        }
-//                    }
-
                     this._events = events.sort(CalendarHelper.orderEvent);
                 }
 
