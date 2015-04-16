@@ -39,7 +39,7 @@
                 border:1px solid white;
                 border-radius: 10px;
                 cursor: pointer;
-                padding:0px 4px 0px 4px;
+                padding:0px 0px 0px 4px;
             }
             :host .event .header {
                 font-weight: bold;
@@ -512,8 +512,8 @@
                 eventRangeDisplay:function(e){
                     var from = this._timeFormat.format(e.dragging ? e.dragging.from : e.from);
                     var to = this._timeFormat.format(e.dragging ? e.dragging.to : e.to);
-                    return e.id;
-//                    return from + " - " + to;
+//                    return e.id;
+                    return from + " - " + to;
                 },
                 _getEventById:function(id) {
                     for(var i = 0; i < this._eventsInView.length; i++){
