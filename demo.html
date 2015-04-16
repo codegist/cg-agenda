@@ -33,7 +33,7 @@
 
         // TEST DATA
         var id=0;
-        var events = [
+        var groupedEvents = [
             {
                 id:id++,
                 from:new Date("2015-03-18T09:00:00.000-0500"),
@@ -78,28 +78,45 @@
                 id:id++,
                 from:new Date("2015-03-18T14:00:00.000-0500"),
                 to:new Date("2015-03-18T17:00:00.000-0500")
-            },
-            {
-                id:id++,
-                from:new Date("2015-03-18T17:30:00.000-0500"),
-                to:new Date("2015-03-18T18:00:00.000-0500")
-            },
-            {
-                id:id++,
-                from:new Date("2015-03-19T09:00:00.000-0500"),
-                to:new Date("2015-03-19T12:30:00.000-0500")
-            },
-            {
-                id:id++,
-                from:new Date("2015-03-19T09:00:00.000-0500"),
-                to:new Date("2015-03-19T10:00:00.000-0500")
-            },
-            {
-                id:id++,
-                from:new Date("2015-03-19T10:00:00.000-0500"),
-                to:new Date("2015-03-19T11:30:00.000-0500")
             }
         ];
+
+        var nonGrouped = [{
+            from:new Date("2015-03-18T14:00:00.000-0500"),
+            to:new Date("2015-03-18T15:00:00.000-0500")
+        }];
+
+        function getShiftedDateFrom(date, days, hours){
+            date = new Date(date);
+            days && date.setDate(date.getDate() + days);
+            hours && date.setHours(date.getHours() + hours);
+            return date;
+        }
+        function getShiftedGroupFrom(group, days, hours){
+            var shifted = [];
+            group.forEach(function(event){
+                shifted.push({
+                    from:getShiftedDateFrom(event.from, days, hours),
+                    to:getShiftedDateFrom(event.to, days, hours),
+                });
+            });
+            return shifted;
+        }
+        function generateEvents(template, n, days, hours){
+            var group = [];
+            var shift = template;
+            for(var i =0; i<n;i++){
+                shift = getShiftedGroupFrom(shift, days, hours);
+                group = group.concat(shift);
+            }
+            var id = 0;
+            group.forEach(function(event){
+                event.id = id++;
+            }.bind(this));
+            return group;
+        }
+        var bigGroupedGroup = generateEvents(getShiftedGroupFrom(groupedEvents, -3), 30, 0, 9);
+        var bigNonGrouped = generateEvents(getShiftedGroupFrom(nonGrouped, -3), 200, 0, 1);
 //
 //        var startDay = 1;
 //        var nEvents = 300;
@@ -162,7 +179,9 @@
 //        sandbox.$.agenda2._collisionManagerCacheEnabled = false;
         sandbox.$.agenda.date = new Date("2015-03-03T18:30:20.815Z");
 //        sandbox.$.agenda.events = bigEvent;
-        sandbox.$.agenda.events = events;
+//        sandbox.$.agenda.events = bigNonGrouped;
+        sandbox.$.agenda.events = bigGroupedGroup;
+//        sandbox.$.agenda.events = groupedEvents;
 //        sandbox.$.agenda2.events = events;
 
 //        sandbox.tags = o;
