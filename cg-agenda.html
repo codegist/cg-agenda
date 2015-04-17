@@ -1,4 +1,5 @@
 <link href="../polymer/polymer.html" rel="import">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 <link rel="import" href="cg-event-quickeditor.html">
@@ -112,7 +113,7 @@
                                 <div class="event noselect {{_getEventClass(e, day, e.redraw)}}"
                                      style="{{_getEventStyle(e, day, e.redraw)}}"
                                      data-role="move"
-                                     data-id="{{e.id}}"
+                                     data-id="{{e._uid}}"
                                      data-day="{{day.day}}"
                                      on-dblclick="{{_onEventDblClick}}"
                                      layout vertical
@@ -125,7 +126,7 @@
                                     <div class="footer noselect">
                                         <div class="resizer"
                                              data-role="resize"
-                                             data-target-id="{{e.id}}"
+                                             data-target-id="{{e._uid}}"
                                              data-target-day="{{day.day}}"
                                              on-trackstart="{{_onEventDragStart}}"
                                              on-track="{{_onEventDrag}}"
@@ -144,6 +145,19 @@
                 </template>
             </div>
             <cg-event-quickeditor id="editor" on-close="{{_onEditorClose}}"></cg-event-quickeditor>
+            <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
+                <section>
+                    <p>Are you sure you want to delete the event "{{_currentEvent.label}}"?</p>
+                </section>
+                <paper-button affirmative class="colored" on-tap="{{_doDeleteEvent}}">
+                    <core-icon icon="check"></core-icon>
+                    yes
+                </paper-button>
+                <paper-button dismissive>
+                    <core-icon icon="clear"></core-icon>
+                    no
+                </paper-button>
+            </paper-action-dialog>
         </div>
 
     </template>
@@ -153,7 +167,7 @@
                 this.cache = {
                     collisionGroups :{
                         enabled:collisionCacheGroups === false ? false : true,
-                        id:0,
+                        id:1,
                         cache:{},
                         nextId :function(){
                             return this.id++;
@@ -166,7 +180,7 @@
                                 this.cache[id].removeIds();
                             }
                             this.cache = {};
-                            this.id = 0;
+                            this.id = 1;
                         }
                     }
                 };
@@ -193,6 +207,22 @@
                     events.sort(this.eventComparator);
                     return events;
                 },
+                setUids:function(events){
+                    events.forEach(function(e){
+                        e._uid = e._uid || this.generateUid();
+                    }.bind(this));
+                    return events;
+                },
+                setUid:function(event) {
+                    event._uid = event._uid || this.generateUid();
+                },
+                generateUid:function(){
+                    // TODO SHOULD BE USED AS A TEMP ID FOR CREATED EVENTS
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                        return v.toString(16);
+                    });
+                },
                 eventComparator:function(a,b){
                     var aFrom = a.from.getTime();
                     var bFrom = b.from.getTime();
@@ -213,23 +243,23 @@
                     console.log("Priming cache done [size " + this.cache.collisionGroups.size() + ", event count:" + events.length + "]");
                 },
                 invalidateCollisionGroupCache:function(event){
-                    //console.log("Event " + event.id + " needs to be removed from cache.");
+                    //console.log("Event " + event._uid + " needs to be removed from cache.");
                     var oldGroupId = event.collisionGroupId;
                     var cachedGroup = this.cache.collisionGroups.cache[oldGroupId];
                     var collisionGroup;
                     if(cachedGroup && cachedGroup.removeEvent(event)) {
-                        //console.log("Event " + event.id + ": Cached group found, removing from it.");
+                        //console.log("Event " + event_uid + ": Cached group found, removing from it.");
                         if(cachedGroup.events.length == 0) {
-                            //console.log("Event " + event.id + ": Old cached group is now empty, deleting it from cache");
+                            //console.log("Event " + event._uid + ": Old cached group is now empty, deleting it from cache");
                             delete this.cache.collisionGroups.cache[oldGroupId];
                             collisionGroup = [cachedGroup];
                         }else{
-                            //console.log("Event " + event.id + ": Old cached group might needs splitting, performing collision search onto its content.");
+                            //console.log("Event " + event._uid + ": Old cached group might needs splitting, performing collision search onto its content.");
                             var cachedGroupCollisionGroups = this.getCollisionGroup(cachedGroup.events);
                             if(cachedGroupCollisionGroups.length == 1) {
-                                //console.log("Event " + event.id + ": Old cached group is still a single collision group, keeping it.");
+                                //console.log("Event " + event._uid + ": Old cached group is still a single collision group, keeping it.");
                             }else{
-                                //console.log("Event " + event.id + ": Old cached group is now broken into " + cachedGroupCollisionGroups.length + " distinct groups. Removing old cached group from cache and caching new ones.");
+                                //console.log("Event " + event._uid + ": Old cached group is now broken into " + cachedGroupCollisionGroups.length + " distinct groups. Removing old cached group from cache and caching new ones.");
                                 for(var i=0; i < cachedGroupCollisionGroups.length; i++){
                                     var groupId = this.cache.collisionGroups.nextId();
                                     var cachedGroupCollisionGroup = cachedGroupCollisionGroups[i];
@@ -241,7 +271,7 @@
                             collisionGroup = cachedGroupCollisionGroups;
                         }
                     }else{
-                        //console.log("Event " + event.id + ": Cannot remove from cache as not found cached group not found.")
+                        //console.log("Event " + event._uid + ": Cannot remove from cache as not found cached group not found.")
                         collisionGroup = [{events:[]}];
                     }
                     return collisionGroup;
@@ -256,18 +286,18 @@
                     if(flushFromCache === true) {
                         collisionGroup = this.invalidateCollisionGroupCache(event);
                     }else if(event.collisionGroupId != undefined) {
-                        //console.log("Event " + event.id + " has a collisionGroupId, looking it up.")
+                        //console.log("Event " + event._uid + " has a collisionGroupId, looking it up.")
                         var cachedGroup = this.cache.collisionGroups.cache[event.collisionGroupId];
                         if(cachedGroup) {
-                            //console.log("Event " + event.id + " cached collision group found, using it.")
+                            //console.log("Event " + event._uid + " cached collision group found, using it.")
                             //console.log("[Cache HIT]");
                             collisionGroup = [cachedGroup]
                         }else{
-                            //console.log("Event " + event.id + " cached collision group NOT found.")
-                            throw "Event " + event.id + " cached collision group NOT found.";
+                            //console.log("Event " + event._uid + " cached collision group NOT found.")
+                            throw "Event " + event._uid + " cached collision group NOT found.";
                         }
                     }else{
-                        //console.log("Event " + event.id + " hasn't got a collisionGroupId, trying to find suitable cached groups.");
+                        //console.log("Event " + event._uid + " hasn't got a collisionGroupId, trying to find suitable cached groups.");
                         var suitableCachedGroups = {};
                         var groups = 0;
                         for(var id in this.cache.collisionGroups.cache){
@@ -278,21 +308,21 @@
                             }
                         }
                         if(groups > 0) {
-                            //console.log("Event " + event.id + ": found " + groups + " suitable cached groups.");
+                            //console.log("Event " + event._uid + ": found " + groups + " suitable cached groups.");
                             //console.log("[Cache HIT]");
                             if(groups == 1){
-                                //console.log("Event " + event.id + ": Adding it to single suitable cached group found.");
+                                //console.log("Event " + event._uid + ": Adding it to single suitable cached group found.");
                                 var groupId = Object.keys(suitableCachedGroups)[0];
                                 var cachedGroup = suitableCachedGroups[groupId];
                                 cachedGroup.addEvent(event, groupId, true);
                                 collisionGroup = [cachedGroup];
                             }else{
-                                //console.log("Event " + event.id + ": More than one suitable cached group found. Merging groups and adding event");
+                                //console.log("Event " + event._uid + ": More than one suitable cached group found. Merging groups and adding event");
                                 var mergedGroupId = this.cache.collisionGroups.nextId();
                                 var mergedGroup = this.createCollisionGroup(event, mergedGroupId);
                                 for(var groupId in suitableCachedGroups){
                                     mergedGroup.addEvents(suitableCachedGroups[groupId].events, mergedGroupId);
-                                    //console.log("Event " + event.id + ": Removing stale cache group from cache");
+                                    //console.log("Event " + event._uid + ": Removing stale cache group from cache");
                                     delete this.cache.collisionGroups.cache[groupId];
                                 }
                                 mergedGroup.reorder();
@@ -300,7 +330,7 @@
                                 collisionGroup = [mergedGroup];
                             }
                         }else{
-                            //console.log("Event " + event.id + ": No suitable cached groups found, performing deep collision group search and caching result.");
+                            //console.log("Event " + event._uid + ": No suitable cached groups found, performing deep collision group search and caching result.");
                             //console.log("[Cache MISS]");
                             var newGroupId = this.cache.collisionGroups.nextId();
                             collisionGroup = this.getCollisionGroup(events, event, order)[0];
@@ -529,6 +559,7 @@
                 },
                 set events(events){
                     this._manager.orderEvents(events, false);
+                    this._manager.setUids(events);
                     var eventsInView = this._manager.getEventsInView(events, {from:this._viewFrom, to:this._viewTo});
                     if(eventsInView.length < this._eventSizeCacheThreshold) {
                         console.log("Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
@@ -541,7 +572,7 @@
                     var eventsMap = {};
                     eventsInView.forEach(function(e){
                         e.redraw = this._getRedrawsCount(e);
-                        eventsMap[e.id] = e;
+                        eventsMap[e._uid] = e;
                     }.bind(this));
 
                     this._events = events;
@@ -603,7 +634,7 @@
                         event.from = this._createGhost.data.from;
                         event.to = this._createGhost.data.to;
                     }
-                    this.$.editor.openDialog(event, op == "eddit");
+                    this.$.editor.openDialog(event, op == "edit");
                 },
                 _onEditorClose:function(e){
                     switch(e.detail.result) {
@@ -620,10 +651,18 @@
                             this._commitEventChange(e.detail.event, newRange, op);
                             break;
                         case "DELETE":
-                            this._commitEventChange(e.detail.event, newRange, "delete");
+                            this._confirmDeleteEvent(e.detail.event);
                             break;
                         case "CANCEL":break;
                     }
+                },
+                _confirmDeleteEvent:function(event){
+                    this._currentEvent = event;
+                    this.$.confirmdelete.toggle();
+                },
+                _doDeleteEvent:function(){
+                    this._commitEventChange(this._currentEvent, null, "delete");
+                    delete this._currentEvent;
                 },
                 _onEventDragStart:function(e){
                     e.preventDefault();
@@ -777,11 +816,11 @@
                     this._commitEventChange(e.detail.event, e.detail.newPosition, "edit");
                 },
                 _commitEventChange:function(event, newRange, operation) {
-                    if(operation == "edit") {
+                    if(operation == "edit" || operation == "delete") {
                         var oldGroup = this._manager.findCollisionGroup(this._eventsInView, event, true, true);
                         oldGroup.forEach(function (group) {
                             group.events.forEach(function (event) {
-                                //console.log("Trigger redraw for old group event: " + event.id + " of group " + group.from + " - " + group.to);
+                                //console.log("Trigger redraw for old group event: " + event._uid + " of group " + group.from + " - " + group.to);
                                 event.redraw = this._getRedrawsCount(event);
                             }.bind(this));
                         }.bind(this));
@@ -789,17 +828,17 @@
 
                     if(operation == "edit" || operation == "create") {
                         if(operation == "create") {
-                            event.id = this._generateId();
+                            this._manager.setUid(event);
                             this._eventsInView.push(event);
                             this._events.push(event);
-                            this._eventsMap[event.id] = event;
+                            this._eventsMap[event._uid] = event;
                         }
                         event.from = newRange.from;
                         event.to = newRange.to;
                         var newGroup = this._manager.findCollisionGroup(this._eventsInView, event, true);
                         newGroup.forEach(function(group){
                             group.events.forEach(function(event){
-                                //console.log("Trigger redraw for new group event: " + event.id + " of group " + group.from + " - " + group.to);
+                                //console.log("Trigger redraw for new group event: " + event._uid + " of group " + group.from + " - " + group.to);
                                 event.redraw = this._getRedrawsCount(event);
                             }.bind(this));
                         }.bind(this));
@@ -822,7 +861,7 @@
                     if(!range) return;
                     var from = range.from.getDate() == day.day ? this._timeFormat.format(range.from) : "";
                     var to = range.to.getDate() == day.day ? this._timeFormat.format(range.to) : "";
-//                    return e.id;
+//                    return e._uid;
                     return from + (from && to ? " - " : "") + to;
                 },
                 _getEventById:function(id) {
@@ -858,7 +897,7 @@
                 _getEventStyle:function(event, day){
                     //console.log("_getEventStyle event.redraw=" + event.redraw + " - day = " + JSON.stringify(day))
                     if(event.redraw == undefined) {
-                        var el = this.$.agendadays.querySelector(".event[data-id='" + event.id + "'][data-day='" + day.day + "']");
+                        var el = this.$.agendadays.querySelector(".event[data-id='" + event._uid + "'][data-day='" + day.day + "']");
                         console.log( el && el.getAttribute("style"))
                         return el && el.getAttribute("style");
                     }
@@ -896,13 +935,6 @@
                 },
                 _minutediff:function(range) {
                     return (range.to.getTime()-range.from.getTime())/(1000*60);
-                },
-                _generateId:function(){
-                    // TODO SHOULD BE USED AS A TEMP ID FOR CREATED EVENTS
-                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-                        return v.toString(16);
-                    });
                 }
             });
         })();

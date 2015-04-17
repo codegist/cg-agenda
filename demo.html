@@ -137,10 +137,6 @@
                 shift = getShiftedGroupFrom(shift, days, hours);
                 group = group.concat(shift);
             }
-            var id = 0;
-            group.forEach(function(event){
-                event.id = id++;
-            }.bind(this));
             return group;
         }
         var groupedEvents = generateEvents(getShiftedGroupFrom(groupedEvents, 0), 1, 0, 0);

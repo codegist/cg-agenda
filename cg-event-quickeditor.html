@@ -22,19 +22,19 @@
         <paper-action-dialog heading="{{heading}}" layered="false" id="dialog" on-overlay-close-completed="{{_onClosed}}">
             <div layout vertical>
                 <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
-                    <input role="input" is="core-input" required value="{{_editCopy.label}}">
+                    <input is="core-input" required value="{{_editCopy.label}}">
                 </paper-input-decorator>
                 <div class="range" layout horizontal>
                     <paper-input-decorator label="From" floatingLabel error="{{_validationError}}" autoValidate id="from">
-                        <cg-datetime-input role="input" datetime="{{_editCopy.from}}"></cg-datetime-input>
+                        <cg-datetime-input datetime="{{_editCopy.from}}"></cg-datetime-input>
                     </paper-input-decorator>
                     <paper-input-decorator label="To" floatingLabel error="{{_validationError}}" autoValidate id="to">
-                        <cg-datetime-input role="input" datetime="{{_editCopy.to}}"></cg-datetime-input>
+                        <cg-datetime-input datetime="{{_editCopy.to}}"></cg-datetime-input>
                     </paper-input-decorator>
                 </div>
                 <paper-input-decorator label="Notes" floatingLabel>
                     <paper-autogrow-textarea id="notesDec">
-                        <textarea role="input" value="{{_editCopy.notes}}" id="notes"></textarea>
+                        <textarea value="{{_editCopy.notes}}" id="notes" on-keypress="{{_validate}}"></textarea>
                     </paper-autogrow-textarea>
                 </paper-input-decorator>
             </div>
@@ -68,8 +68,13 @@
             domReady:function(){
                 // TODO : why on-change attribute works on all input but not on cg-datetime-input where it works in other places??
                 this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
-                [].slice.call(this.shadowRoot.querySelectorAll("[role='input']")).forEach(function(e){
+                [].slice.call(this.shadowRoot.querySelectorAll("input,textarea")).forEach(function(e){
                     e.addEventListener("change", this._validate.bind(this));
+                    e.addEventListener("keydown", this._validate.bind(this));
+                    e.addEventListener("cut", this._validate.bind(this));
+                    e.addEventListener("paste", this._validate.bind(this));
+                    e.addEventListener("blur", this._validate.bind(this));
+                    e.addEventListener("focus", this._validate.bind(this));
                 }, this);
             },
             _validate:function(e, callback, delay){
@@ -90,13 +95,11 @@
                         valid = false;
                     }
                 }, this);
-                if(valid) {
-                    var start = new Date(this._editCopy.from).getTime();
-                    var end = new Date(this._editCopy.to).getTime();
-                    valid = start < end;
-                    if(!valid) {
-                        this.$.to.isInvalid = true;
-                    }
+                var start = new Date(this._editCopy.from).getTime();
+                var end = new Date(this._editCopy.to).getTime();
+                if(start >= end) {
+                    valid = false;
+                    this.$.to.isInvalid = true;
                 }
                 this.$.okButton.disabled = !valid;
             },
@@ -125,17 +128,18 @@
                 this.create = edit === false || event === undefined;
                 this.event = event || {};
                 this.heading = this.create ? this.addEvent : this.existingEvent;
+                this.eventChanged();
                 this._validate(null, function(){
                     this.$.dialog.toggle();
                 }.bind(this), 10);
             },
             closeDialog:function(result){
-                this.$.dialog.open = false;
                 // TODO CLOSE SEEMS TO BE MESSY
                 this.fire("close", {
                     event: this.event,
                     result: result
                 });
+                this.$.dialog.open = false;
             }
         });
     </script>
