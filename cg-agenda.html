@@ -13,6 +13,9 @@
                 -ms-user-select: none;
                 user-select: none;
             }
+            .hidden {
+                display:none!important;
+            }
             :host  {
                 width: 100%;
                 font-family: sans-serif;
@@ -40,6 +43,7 @@
                 border-radius: 10px;
                 cursor: pointer;
                 padding:0px 0px 0px 4px;
+                z-index:0;
             }
             :host .event .header {
                 font-weight: bold;
@@ -55,13 +59,17 @@
                 cursor:ns-resize;
             }
             :host .event.resize .footer .resizer,
-            :host .event:hover .footer .resizer {
+            :host .event.eventend:hover .footer .resizer,
+            :host .event.eventfull:hover .footer .resizer {
                 border-bottom:1px solid white;
                 cursor:ns-resize;
                 height:5px;
                 margin:3px;
             }
-
+            :host .event.dd-ghost {
+                opacity: 0.5;
+                z-index:1;
+            }
             :host .weekdays .day-name-large {
                 text-align: center;
             }
@@ -82,33 +90,35 @@
             </div>
             <div class="agendadays noselect" layout horizontal id="agendadays">
                 <template repeat="{{_weekDays as day}}">
-                    <div flex class="agengaday noselect" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{onDayOver}}" relative>
+                    <div flex class="agengaday noselect day" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{_onDayOver}}" relative>
                         <template repeat="{{_eventsInView as e}}">
                             <template if="{{isEventOfDay(e, day, e.redraw)}}">
-                                <div class="event noselect"
-                                     style="{{_getEventStyle(e, e.redraw)}}"
-                                     id="event-{{e.id}}"
+                                <div class="event noselect {{_getEventClass(e, day, e.redraw)}}"
+                                     style="{{_getEventStyle(e, day, e.redraw)}}"
                                      data-role="move"
                                      data-id="{{e.id}}"
-                                     on-trackstart="{{onEventDragStart}}"
-                                     on-track="{{onEventMove}}"
-                                     on-trackend="{{onEventDragEnd}}"
+                                     data-day="{{day.day}}"
                                      layout vertical
-                                    >
-                                    <div class="header noselect">{{eventRangeDisplay(e, e.redraw)}}</div>
+                                     on-trackstart="{{_onEventDragStart}}"
+                                     on-track="{{_onEventDrag}}"
+                                     on-trackend="{{_onEventDragEnd}}"
+                                        >
+                                    <div class="header noselect">{{_eventRangeDisplay(e, day, e.redraw)}}</div>
                                     <div flex class="content noselect"></div>
                                     <div class="footer noselect">
                                         <div class="resizer"
                                              data-role="resize"
-                                             data-target-id="event-{{e.id}}"
-                                             on-trackstart="{{onEventDragStart}}"
-                                             on-track="{{onEventResize}}"
-                                             on-trackend="{{onEventDragEnd}}"
+                                             data-target-id="{{e.id}}"
+                                             data-target-day="{{day.day}}"
+                                             on-trackstart="{{_onEventDragStart}}"
+                                             on-track="{{_onEventDrag}}"
+                                             on-trackend="{{_onEventDragEnd}}"
                                         ></div>
                                     </div>
                                 </div>
                             </template>
                         </template>
+                        <div class="dd-overlay" id="dd-overlay-{{day.day}}"></div>
                     </div>
                 </template>
             </div>
@@ -440,18 +450,167 @@
                 hourHeight:40,
                 dragMinuteStep:15,
                 _eventSizeCacheThreshold:100,
+                _draggingTerminateTimeout:1000,
+                _dayOver:null,
+                _eventOver:null,
                 _viewFrom:null,
                 _viewTo:null,
                 _weekDays:[],
                 _events:[],
+                _eventsMap:{},
                 _eventsInView:[],
                 _initialDragInfos:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
                 _manager:null,
                 _collisionManagerCacheEnabled:true,
+                _onEventDragStart:function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var eventElement;
+                    if(e.currentTarget.dataset.targetId != undefined && e.currentTarget.dataset.targetDay != undefined) {
+                        eventElement = this.$.agendadays.querySelector(".day[data-day='" + e.currentTarget.dataset.targetDay + "'] .event[data-id='" + e.currentTarget.dataset.targetId + "']")
+                    }else{
+                        eventElement = e.currentTarget;
+                    }
+
+                    var eventId = eventElement.dataset.id;
+                    var event = this._eventsMap[eventId];
+                    var eventElements = [].slice.call(this.$.agendadays.querySelectorAll(".event[data-id='" + eventId + "']"));
+                    var eventElementsPerDay = {};
+                    for(var i = 0; i < this._weekDays.length; i++){
+                        eventElementsPerDay[this._weekDays[i].day] = {
+                            day:this._weekDays[i],
+                            dayDDOverlayEl:this.$.agendadays.querySelector("#dd-overlay-" + this._weekDays[i].day),
+                            cloneEl:null,
+                            originalEl:null
+                        };
+                    }
+                    eventElements.forEach(function(eventElement){
+                        var day = eventElement.dataset.day;
+                        var clone = eventElement.cloneNode(true);
+                        eventElement.classList.add("hidden");
+                        clone.classList.add("dd-ghost");
+                        eventElementsPerDay[day].originalEl = eventElement;
+                        eventElementsPerDay[day].cloneEl = clone;
+                        eventElementsPerDay[day].dayDDOverlayEl.appendChild(clone);
+                    }.bind(this));
+
+                    var that = this;
+                    this._initialDragInfos = {
+                        role: e.currentTarget.dataset.role,
+                        elements:eventElementsPerDay,
+                        event:event,
+                        mouseY:e.clientY,
+                        lastDayDiff:null,
+                        lastMinStep:null,
+                        dayOver:this._dayOver.day,
+                        lastDayOver:this._dayOver.day,
+                        to:new Date(event.to),
+                        from:new Date(event.from),
+                        fireUpdated:function(){
+                            this._cancelTask != undefined && that.cancelAsync(this._cancelTask);
+                            this._cancelTask = that.async(function(){
+                                this._onEventDragEnd("canceled-by-timeout");
+                            }.bind(that), null, that._draggingTerminateTimeout);
+                        },
+                        fireFinished:function(){
+                            this._cancelTask != undefined && that.cancelAsync(this._cancelTask);
+                        }
+                    };
+                },
+                _onEventDrag:function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if(!this._initialDragInfos) {
+                        return;
+                    }
+                    var minutes = this._getMinutesForHeight(e.clientY - this._initialDragInfos.mouseY);
+
+                    var to = new Date(this._initialDragInfos.to);
+                    to.setMinutes(this._initialDragInfos.to.getMinutes() + minutes);
+                    var minDiff = Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60);
+
+                    if ((this._dayOver.day != this._initialDragInfos.lastDayOver) || ((minDiff >= this.dragMinuteStep || minDiff == 0) && this._initialDragInfos.lastMinStep != minDiff)) {
+                        var from = new Date(this._initialDragInfos.from);
+                        this._initialDragInfos.role == "move" && from.setMinutes(from.getMinutes() + minutes);
+
+                        var dayDiff = this._dayOver.day - this._initialDragInfos.dayOver;
+                        from.setDate(from.getDate() + dayDiff);
+                        to.setDate(to.getDate() + dayDiff);
+                        var range = {from:from, to:to};
+
+                        var diff = this._minutediff(range);
+                        if(this._initialDragInfos.role == "resize" && diff < this.dragMinuteStep) {
+                            to.setMinutes(to.getMinutes() + Math.abs(diff) + this.dragMinuteStep);
+                        }
+
+                        var oldFrom =  this._initialDragInfos.dragging ? this._initialDragInfos.dragging.from : this._initialDragInfos.from;
+                        var oldTo = this._initialDragInfos.dragging ? this._initialDragInfos.dragging.to : this._initialDragInfos.to;
+
+                        this._initialDragInfos.dragging = range;
+                        this._initialDragInfos.lastMinStep = minDiff;
+                        this._initialDragInfos.lastDayOver = this._dayOver.day;
+
+                        var fromDayDiff =  from.getDate() - oldFrom.getDate();
+                        var toDayDiff =  to.getDate() - oldTo.getDate();
+
+                        var daySwapEventElements = function(dayDiff, oldDate, isFrom) {
+                            if(dayDiff != 0 && this._initialDragInfos.elements.hasOwnProperty(String(oldDate.getDate()))) {
+                                var el = this._initialDragInfos.elements[oldDate.getDate()].cloneEl;
+                                var toDay = oldDate.getDate() + dayDiff;
+                                if(this._initialDragInfos.elements.hasOwnProperty(String(toDay))) {
+                                    var dayDef = this._initialDragInfos.elements[String(toDay)];
+                                    dayDiff = isFrom ? -dayDiff : dayDiff;
+                                    if(dayDiff > 0) {
+                                        el = el.cloneNode(true);
+                                        dayDef.cloneEl = el;
+                                        dayDef.dayDDOverlayEl.appendChild(el);
+                                    }else{
+                                        el.parentElement.removeChild(el);
+                                        this._initialDragInfos.elements[oldDate.getDate()].cloneEl = null;
+                                        if(dayDef.cloneEl == null) {
+                                            dayDef.cloneEl = el;
+                                            dayDef.dayDDOverlayEl.appendChild(el);
+                                        }
+                                    }
+
+                                }
+                            }
+                        }.bind(this);
+
+                        daySwapEventElements(fromDayDiff, oldFrom, true);
+                        daySwapEventElements(toDayDiff, oldTo, false);
+
+                        for(var day in this._initialDragInfos.elements) {
+                            var el = this._initialDragInfos.elements[day];
+                            if(el == null || el.cloneEl == null) continue;
+                            var box = this._getEventBoxFor(this._initialDragInfos.dragging, day);
+                            el.cloneEl.setAttribute("style", box.toStyleString());
+                            el.cloneEl.querySelector(".header").innerText = this._eventRangeDisplay(this._initialDragInfos.dragging, el.day);
+                        }
+                    }
+                    this._initialDragInfos.fireUpdated();
+                },
+                _onEventDragEnd:function(e){
+                    e && typeof e != "string" && e.preventDefault() && e.stopPropagation();
+                    if (this._initialDragInfos && this._initialDragInfos.dragging) {
+                        this._initialDragInfos.fireFinished();
+                        //console.log("_onEventDragEnd " + e)
+                        for(var day in this._initialDragInfos.elements) {
+                            var el = this._initialDragInfos.elements[day];
+                            if(el == null) continue;
+                            el.cloneEl && el.cloneEl.parentElement.removeChild(el.cloneEl);
+                            el.originalEl && el.originalEl.classList.remove("hidden");
+                        }
+                        this.fire("event-change-committed", {
+                            event:this._initialDragInfos.event,
+                            newPosition: this._initialDragInfos.dragging
+                        });
+                        delete this._initialDragInfos;
+                    }
+                },
                 ready:function(){
                     this._manager = new CalendarManager(this._collisionManagerCacheEnabled);
-                    this.addEventListener("event-changing", this._onEventChanging.bind(this));
                     this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
                     var date = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate(), 0, 0, 0, 0);
                     var startDay = date.getDate() - date.getDay() + (this.startDayOfWeek % 7);
@@ -493,136 +652,46 @@
                         this._manager.cache.collisionGroups.enabled = true;
                         this._manager.primeCollisionGroupCache(eventsInView);
                     }
-                    events.forEach(function(e){
-                        e.redraw = true;
-                    });
+                    var eventsMap = {};
+                    eventsInView.forEach(function(e){
+                        e.redraw = this._getRedrawsCount(e);
+                        eventsMap[e.id] = e;
+                    }.bind(this));
+
                     this._events = events;
                     this._eventsInView = eventsInView;
+                    this._eventsMap = eventsMap;
                 },
                 get events(){
                     return this._events;
                 },
-                onDayOver:function(e){
+                _onDayOver:function(e){
                     this._dayOver = {
                         day: Number(e.currentTarget.dataset.day),
                         month: Number(e.currentTarget.dataset.month),
                         year: Number(e.currentTarget.dataset.year)
                     };
                 },
-                eventRangeDisplay:function(e){
-                    var from = this._timeFormat.format(e.dragging ? e.dragging.from : e.from);
-                    var to = this._timeFormat.format(e.dragging ? e.dragging.to : e.to);
+                _eventRangeDisplay:function(range, day){
+                    var from = range.from.getDate() == day.day ? this._timeFormat.format(range.from) : "";
+                    var to = range.to.getDate() == day.day ? this._timeFormat.format(range.to) : "";
 //                    return e.id;
-                    return from + " - " + to;
+                    return from + (from && to ? " - " : "") + to;
                 },
                 _getEventById:function(id) {
-                    for(var i = 0; i < this._eventsInView.length; i++){
-                        if(id == this._eventsInView[i].id) {
-                            return this._eventsInView[i];
-                        }
-                    }
-                    return null;
+                    return this.eventsMap[id]
                 },
-                onEventDragStart:function(e){
-                    var element = e.currentTarget.dataset.id ? e.currentTarget : this.shadowRoot.querySelector("#" + e.currentTarget.dataset.targetId);
-                    element.classList.add(e.currentTarget.dataset.role);
-                    var event = this._getEventById(element.dataset.id);
-                    this._initialDragInfos = {
-                        roleClass:e.currentTarget.dataset.role,
-                        element:element,
-                        event:event,
-                        mouseY:e.clientY,
-                        lastMinStep:null,
-                        dayOver:this._dayOver.day,
-                        to:new Date(event.to),
-                        from:new Date(event.from)
-                    };
-                    e.stopPropagation();
+                isEventOfDay:function(event, day){
+                    //console.log("isEventOfDay day=" + JSON.stringify(day) + " event=" + JSON.stringify(event) + " = " +this._isEventOfDay(event,day));
+                    return this._isEventOfDay(event,day);
                 },
-                onEventDragEnd:function(e) {
-                    if (this._initialDragInfos.event.dragging) {
-                        this._initialDragInfos.element.classList.remove(this._initialDragInfos.roleClass);
-                        var position = this._initialDragInfos.event.dragging;
-                        delete this._initialDragInfos.event.dragging;
-                        this.fire("event-change-committed", {
-                            event:this._initialDragInfos.event,
-                            newPosition: position
-                        });
-                    }
-                    this._initialDragInfos = null;
-                    e.stopPropagation();
-                },
-                onEventResize:function(e){
-                    var minutes = this._getMinutesForHeight(e.clientY - this._initialDragInfos.mouseY);
-
-                    var to = new Date(this._initialDragInfos.to);
-                    to.setMinutes(this._initialDragInfos.to.getMinutes() + minutes);
-                    var minDiff = Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60);
-                    if ((minDiff >= this.dragMinuteStep || minDiff == 0) && this._initialDragInfos.lastMinStep != minDiff) {
-                        this._initialDragInfos.lastMinStep = minDiff;
-                        this._initialDragInfos.event.dragging = {
-                            from:this._initialDragInfos.event.from,
-                            to:to
-                        };
-                        this.fire("event-changing", this._initialDragInfos.event);
-                    }
-                    e.stopPropagation();
-                },
-                onEventMove:function(e) {
-                    var minutes = this._getMinutesForHeight(e.clientY - this._initialDragInfos.mouseY);
-
-                    var to = new Date(this._initialDragInfos.to);
-                    to.setMinutes(this._initialDragInfos.to.getMinutes() + minutes);
-                    var dayDiff = this._dayOver.day - to.getDate();
-                    to.setDate(to.getDate() + dayDiff);
-                    var minDiff = Math.abs((to.getTime() - this._initialDragInfos.to.getTime()) / 1000 / 60);
-                    if (dayDiff != 0 || ((minDiff >= this.dragMinuteStep || minDiff == 0) && this._initialDragInfos.lastMinStep != minDiff)) {
-                        this._initialDragInfos.lastMinStep = minDiff;
-                        var from = new Date(this._initialDragInfos.from);
-                        from.setDate(from.getDate() + dayDiff);
-                        from.setMinutes(from.getMinutes() + minutes);
-                        this._initialDragInfos.event.dragging = {
-                            from:from,
-                            to:to
-                        };
-
-                        // This DOM/Event manipulation ensure event day-over move renders properly
-                        var eventElement = this._initialDragInfos.element;
-                        if(eventElement.parentElement.dataset.day != from.getDate()) {
-                            var newElement = this.$.agendadays.querySelector("[data-day='" + from.getDate() + "']");
-                            eventElement.parentElement.removeChild(eventElement);
-                            newElement.appendChild(eventElement);
-                            var eId = this._initialDragInfos.event.id;
-                            Polymer.addEventListener(eventElement, "track", this.onEventMove.bind(this));
-                            Polymer.addEventListener(eventElement, "trackend", function(e){
-                                var el = newElement.parentElement.querySelector(".event[data-id='" + eId + "']");
-                                if([].slice.call(newElement.children).indexOf(el) != -1){
-                                    newElement.removeChild(el);
-                                }
-                                if(this._initialDragInfos) {
-                                    this.onEventDragEnd(e);
-                                }
-                            }.bind(this));
-                            Polymer.addEventListener(eventElement, "trackstart", function(e){
-                                if([].slice.call(newElement.children).indexOf(eventElement) != -1){
-                                    newElement.removeChild(eventElement);
-                                }onEventMove
-                                this.onEventDragStart(e);
-
-                            }.bind(this));
-                        }
-
-                        this.fire("event-changing", this._initialDragInfos.event, this._initialDragInfos.element);
-                    }
-                    e.stopPropagation();
-                },
-                isEventOfDay:function(event, d){
-                    return this._isInDay(event.from, d) || this._isInDay(event.to, d);
-                },
-                _isInDay:function(date, day){
-                    return date.getDate() == day.day &&
-                            date.getMonth() == day.month &&
-                            date.getFullYear() == day.year;
+                _isEventOfDay:function(event, day){
+                    //console.log(event.from + " - " + new Date(day.year, day.month, day.day, 23, 59 ,59, 999));
+                    var range = event.dragging || event;
+                    return this._manager.intersects(range, {
+                        from:new Date(day.year, day.month, day.day, 0, 0 ,0, 0),
+                        to:new Date(day.year, day.month, day.day, 23, 59 ,59, 999)
+                    });
                 },
                 _getMinuteHeight:function(){
                     return this.hourHeight / (60.0 / this.dragMinuteStep);
@@ -633,43 +702,61 @@
                 },
                 redrawAll:function(){
                     this._eventsInView.forEach(function(e){
-                        e.redraw = true;
-                    });
+                        e.redraw = this._getRedrawsCount(e);
+                    }.bind(this));
                 },
-                _getEventStyle:function(event){
-                    if(!event.redraw) {
-                        var el = this.$.agendadays.querySelector(".event[data-id='"+event.id+"']");
-
+                _isMultiDay:function(e){
+                    return e.from.getDate() != e.to.getDate();
+                },
+                _getEventClass:function(event, day){
+                    return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
+                           event.from.getDate() == day.day ? "eventstart" :
+                           event.to.getDate() == day.day ? "eventend" : "eventpart";
+                },
+                _getEventStyle:function(event, day){
+                    //console.log("_getEventStyle event.redraw=" + event.redraw + " - day = " + JSON.stringify(day))
+                    if(event.redraw == undefined) {
+                        var el = this.$.agendadays.querySelector(".event[data-id='" + event.id + "'][data-day='" + day.day + "']");
+                        console.log( el && el.getAttribute("style"))
                         return el && el.getAttribute("style");
                     }
 
-                    var from, to, opacity, zIndex, width, left;
-                    if(event.dragging) {
-                        from = event.dragging.from;
-                        to = event.dragging.to;
-                        opacity = 0.5;
-                        zIndex = 1;
-                        width = 100;
-                        left = 0;
+                    var info = this._manager.findCollisionMatrixInfoForSingleEvent(this._eventsInView, event);
+                    var box = this._getEventBoxFor(event.dragging || event, day.day);
+                    box.left = (box.width / info.totalColumns) * (info.column - 1);
+                    box.width = box.width / info.totalColumns;
+
+                    if(event.redraw == 1) {
+                        delete event.redraw;
                     }else{
-                        from = event.from;
-                        to = event.to;
-                        opacity = 1;
-                        zIndex = 0;
-                        var info = this._manager.findCollisionMatrixInfoForSingleEvent(this._eventsInView, event);
-                        width = 100 / info.totalColumns;
-                        left = (100 / info.totalColumns) * (info.column - 1);
+                        event.redraw--;
                     }
-                    //console.log("redrawing " + JSON.stringify(event))
-                    delete event.redraw;
-
-                    var top = ((from.getHours() + (from.getMinutes() / 60.0)) * this.hourHeight);
-                    var duration = ((to.getHours() + (to.getMinutes() / 60.0)) - (from.getHours() + (from.getMinutes() / 60.0))) * this.hourHeight;
-
-                    return "top:" + top + "px;height:" + duration + "px;width:" + width + "%;left:" + left + "%;opacity:" + opacity + ";z-index:" + zIndex;
+                    return box.toStyleString();
                 },
-                _onEventChanging:function(e){
-                    e.detail.redraw = true;
+                _getEventBoxFor:function(range, day){
+                    var top = range.from.getDate() == day ? this._getHeightForDate(range.from) : 0;
+                    var height = this._getHeightForDate(range.to.getDate() == day ? range.to : new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59)) - top;
+                    return {
+                        top:top,
+                        height:height,
+                        width:100,
+                        left:0,
+                        toStyleString:function(){
+                            return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;";
+                        }
+                    };
+                },
+                _getHeightForDate:function(date){
+                    return ((date.getHours() + (date.getMinutes() / 60.0)) * this.hourHeight);
+                },
+                _getRedrawsCount:function(event){
+                    return (event.to.getDate() - event.from.getDate()) + 1;
+                },
+                _daydiff:function(range) {
+                    return this._minutediff(range)/(24*60);
+                },
+                _minutediff:function(range) {
+                    return (range.to.getTime()-range.from.getTime())/(1000*60);
                 },
                 _onEventChangeCommitted:function(e){
                     var oldGroup = this._manager.findCollisionGroup(this._eventsInView, e.detail.event, true, true);
@@ -679,23 +766,23 @@
                     oldGroup.forEach(function(group){
                         group.events.forEach(function(event){
                             //console.log("Trigger redraw for old group event: " + event.id + " of group " + group.from + " - " + group.to);
-                            event.redraw = true;
+                            event.redraw = this._getRedrawsCount(event);
                         }.bind(this));
-                    });
+                    }.bind(this));
                     newGroup.forEach(function(group){
                         group.events.forEach(function(event){
                             //console.log("Trigger redraw for new group event: " + event.id + " of group " + group.from + " - " + group.to);
-                            event.redraw = true;
+                            event.redraw = this._getRedrawsCount(event);
                         }.bind(this));
-                    });
-                    // TODO : clear a weird phantom remaining event when dragging between days..
-                    this.async(function(){
-                        e.detail.event.redraw = true;
-                    }.bind(this), null, 2);
+                    }.bind(this));
 
+                    this.fire("event-changed", e.detail.event);
+                    // TODO : clear a weird phantom remaining event when dragging between days..
+//                    this.async(function(){
+                        e.detail.event.redraw = this._getRedrawsCount(e.detail.event);
+//                    }.bind(this), null, 20);
                     //console.log("[Cache size " + this._manager.cache.collisionGroups.size() + "]");
                 }
-
             });
         })();
     </script>

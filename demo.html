@@ -86,6 +86,19 @@
             to:new Date("2015-03-18T15:00:00.000-0500")
         }];
 
+        var multiday = [
+//            {
+//                id:1,
+//                from:new Date("2015-03-16T09:00:00.000-0500"),
+//                to:new Date("2015-03-19T15:00:00.000-0500")
+//            },
+            {
+                id:2,
+                from:new Date("2015-03-17T09:00:00.000-0500"),
+                to:new Date("2015-03-19T20:00:00.000-0500")
+            }
+        ];
+
         function getShiftedDateFrom(date, days, hours){
             date = new Date(date);
             days && date.setDate(date.getDate() + days);
@@ -178,10 +191,11 @@
 
 //        sandbox.$.agenda2._collisionManagerCacheEnabled = false;
         sandbox.$.agenda.date = new Date("2015-03-03T18:30:20.815Z");
+        sandbox.$.agenda.events = groupedEvents;
 //        sandbox.$.agenda.events = bigEvent;
 //        sandbox.$.agenda.events = bigNonGrouped;
-        sandbox.$.agenda.events = bigGroupedGroup;
-//        sandbox.$.agenda.events = groupedEvents;
+//        sandbox.$.agenda.events = bigGroupedGroup;
+        sandbox.$.agenda.events = multiday;
 //        sandbox.$.agenda2.events = events;
 
 //        sandbox.tags = o;
