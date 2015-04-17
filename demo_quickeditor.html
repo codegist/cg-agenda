@@ -5,6 +5,7 @@
     <title>cg-datetime-input Demo</title>
     <link rel="import" href="cg-event-quickeditor.html">
     <link rel="import" href="../paper-button/paper-button.html">
+
 </head>
 
 
@@ -18,7 +19,7 @@
         <span>from: {{event1.from}}</span>
         <span>to: {{event1.to}}</span>
         <span>notes: {{event1.notes}}</span>
-        <cg-event-quickeditor id="editor1"></cg-event-quickeditor>
+        <cg-event-quickeditor id="editor1" categories="{{categories}}" colors="{{colors}}"></cg-event-quickeditor>
         <paper-button on-tap="{{showEditor}}">OPEN</paper-button>
     </section>
     <section class="demo" layout vertical>
@@ -36,15 +37,28 @@
 <script>
     window.addEventListener('template-bound', function(){
         var sandbox = document.getElementById('sandbox');
+        sandbox.categories = ["category 1","category 2","category 3","category 4","category 5"];
+        sandbox.colors = [
+            {name:"Bold Blue", mask:"#5484ED"},
+            {name:"Blue", mask:"#A4BDFC"},
+            {name:"Bold Green", mask:"#51B749"},
+            {name:"Yellow", mask:"#FBD75B"},
+            {name:"Red", mask:"#FF887C"},
+            {name:"Bold Red", mask:"#DC2127"},
+            {name:"Gray", mask:"#E1E1E1"}
+        ];
         sandbox.result1 = "";
         sandbox.result2 = "";
         sandbox.event2 = {};
         sandbox.event1 = {
             label:"Some label",
-            notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed tempus magna et ligula imperdiet gravida.",
+            categories:["category 3","category 5"],
+//            color:"#DC2127",
+            notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Sed tempus magna et ligula imperdiet gravida.",
             from: new Date("2015-03-03T15:30:00.000Z"),
             to: new Date("2015-03-03T18:15:00.000Z")
         };
+
 
         document.getElementById('editor1').addEventListener("close", function(e){
             sandbox.result1 = e.detail.result + " - " + JSON.stringify(e.detail.event);

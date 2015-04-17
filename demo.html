@@ -41,6 +41,21 @@
             "In hac habitasse platea dictumst. Vestibulum dictum tincidunt justo eu ornare. Suspendisse aliquet arcu sem, vitae sollicitudin metus ultrices sit amet.",
             "Nulla vehicula at sapien quis ultricies. Etiam eu mauris gravida, laoreet erat ac, suscipit urna. Proin volutpat tempus magna, quis ornare velit convallis vel."
         ];
+        var categories = [
+            "Root canal","Pulpotomy","Apicoectomy","Prosthodontics",
+            "Crowns","Veneers","Bridges","Implants","Dentures",
+            "Implant-supported prosthesis","Extraction","Fiberotomy"
+        ];
+
+        var colors = [
+            {name:"Bold Blue", mask:"#5484ED"},
+            {name:"Blue", mask:"#A4BDFC"},
+            {name:"Bold Green", mask:"#51B749"},
+            {name:"Yellow", mask:"#FBD75B"},
+            {name:"Red", mask:"#FF887C"},
+            {name:"Bold Red", mask:"#DC2127"},
+            {name:"Gray", mask:"#E1E1E1"}
+        ];
 
 
         // TEST DATA
@@ -107,10 +122,21 @@
             var str = "";
             for(var i =0; i < length; i++) {
                 var index = rdm(words.length)
-                var world = words.splice(index, 1)[0];
-                str += world + " ";
+                var word = words.splice(index, 1)[0];
+                str += word + " ";
             }
             return str;
+        };
+        var rdmArr = function(words, min, max){
+            words = words.slice();
+            var arr = [];
+            var size = (min || 0) + rdm(max || words.length);
+            for(var i =0; i < size; i++) {
+                var index = rdm(words.length)
+                var word = words.splice(index, 1)[0];
+                arr.push(word);
+            }
+            return arr;
         };
         function getShiftedDateFrom(date, days, hours){
             date = new Date(date);
@@ -124,6 +150,8 @@
                 shifted.push({
                     label:rdmStr(labels, 4),
                     notes:rdmStr(notes, 4),
+                    categories:rdmArr(categories),
+                    color:rdmArr(colors, 1, 1)[0].mask,
                     from:getShiftedDateFrom(event.from, days, hours),
                     to:getShiftedDateFrom(event.to, days, hours),
                 });
@@ -203,10 +231,12 @@
 
 //        sandbox.$.agenda2._collisionManagerCacheEnabled = false;
         sandbox.$.agenda.date = new Date("2015-03-03T18:30:20.815Z");
-        sandbox.$.agenda.events = groupedEvents;
+        sandbox.$.agenda.colors = colors;
+        sandbox.$.agenda.categories = categories;
+//        sandbox.$.agenda.events = groupedEvents;
 //        sandbox.$.agenda.events = bigEvent;
 //        sandbox.$.agenda.events = bigNonGrouped;
-//        sandbox.$.agenda.events = bigGroupedGroup;
+        sandbox.$.agenda.events = bigGroupedGroup;
 //        sandbox.$.agenda.events = multiday;
 //        sandbox.$.agenda2.events = events;
 
