@@ -6,13 +6,13 @@
     <link rel="import" href="cg-agenda.html">
     <style>
         .demo {
+            position:absolute;
             width: 100%;
+            top:0px;
         }
-        .demo-item {
-            padding: 2px;
-            min-height: 300px;
+        cg-agenda /deep/ .agendadays {
+            height:450px;
         }
-        s
     </style>
 </head>
 
@@ -31,51 +31,54 @@
     window.addEventListener('template-bound', function(){
         var sandbox = document.getElementById('sandbox');
 
+        var labels = ["nonspillable","marcel","physiotherapy","ironmonger","pistollike","undernutrition","papillomatous","enslaving"];
+        var notes = [
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam nunc augue, finibus malesuada orci quis, ornare bibendum nulla. Donec massa lorem, placerat at diam sit amet, vulputate sagittis lorem.",
+            "Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed tempus magna et ligula imperdiet gravida.",
+            "Cras ut interdum diam, ut rutrum nunc. Donec augue ligula, ultricies ac purus ac, fringilla efficitur enim.",
+            "Vivamus efficitur fermentum diam, sed blandit tellus viverra sit amet. Nam ut suscipit urna. Maecenas et bibendum orci.",
+            "Curabitur ut mi vitae purus congue venenatis. Fusce eu enim libero. Quisque quis accumsan nibh, et pulvinar mauris. Phasellus sit amet metus at felis porta fermentum at id velit.",
+            "In hac habitasse platea dictumst. Vestibulum dictum tincidunt justo eu ornare. Suspendisse aliquet arcu sem, vitae sollicitudin metus ultrices sit amet.",
+            "Nulla vehicula at sapien quis ultricies. Etiam eu mauris gravida, laoreet erat ac, suscipit urna. Proin volutpat tempus magna, quis ornare velit convallis vel."
+        ];
+
+
         // TEST DATA
         var id=0;
         var groupedEvents = [
             {
-                id:id++,
                 from:new Date("2015-03-18T09:00:00.000-0500"),
                 to:new Date("2015-03-18T12:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T09:00:00.000-0500"),
                 to:new Date("2015-03-18T10:00:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T10:00:00.000-0500"),
                 to:new Date("2015-03-18T11:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T11:30:00.000-0500"),
                 to:new Date("2015-03-18T12:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T09:30:00.000-0500"),
                 to:new Date("2015-03-18T14:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T10:30:00.000-0500"),
                 to:new Date("2015-03-18T12:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T11:00:00.000-0500"),
                 to:new Date("2015-03-18T13:30:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T12:30:00.000-0500"),
                 to:new Date("2015-03-18T14:00:00.000-0500")
             },
             {
-                id:id++,
                 from:new Date("2015-03-18T14:00:00.000-0500"),
                 to:new Date("2015-03-18T17:00:00.000-0500")
             }
@@ -86,19 +89,29 @@
             to:new Date("2015-03-18T15:00:00.000-0500")
         }];
 
-        var multiday = [
+        var multidayTemplate = [
 //            {
-//                id:1,
 //                from:new Date("2015-03-16T09:00:00.000-0500"),
 //                to:new Date("2015-03-19T15:00:00.000-0500")
 //            },
             {
-                id:2,
                 from:new Date("2015-03-17T09:00:00.000-0500"),
                 to:new Date("2015-03-19T20:00:00.000-0500")
             }
         ];
-
+        var rdm = function(e){
+            return parseInt(Math.random() * e);
+        };
+        var rdmStr = function(words, length){
+            words = words.slice();
+            var str = "";
+            for(var i =0; i < length; i++) {
+                var index = rdm(words.length)
+                var world = words.splice(index, 1)[0];
+                str += world + " ";
+            }
+            return str;
+        };
         function getShiftedDateFrom(date, days, hours){
             date = new Date(date);
             days && date.setDate(date.getDate() + days);
@@ -109,6 +122,8 @@
             var shifted = [];
             group.forEach(function(event){
                 shifted.push({
+                    label:rdmStr(labels, 4),
+                    notes:rdmStr(notes, 4),
                     from:getShiftedDateFrom(event.from, days, hours),
                     to:getShiftedDateFrom(event.to, days, hours),
                 });
@@ -128,6 +143,7 @@
             }.bind(this));
             return group;
         }
+        var groupedEvents = generateEvents(getShiftedGroupFrom(groupedEvents, 0), 1, 0, 0);
         var bigGroupedGroup = generateEvents(getShiftedGroupFrom(groupedEvents, -3), 30, 0, 9);
         var bigNonGrouped = generateEvents(getShiftedGroupFrom(nonGrouped, -3), 200, 0, 1);
 //
@@ -195,7 +211,7 @@
 //        sandbox.$.agenda.events = bigEvent;
 //        sandbox.$.agenda.events = bigNonGrouped;
 //        sandbox.$.agenda.events = bigGroupedGroup;
-        sandbox.$.agenda.events = multiday;
+//        sandbox.$.agenda.events = multiday;
 //        sandbox.$.agenda2.events = events;
 
 //        sandbox.tags = o;

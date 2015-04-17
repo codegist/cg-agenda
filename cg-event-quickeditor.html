@@ -1,0 +1,142 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../paper-input/paper-input-decorator.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-autogrow-textarea.html">
+<link rel="import" href="../core-icon/core-icon.html">
+<link rel="import" href="../cg-datetime-picker/cg-datetime-input.html">
+
+<polymer-element name="cg-event-quickeditor" attributes="event">
+    <template>
+        <style>
+            :host .range #from {
+                padding-right:20px;
+            }
+            :host paper-action-dialog {
+                max-width:450px;
+            }
+            :host paper-action-dialog #notesDec {
+                min-height:75px;
+            }
+        </style>
+        <paper-action-dialog heading="{{heading}}" layered="false" id="dialog" on-overlay-close-completed="{{_onClosed}}">
+            <div layout vertical>
+                <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
+                    <input role="input" is="core-input" required value="{{_editCopy.label}}">
+                </paper-input-decorator>
+                <div class="range" layout horizontal>
+                    <paper-input-decorator label="From" floatingLabel error="{{_validationError}}" autoValidate id="from">
+                        <cg-datetime-input role="input" datetime="{{_editCopy.from}}"></cg-datetime-input>
+                    </paper-input-decorator>
+                    <paper-input-decorator label="To" floatingLabel error="{{_validationError}}" autoValidate id="to">
+                        <cg-datetime-input role="input" datetime="{{_editCopy.to}}"></cg-datetime-input>
+                    </paper-input-decorator>
+                </div>
+                <paper-input-decorator label="Notes" floatingLabel>
+                    <paper-autogrow-textarea id="notesDec">
+                        <textarea role="input" value="{{_editCopy.notes}}" id="notes"></textarea>
+                    </paper-autogrow-textarea>
+                </paper-input-decorator>
+            </div>
+            <paper-button affirmative class="colored custom" on-tap="{{ok}}" id="okButton">
+                <core-icon icon="check"></core-icon>
+                <template if="{{ !create }}">ok</template>
+                <template if="{{ create }}">add</template>
+            </paper-button>
+            <paper-button dismissive class="custom" on-tap="{{cancel}}">
+                <core-icon icon="clear"></core-icon>
+                cancel
+            </paper-button>
+            <template if="{{ !create }}">
+                <paper-button dismissive class="custom" on-tap="{{delete}}">
+                    <core-icon icon="clear"></core-icon>
+                    delete
+                </paper-button>
+            </template>
+        </paper-action-dialog>
+    </template>
+    <script>
+        Polymer("cg-event-quickeditor", {
+            event:null,
+            heading:"",
+            existingEvent:"Edit event",
+            addEvent:"Add event",
+            create:false,
+            _inputs:null,
+            _editCopy:null,
+            _validationError:"Invalid or required",
+            domReady:function(){
+                // TODO : why on-change attribute works on all input but not on cg-datetime-input where it works in other places??
+                this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
+                [].slice.call(this.shadowRoot.querySelectorAll("[role='input']")).forEach(function(e){
+                    e.addEventListener("change", this._validate.bind(this));
+                }, this);
+            },
+            _validate:function(e, callback, delay){
+                this._doValidate();
+                // TODO HACK. Second slightly delayed validation
+                // TODO HACK. For some reason when selecting date from button rather than typing it,
+                // TODO HACK. change event comes with stale value, see cg-base-input > addEventListener('datetime-changed' and _onInputChange:
+                this.job("validate", function(){
+                    this._doValidate();
+                    callback && callback();
+                }.bind(this), delay || 300);
+            },
+            _doValidate:function(){
+                var valid = true;
+                this._inputs.forEach(function(e){
+                    e.inputAction();
+                    if(e.isInvalid) {
+                        valid = false;
+                    }
+                }, this);
+                if(valid) {
+                    var start = new Date(this._editCopy.from).getTime();
+                    var end = new Date(this._editCopy.to).getTime();
+                    valid = start < end;
+                    if(!valid) {
+                        this.$.to.isInvalid = true;
+                    }
+                }
+                this.$.okButton.disabled = !valid;
+            },
+            ok:function(){
+                this.event.from = new Date(this._editCopy.from);
+                this.event.to = new Date(this._editCopy.to);
+                this.event.label = this._editCopy.label;
+                this.event.notes = this._editCopy.notes;
+                this.closeDialog("OK");
+            },
+            cancel:function(){
+                this.closeDialog("CANCEL");
+            },
+            delete:function(){
+                this.closeDialog("DELETE");
+            },
+            eventChanged:function(){
+                this._editCopy = {
+                    from:this.event.from ? this.event.from.toISOString() : "",
+                    to:this.event.to ? this.event.to.toISOString() : "",
+                    label:this.event.label,
+                    notes:this.event.notes
+                };
+            },
+            openDialog:function(event, edit){
+                this.create = edit === false || event === undefined;
+                this.event = event || {};
+                this.heading = this.create ? this.addEvent : this.existingEvent;
+                this._validate(null, function(){
+                    this.$.dialog.toggle();
+                }.bind(this), 10);
+            },
+            closeDialog:function(result){
+                this.$.dialog.open = false;
+                // TODO CLOSE SEEMS TO BE MESSY
+                this.fire("close", {
+                    event: this.event,
+                    result: result
+                });
+            }
+        });
+    </script>
+</polymer-element>

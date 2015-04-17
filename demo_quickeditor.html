@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>cg-datetime-input Demo</title>
+    <link rel="import" href="cg-event-quickeditor.html">
+    <link rel="import" href="../paper-button/paper-button.html">
+</head>
+
+
+<body unresolved fullbleed layout vertical center center-justified>
+
+<template id="sandbox" is="auto-binding">
+    <section class="demo" layout vertical>
+        <div>With Event</div>
+        <span>RESULT: {{result1}}</span>
+        <span>label: {{event1.label}}</span>
+        <span>from: {{event1.from}}</span>
+        <span>to: {{event1.to}}</span>
+        <span>notes: {{event1.notes}}</span>
+        <cg-event-quickeditor id="editor1"></cg-event-quickeditor>
+        <paper-button on-tap="{{showEditor}}">OPEN</paper-button>
+    </section>
+    <section class="demo" layout vertical>
+        <div>Without Event</div>
+        <span>RESULT: {{result2}}</span>
+        <span>label: {{event2.label}}</span>
+        <span>from: {{event2.from}}</span>
+        <span>to: {{event2.to}}</span>
+        <span>notes: {{event2.notes}}</span>
+        <cg-event-quickeditor id="editor2"></cg-event-quickeditor>
+        <paper-button on-tap="{{showCreateEditor}}">OPEN</paper-button>
+    </section>
+</template>
+
+<script>
+    window.addEventListener('template-bound', function(){
+        var sandbox = document.getElementById('sandbox');
+        sandbox.result1 = "";
+        sandbox.result2 = "";
+        sandbox.event2 = {};
+        sandbox.event1 = {
+            label:"Some label",
+            notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed tempus magna et ligula imperdiet gravida.",
+            from: new Date("2015-03-03T15:30:00.000Z"),
+            to: new Date("2015-03-03T18:15:00.000Z")
+        };
+
+        document.getElementById('editor1').addEventListener("close", function(e){
+            sandbox.result1 = e.detail.result + " - " + JSON.stringify(e.detail.event);
+        });
+        document.getElementById('editor2').addEventListener("close", function(e){
+            sandbox.event2 = e.event;
+            sandbox.result2 = e.detail.result + " - " + JSON.stringify(e.detail.event);
+        });
+
+        sandbox.showEditor = function(e){
+            sandbox.$.editor1.openDialog(sandbox.event1);
+        };
+        sandbox.showCreateEditor = function(e){
+            sandbox.$.editor2.openDialog();
+        };
+    });
+</script>
+
+</body>
+</html>

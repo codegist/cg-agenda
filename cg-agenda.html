@@ -1,6 +1,7 @@
 <link href="../polymer/polymer.html" rel="import">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
+<link rel="import" href="cg-event-quickeditor.html">
 
 <polymer-element name="cg-agenda">
     <template>
@@ -43,7 +44,7 @@
                 border-radius: 10px;
                 cursor: pointer;
                 padding:0px 0px 0px 4px;
-                z-index:0;
+                z-index:1;
             }
             :host .event .header {
                 font-weight: bold;
@@ -53,6 +54,17 @@
                 margin: 3px 3px 0px 3px;
                 white-space: nowrap;
                 overflow: hidden;
+            }
+            :host .event .content {
+                font-size: 11px;
+                color: white;
+                text-align: left;
+                margin: 3px 3px 5px 1px;
+                word-break: break-all;
+                overflow: hidden;
+            }
+            :host .event .content:hover {
+                text-decoration: underline;
             }
 
             :host .event.resize {
@@ -68,7 +80,11 @@
             }
             :host .event.dd-ghost {
                 opacity: 0.5;
-                z-index:1;
+                z-index:2;
+            }
+            :host .event.create-ghost {
+                opacity: 0.4;
+                z-index:0;
             }
             :host .weekdays .day-name-large {
                 text-align: center;
@@ -88,7 +104,7 @@
                     </div>
                 </template>
             </div>
-            <div class="agendadays noselect" layout horizontal id="agendadays">
+            <div class="agendadays noselect" layout horizontal id="agendadays" on-mousemove="{{_onMouseMove}}" on-mouseout="{{_hideCreateGhosts}}">
                 <template repeat="{{_weekDays as day}}">
                     <div flex class="agengaday noselect day" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{_onDayOver}}" relative>
                         <template repeat="{{_eventsInView as e}}">
@@ -98,13 +114,14 @@
                                      data-role="move"
                                      data-id="{{e.id}}"
                                      data-day="{{day.day}}"
+                                     on-dblclick="{{_onEventDblClick}}"
                                      layout vertical
+                                     on-mousemove="{{_onEventOver}}"
                                      on-trackstart="{{_onEventDragStart}}"
                                      on-track="{{_onEventDrag}}"
-                                     on-trackend="{{_onEventDragEnd}}"
-                                        >
+                                     on-trackend="{{_onEventDragEnd}}">
                                     <div class="header noselect">{{_eventRangeDisplay(e, day, e.redraw)}}</div>
-                                    <div flex class="content noselect"></div>
+                                    <div flex class="content noselect">{{e.label}}</div>
                                     <div class="footer noselect">
                                         <div class="resizer"
                                              data-role="resize"
@@ -119,9 +136,14 @@
                             </template>
                         </template>
                         <div class="dd-overlay" id="dd-overlay-{{day.day}}"></div>
+                        <div class="event noselect create-ghost hidden" layout vertical id="event-createghost-{{day.day}}" on-dblclick="{{_onEventDblClick}}">
+                            <div class="header noselect">{{_eventRangeDisplay(_createGhost.data, day, _createGhost.data.redraw)}}</div>
+                            <div flex class="content noselect"></div>
+                        </div>
                     </div>
                 </template>
             </div>
+            <cg-event-quickeditor id="editor" on-close="{{_onEditorClose}}"></cg-event-quickeditor>
         </div>
 
     </template>
@@ -448,6 +470,7 @@
                 date:new Date(),
                 startDayOfWeek:1,
                 hourHeight:40,
+                showHour:8,
                 dragMinuteStep:15,
                 _eventSizeCacheThreshold:100,
                 _draggingTerminateTimeout:1000,
@@ -463,9 +486,149 @@
                 _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
                 _manager:null,
                 _collisionManagerCacheEnabled:true,
+                ready:function(){
+                    this._manager = new CalendarManager(this._collisionManagerCacheEnabled);
+                    this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
+                    var date = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate(), 0, 0, 0, 0);
+                    var startDay = date.getDate() - date.getDay() + (this.startDayOfWeek % 7);
+                    var weekDays = [];
+                    date.setDate(startDay);
+                    this._viewFrom = new Date(date);
+                    for(var i = startDay; i < startDay + 7; i++){
+                        date.setDate(i);
+                        weekDays.push({
+                            name:Intl.DateTimeFormat(this.locale, {weekday:'long'}).format(date),
+                            day:i,
+                            month:date.getMonth(),
+                            year:date.getFullYear(),
+                            redraw:false
+                        });
+                    }
+                    this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+                    this._weekDays = weekDays;
+
+                    console.log("Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                },
+                domReady:function(){
+                    this.$.agendadays.scrollTop = this.hourHeight * this.showHour;
+                },
+                redrawAll:function(){
+                    this._eventsInView.forEach(function(e){
+                        e.redraw = this._getRedrawsCount(e);
+                    }.bind(this));
+                },
+                _collisionManagerCacheEnabledChanged:function(){
+                    this._manager.cache.collisionGroups.enabled = this._collisionManagerCacheEnabled;
+                    if(this._manager.cache.collisionGroups.enabled) {
+                        this._manager.primeCollisionGroupCache(this._eventsInView);
+                    }
+                    this.redrawAll();
+                },
+                toggleCache:function(){ // TODO REMOVE
+                    this._collisionManagerCacheEnabled = !this._collisionManagerCacheEnabled;
+                },
+                set events(events){
+                    this._manager.orderEvents(events, false);
+                    var eventsInView = this._manager.getEventsInView(events, {from:this._viewFrom, to:this._viewTo});
+                    if(eventsInView.length < this._eventSizeCacheThreshold) {
+                        console.log("Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
+                        this._manager.cache.collisionGroups.enabled = false
+                    }else{
+                        console.log("Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
+                        this._manager.cache.collisionGroups.enabled = true;
+                        this._manager.primeCollisionGroupCache(eventsInView);
+                    }
+                    var eventsMap = {};
+                    eventsInView.forEach(function(e){
+                        e.redraw = this._getRedrawsCount(e);
+                        eventsMap[e.id] = e;
+                    }.bind(this));
+
+                    this._events = events;
+                    this._eventsInView = eventsInView;
+                    this._eventsMap = eventsMap;
+                },
+                get events(){
+                    return this._events;
+                },
+                _onDayOver:function(e){
+                    this._dayOver = {
+                        day: Number(e.currentTarget.dataset.day),
+                        month: Number(e.currentTarget.dataset.month),
+                        year: Number(e.currentTarget.dataset.year)
+                    };
+                },
+                _onEventOver:function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this._hideCreateGhosts();
+                },
+                _onMouseMove:function(e){
+                    if(this._createGhost != undefined && this._createGhost.data.day != this._dayOver) {
+                        this._hideCreateGhosts();
+                    }
+                    var position = e.clientY + this.$.agendadays.scrollTop - this.$.agendadays.offsetTop - this.hourHeight / 2;
+                    var hours = this._getHoursForHeight(position);
+                    var minutes = this._getMinutesForHeight(position) - hours * 60;
+
+                    this._createGhost = this.$.agendadays.querySelector("#event-createghost-" + this._dayOver.day);
+                    var data = this._createGhost.data  = this._createGhost.data || {};
+
+                    data.day = this._dayOver;
+                    data.redraw = data.redraw || 0;
+                    data.from = data.from || new Date(0,0,0,0,0,0,0);
+                    data.to = data.to || new Date(0,0,0,0,0,0,0);
+
+                    data.from.setFullYear(data.day.year, data.day.month, data.day.day);
+                    data.to.setFullYear(data.day.year, data.day.month, data.day.day);
+                    data.from.setHours(hours, minutes);
+                    data.to.setHours(hours + 1, minutes);
+
+                    data.redraw = (data.redraw + 1) % 2;
+                    this._createGhost.setAttribute("style", this._getEventBoxFor(data, data.day.day).toStyleString());
+                    this._createGhost.classList.remove("hidden");
+                },
+                _hideCreateGhosts:function(){
+                    if(!this._createGhost.classList.contains("hidden")) {
+                        this._createGhost.classList.add("hidden");
+                    }
+                },
+                _onEventDblClick:function(e){
+                    var op = e.currentTarget.dataset.id != undefined ? "edit" : "create";
+                    var event = op == "edit" ? this._getEventById(e.currentTarget.dataset.id) : {};
+                    if(op == "edit") {
+                        event._from = event.from;
+                        event._to = event.to;
+                    }else{
+                        event.from = this._createGhost.data.from;
+                        event.to = this._createGhost.data.to;
+                    }
+                    this.$.editor.openDialog(event, op == "eddit");
+                },
+                _onEditorClose:function(e){
+                    switch(e.detail.result) {
+                        case "OK":
+                            var newRange = {
+                                from:e.detail.event.from,
+                                to:e.detail.event.to
+                            };
+                            var op = e.detail.event._from ? "edit" : "create";
+                            e.detail.event.from = e.detail.event._from || e.detail.event.from;
+                            e.detail.event.to = e.detail.event._to || e.detail.event.to;
+                            delete e.detail.event._from;
+                            delete e.detail.event._to;
+                            this._commitEventChange(e.detail.event, newRange, op);
+                            break;
+                        case "DELETE":
+                            this._commitEventChange(e.detail.event, newRange, "delete");
+                            break;
+                        case "CANCEL":break;
+                    }
+                },
                 _onEventDragStart:function(e){
                     e.preventDefault();
                     e.stopPropagation();
+                    this._hideCreateGhosts();
                     var eventElement;
                     if(e.currentTarget.dataset.targetId != undefined && e.currentTarget.dataset.targetDay != undefined) {
                         eventElement = this.$.agendadays.querySelector(".day[data-day='" + e.currentTarget.dataset.targetDay + "'] .event[data-id='" + e.currentTarget.dataset.targetId + "']")
@@ -521,6 +684,7 @@
                 _onEventDrag:function(e){
                     e.preventDefault();
                     e.stopPropagation();
+                    this._hideCreateGhosts();
                     if(!this._initialDragInfos) {
                         return;
                     }
@@ -573,7 +737,6 @@
                                             dayDef.dayDDOverlayEl.appendChild(el);
                                         }
                                     }
-
                                 }
                             }
                         }.bind(this);
@@ -592,6 +755,7 @@
                     this._initialDragInfos.fireUpdated();
                 },
                 _onEventDragEnd:function(e){
+                    this._hideCreateGhosts();
                     e && typeof e != "string" && e.preventDefault() && e.stopPropagation();
                     if (this._initialDragInfos && this._initialDragInfos.dragging) {
                         this._initialDragInfos.fireFinished();
@@ -609,77 +773,60 @@
                         delete this._initialDragInfos;
                     }
                 },
-                ready:function(){
-                    this._manager = new CalendarManager(this._collisionManagerCacheEnabled);
-                    this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
-                    var date = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate(), 0, 0, 0, 0);
-                    var startDay = date.getDate() - date.getDay() + (this.startDayOfWeek % 7);
-                    var weekDays = [];
-                    date.setDate(startDay);
-                    this._viewFrom = new Date(date);
-                    for(var i = startDay; i < startDay + 7; i++){
-                        date.setDate(i);
-                        weekDays.push({
-                            name:Intl.DateTimeFormat(this.locale, {weekday:'long'}).format(date),
-                            day:i,
-                            month:date.getMonth(),
-                            year:date.getFullYear(),
-                            redraw:false
-                        });
-                    }
-                    this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-                    this._weekDays = weekDays;
-                    console.log("Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                _onEventChangeCommitted:function(e){
+                    this._commitEventChange(e.detail.event, e.detail.newPosition, "edit");
                 },
-                _collisionManagerCacheEnabledChanged:function(){
-                    this._manager.cache.collisionGroups.enabled = this._collisionManagerCacheEnabled;
-                    if(this._manager.cache.collisionGroups.enabled) {
-                        this._manager.primeCollisionGroupCache(this._eventsInView);
+                _commitEventChange:function(event, newRange, operation) {
+                    if(operation == "edit") {
+                        var oldGroup = this._manager.findCollisionGroup(this._eventsInView, event, true, true);
+                        oldGroup.forEach(function (group) {
+                            group.events.forEach(function (event) {
+                                //console.log("Trigger redraw for old group event: " + event.id + " of group " + group.from + " - " + group.to);
+                                event.redraw = this._getRedrawsCount(event);
+                            }.bind(this));
+                        }.bind(this));
                     }
-                    this.redrawAll();
-                },
-                toggleCache:function(){ // TODO REMOVE
-                    this._collisionManagerCacheEnabled = !this._collisionManagerCacheEnabled;
-                },
-                set events(events){
-                    this._manager.orderEvents(events, false);
-                    var eventsInView = this._manager.getEventsInView(events, {from:this._viewFrom, to:this._viewTo});
-                    if(eventsInView.length < this._eventSizeCacheThreshold) {
-                        console.log("Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
-                        this._manager.cache.collisionGroups.enabled = false
-                    }else{
-                        console.log("Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
-                        this._manager.cache.collisionGroups.enabled = true;
-                        this._manager.primeCollisionGroupCache(eventsInView);
-                    }
-                    var eventsMap = {};
-                    eventsInView.forEach(function(e){
-                        e.redraw = this._getRedrawsCount(e);
-                        eventsMap[e.id] = e;
-                    }.bind(this));
 
-                    this._events = events;
-                    this._eventsInView = eventsInView;
-                    this._eventsMap = eventsMap;
-                },
-                get events(){
-                    return this._events;
-                },
-                _onDayOver:function(e){
-                    this._dayOver = {
-                        day: Number(e.currentTarget.dataset.day),
-                        month: Number(e.currentTarget.dataset.month),
-                        year: Number(e.currentTarget.dataset.year)
-                    };
+                    if(operation == "edit" || operation == "create") {
+                        if(operation == "create") {
+                            event.id = this._generateId();
+                            this._eventsInView.push(event);
+                            this._events.push(event);
+                            this._eventsMap[event.id] = event;
+                        }
+                        event.from = newRange.from;
+                        event.to = newRange.to;
+                        var newGroup = this._manager.findCollisionGroup(this._eventsInView, event, true);
+                        newGroup.forEach(function(group){
+                            group.events.forEach(function(event){
+                                //console.log("Trigger redraw for new group event: " + event.id + " of group " + group.from + " - " + group.to);
+                                event.redraw = this._getRedrawsCount(event);
+                            }.bind(this));
+                        }.bind(this));
+                    }else if(operation == "delete"){
+                        this._eventsInView.splice(this._eventsInView.indexOf(event), 1);
+                        this._events.splice(this._events.indexOf(event), 1);
+                    }
+
+                    event.redraw = this._getRedrawsCount(event);
+                    // TODO PLUS AN ASYNC, FOR SOME REASON A IMMEDIATE REDRAW COULD DRAW STALE EVENT
+                    this.async(function(){
+                        event.redraw = this._getRedrawsCount(event);
+                    }.bind(this), null, 5)
+                    this.fire("event-changed", {
+                        event:event,
+                        operation:operation
+                    });
                 },
                 _eventRangeDisplay:function(range, day){
+                    if(!range) return;
                     var from = range.from.getDate() == day.day ? this._timeFormat.format(range.from) : "";
                     var to = range.to.getDate() == day.day ? this._timeFormat.format(range.to) : "";
 //                    return e.id;
                     return from + (from && to ? " - " : "") + to;
                 },
                 _getEventById:function(id) {
-                    return this.eventsMap[id]
+                    return this._eventsMap[id]
                 },
                 isEventOfDay:function(event, day){
                     //console.log("isEventOfDay day=" + JSON.stringify(day) + " event=" + JSON.stringify(event) + " = " +this._isEventOfDay(event,day));
@@ -696,17 +843,12 @@
                 _getMinuteHeight:function(){
                     return this.hourHeight / (60.0 / this.dragMinuteStep);
                 },
+                _getHoursForHeight:function(height){
+                    return Math.floor(height / this.hourHeight);
+                },
                 _getMinutesForHeight:function(height){
                     var minuteHeight = this._getMinuteHeight();
                     return Math.round(height / minuteHeight) * this.dragMinuteStep;
-                },
-                redrawAll:function(){
-                    this._eventsInView.forEach(function(e){
-                        e.redraw = this._getRedrawsCount(e);
-                    }.bind(this));
-                },
-                _isMultiDay:function(e){
-                    return e.from.getDate() != e.to.getDate();
                 },
                 _getEventClass:function(event, day){
                     return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
@@ -752,36 +894,15 @@
                 _getRedrawsCount:function(event){
                     return (event.to.getDate() - event.from.getDate()) + 1;
                 },
-                _daydiff:function(range) {
-                    return this._minutediff(range)/(24*60);
-                },
                 _minutediff:function(range) {
                     return (range.to.getTime()-range.from.getTime())/(1000*60);
                 },
-                _onEventChangeCommitted:function(e){
-                    var oldGroup = this._manager.findCollisionGroup(this._eventsInView, e.detail.event, true, true);
-                    e.detail.event.from = e.detail.newPosition.from;
-                    e.detail.event.to = e.detail.newPosition.to;
-                    var newGroup = this._manager.findCollisionGroup(this._eventsInView, e.detail.event, true);
-                    oldGroup.forEach(function(group){
-                        group.events.forEach(function(event){
-                            //console.log("Trigger redraw for old group event: " + event.id + " of group " + group.from + " - " + group.to);
-                            event.redraw = this._getRedrawsCount(event);
-                        }.bind(this));
-                    }.bind(this));
-                    newGroup.forEach(function(group){
-                        group.events.forEach(function(event){
-                            //console.log("Trigger redraw for new group event: " + event.id + " of group " + group.from + " - " + group.to);
-                            event.redraw = this._getRedrawsCount(event);
-                        }.bind(this));
-                    }.bind(this));
-
-                    this.fire("event-changed", e.detail.event);
-                    // TODO : clear a weird phantom remaining event when dragging between days..
-//                    this.async(function(){
-                        e.detail.event.redraw = this._getRedrawsCount(e.detail.event);
-//                    }.bind(this), null, 20);
-                    //console.log("[Cache size " + this._manager.cache.collisionGroups.size() + "]");
+                _generateId:function(){
+                    // TODO SHOULD BE USED AS A TEMP ID FOR CREATED EVENTS
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+                        return v.toString(16);
+                    });
                 }
             });
         })();
