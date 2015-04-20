@@ -56,6 +56,40 @@
             {name:"Bold Red", mask:"#DC2127"},
             {name:"Gray", mask:"#E1E1E1"}
         ];
+        var documents = [{
+            "name": "c29bf435b98b.jpg",
+            "size": 359551,
+            "type": "image/jpeg",
+            "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
+        }, {
+            "name": "docs.zip",
+            "size": 1607693765,
+            "type": "application/zip",
+            "description":"Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae."
+        }, {
+            "name": "eclipse-java-luna-SR1-linux-gtk-x86_64.tar.gz",
+            "size": 160242552,
+            "type": "application/gzip"
+        }, {
+            "name": "jdk-8u25-linux-x64.gz",
+            "size": 160872482,
+            "type": "application/gzip"
+        }, {
+            "name": "salamander",
+            "size": 63,
+            "type": "",
+            "description":"Proin semper augue justo, sit amet dictum erat porttitor vitae."
+        }, {
+            "name": "singlepath.svg",
+            "size": 47770,
+            "type": "image/svg+xml",
+            "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
+        }, {
+            "name": "stock-vector-natural-grass-and-gr.jpg",
+            "size": 71119,
+            "type": "image/jpeg",
+            "description":"Sed tempus magna et ligula imperdiet gravida."
+        }];
 
 
         // TEST DATA
@@ -151,6 +185,7 @@
                     label:rdmStr(labels, 4),
                     notes:rdmStr(notes, 4),
                     categories:rdmArr(categories),
+                    documents:rdmArr(documents),
                     color:rdmArr(colors, 1, 1)[0].mask,
                     from:getShiftedDateFrom(event.from, days, hours),
                     to:getShiftedDateFrom(event.to, days, hours),
