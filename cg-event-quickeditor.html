@@ -1,8 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../paper-input/paper-input-decorator.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-input/paper-autogrow-textarea.html">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../core-icon/core-icon.html">
 <link rel="import" href="../core-pages/core-pages.html">
 <link rel="import" href="../paper-tabs/paper-tab.html">
@@ -21,9 +20,14 @@
             :host .range #from {
                 padding-right:20px;
             }
+            :host #notes {
+                height:135px;
+            }
             :host paper-action-dialog {
                 max-width:450px;
-                min-height:500px;
+            }
+            :host paper-action-dialog #scroller {
+                overflow:auto;
             }
             :host cg-input-documents {
                 min-width:350px;
@@ -31,43 +35,45 @@
         </style>
         <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
             <div>
-            <paper-tabs selected="{{_selectedPage}}" noink noslide>
-                <paper-tab>General</paper-tab>
-                <paper-tab>More</paper-tab>
-            </paper-tabs>
-            <core-pages selected="{{_selectedPage}}">
-                <div layout vertical>
-                    <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
-                        <input is="core-input" required value="{{_editCopy.label}}">
-                    </paper-input-decorator>
-                    <div class="range" layout horizontal>
-                        <paper-input-decorator label="From" floatingLabel error="{{_validationError}}" autoValidate id="from">
-                            <cg-datetime-input required datetime="{{_editCopy.from}}"></cg-datetime-input>
-                        </paper-input-decorator>
-                        <paper-input-decorator label="To" floatingLabel error="{{_validationError}}" autoValidate id="to">
-                            <cg-datetime-input required datetime="{{_editCopy.to}}"></cg-datetime-input>
-                        </paper-input-decorator>
+                <paper-tabs selected="{{_selectedPage}}" noink noslide>
+                    <paper-tab>General</paper-tab>
+                    <paper-tab>More</paper-tab>
+                </paper-tabs>
+                <core-pages selected="{{_selectedPage}}">
+                    <div class="page-wrapper">
+                        <div layout vertical>
+                            <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
+                                <input is="core-input" required value="{{_editCopy.label}}">
+                            </paper-input-decorator>
+                            <div class="range" layout horizontal>
+                                <paper-input-decorator label="From" floatingLabel error="{{_validationError}}" autoValidate id="from">
+                                    <cg-datetime-input required datetime="{{_editCopy.from}}"></cg-datetime-input>
+                                </paper-input-decorator>
+                                <paper-input-decorator label="To" floatingLabel error="{{_validationError}}" autoValidate id="to">
+                                    <cg-datetime-input required datetime="{{_editCopy.to}}"></cg-datetime-input>
+                                </paper-input-decorator>
+                            </div>
+                            <paper-input-decorator label="Notes" floatingLabel>
+                                <textarea value="{{_editCopy.notes}}" id="notes" on-keypress="{{_validate}}"></textarea>
+                            </paper-input-decorator>
+                        </div>
                     </div>
-                    <paper-input-decorator label="Notes" floatingLabel>
-                        <paper-autogrow-textarea id="notesDec">
-                            <textarea value="{{_editCopy.notes}}" id="notes" on-keypress="{{_validate}}"></textarea>
-                        </paper-autogrow-textarea>
-                    </paper-input-decorator>
-                </div>
-                <div layout vertical relative>
-                    <template if="{{categories.length > 0}}">
-                        <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                            <cg-input-tags tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
-                        </paper-input-decorator>
-                    </template>
-                    <template if="{{colors.length > 0}}">
-                        <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                            <cg-input-color required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
-                        </paper-input-decorator>
-                    </template>
-                    <cg-input-documents scrolling="false" label="Documents" documents="{{_editCopy.documents}}"></cg-input-documents>
-                </div>
-            </core-pages>
+                    <div class="page-wrapper" relative>
+                        <div layout vertical>
+                            <template if="{{categories.length > 0}}">
+                                <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
+                                    <cg-input-tags tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                </paper-input-decorator>
+                            </template>
+                            <template if="{{colors.length > 0}}">
+                                <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
+                                    <cg-input-color required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                </paper-input-decorator>
+                            </template>
+                            <cg-input-documents scrolling="false" label="Documents" documents="{{_editCopy.documents}}"></cg-input-documents>
+                        </div>
+                    </div>
+                </core-pages>
             </div>
             <paper-button affirmative class="colored custom" on-tap="{{ok}}" id="okButton">
                 <core-icon affirmative icon="check"></core-icon>
@@ -154,7 +160,7 @@
                 this.closeDialog("DELETE");
             },
             _editCopyChanged:function(){
-                this.$.notesDec.update(this.$.notes);
+//                this.$.notesDec.update(this.$.notes);
             },
             eventChanged:function(){
                 this._editCopy = {
@@ -168,6 +174,7 @@
                 };
             },
             openDialog:function(event, edit){
+                this._selectedPage = 0;
                 this.create = edit === false || event === undefined;
                 this.event = event || {};
                 this.heading = this.create ? this.addEvent : this.existingEvent;

@@ -1,7 +1,10 @@
 <link href="../polymer/polymer.html" rel="import">
 <link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../core-toolbar/core-toolbar.html">
+<link rel="import" href="../core-icon-button/core-icon-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
+<link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
 <link rel="import" href="cg-event-quickeditor.html">
 
 <polymer-element name="cg-agenda" attributes="date startDayOfWeek hourHeight showHour dragMinuteStep colors">
@@ -25,7 +28,8 @@
             }
             :host .agendadays {
                 height: 400px;
-                overflow:scroll;
+                overflow-y: auto;
+                overflow-x: hidden;
             }
             :host .weekday,
             :host .agengaday {
@@ -45,7 +49,7 @@
                 border:1px solid white;
                 border-radius: 10px;
                 cursor: pointer;
-                padding:0px 0px 0px 4px;
+                padding:0px 2px 0px 2px;
                 z-index:1;
             }
             :host .event .header {
@@ -68,6 +72,9 @@
             :host .event .content:hover {
                 text-decoration: underline;
             }
+            :host .event:hover {
+                z-index:2;
+            }
 
             :host .event.resize {
                 cursor:ns-resize;
@@ -84,29 +91,62 @@
                 opacity: 0.5;
                 z-index:2;
             }
-            :host .event.create-ghost {
-                opacity: 0.4;
-                z-index:0;
-            }
             :host .weekdays .day-name-large {
                 text-align: center;
             }
             :host .weekdays .day-num {
                 font-size: 2em;
             }
+            :host .weekdays {
+                margin-left:25px;
+            }
+            :host canvas {
+                position: absolute;
+                top:0; left:0;
+                width:100%;
+            }
+
+            :host div#hours {
+                position:relative;
+                width:25px;
+                font-family: "Oxygen Mono", Oxygen , monospace;
+                font-size: .8em;
+            }
+
+            :host div#hours > div {
+                position:absolute;
+                right:5px;
+            }
+            :host #header{
+                background-color: transparent;
+            }
+
+            :host #header .action-button /deep/ core-icon {
+                color: rgb(0, 150, 136);
+                margin-right: 5px;
+            }
         </style>
         <div id="agenda" layout vertical flex>
-            <paper-button on-tap="{{toggleCache}}">toggle cache {{_collisionManagerCacheEnabled == true?"ON":"OFF"}}</paper-button>
-            <paper-button on-tap="{{redrawAll}}">redraw all</paper-button>
+            <!--<paper-button on-tap="{{toggleCache}}">toggle cache {{_collisionManagerCacheEnabled == true?"ON":"OFF"}}</paper-button>-->
+            <!--<paper-button on-tap="{{redrawAll}}">redraw all</paper-button>-->
+            <core-toolbar id="header" class="header">
+                <core-icon-button class="action-button" id="previous" icon="fa:caret-left" on-tap="{{_onPreviousWeek}}"></core-icon-button>
+                <core-icon-button class="action-button" id="next" icon="fa:caret-right" on-tap="{{_onNextWeek}}"></core-icon-button>
+                <core-icon-button class="action-button" id="create_icon_button" icon="create" on-tap="{{_onCreateEvent}}">Add event</core-icon-button>
+                <core-icon-button class="action-button" id="today_icon_button" icon="fa:calendar-o" on-tap="{{_onNowWeek}}">Today</core-icon-button>
+                <core-icon-button class="action-button" id="calendar_button" icon="fa:calendar" on-tap="{{_onSelectWeek}}">{{_calendarWeekDisplay(_viewFrom, _viewTo)}}</core-icon-button>
+            </core-toolbar>
             <div id="weekdays" class="weekdays noselect" layout horizontal>
                 <template repeat="{{_weekDays as day}}">
-                    <div flex class="weekday noselect" data-value="{{day.day}}" layout horizontal>
-                        <span flex class="day-name-large">{{day.name}}</span>
-                        <span class="day-num">{{day.day}}/{{day.month + 1}}</span>
+                    <div flex class="weekday noselect" data-value="{{day.day}}" layout horizontal center>
+                        <span flex class="day-name-large">{{_dayNameDisplay(day)}}</span>
+                        <span class="day-num">{{_dayNumDisplay(day)}}</span>
                     </div>
                 </template>
             </div>
-            <div class="agendadays noselect" layout horizontal id="agendadays" on-mousemove="{{_onMouseMove}}" on-mouseout="{{_hideCreateGhosts}}">
+            <div class="agendadays noselect" layout horizontal id="agendadays" on-mousemove="{{_onMouseMove}}" on-dblclick="{{_onCalendarDblClick}}" relative>
+                <canvas id="hoursCanvas" style="width:100%"></canvas>
+                <div id="hours"></div>
                 <template repeat="{{_weekDays as day}}">
                     <div flex class="agengaday noselect day" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{_onDayOver}}" relative>
                         <template repeat="{{_eventsInView as e}}">
@@ -138,13 +178,11 @@
                             </template>
                         </template>
                         <div class="dd-overlay" id="dd-overlay-{{day.day}}"></div>
-                        <div class="event noselect create-ghost hidden" layout vertical id="event-createghost-{{day.day}}" on-dblclick="{{_onEventDblClick}}">
-                            <div class="header noselect">{{_eventRangeDisplay(_createGhost.data, day, _createGhost.data.redraw)}}</div>
-                            <div flex class="content noselect"></div>
-                        </div>
                     </div>
                 </template>
             </div>
+            <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
+            <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
             <cg-event-quickeditor id="editor" on-close="{{_onEditorClose}}" colors="{{colors}}" categories="{{categories}}"></cg-event-quickeditor>
             <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
                 <section>
@@ -164,6 +202,67 @@
     </template>
     <script>
         (function(){
+            var CollisionGroup = function(event, that, id){
+                this.from = new Date(event.from);
+                this.to = new Date(event.to);
+                this.events = [];
+                this.that = that;
+                this.addEvent(event, id)
+            };
+            CollisionGroup.prototype = {
+                reorder:function(){
+                    this.that.orderEvents(this.events, false);
+                },
+                _setId:function(event, id){
+                    if(id == undefined || id == null) {
+                        return;
+                    }
+                    event.collisionGroupId = id;
+                },
+                _removeId:function(event){
+                    delete event.collisionGroupId;
+                },
+                setIds:function(id) {
+                    for(var i=0; i<this.events.length;i++){
+                        this._setId(this.events[i], id);
+                    }
+                },
+                removeIds:function() {
+                    for(var i=0; i<this.events.length;i++){
+                        this._removeId(this.events[i]);
+                    }
+                },
+                addEvents:function(events, id, reorder){
+                    for(var i=0; i<events.length; i++){
+                        this.addEvent(events[i], id, reorder);
+                    }
+                },
+                addEvent:function(e, id, reorder){
+                    this._setId(e, id);
+                    this.events.push(e);
+                    this.from = new Date(Math.min(e.from.getTime(), this.from.getTime()));
+                    this.to = new Date(Math.max(e.to.getTime(), this.to.getTime()));
+                    reorder === true && this.reorder();
+                },
+                removeEvent:function(e) {
+                    var removed = this.events.splice(this.events.indexOf(e), 1);
+                    if(removed.length == 1) {
+                        this._removeId(e);
+                        this.reorder();
+                        if (this.events.length > 0) {
+                            this.from = new Date(this.events[0].from);
+                            this.to = new Date(this.events[0].to);
+                            for (var i = 1; i < this.events.length; i++) {
+                                this.from = new Date(Math.min(this.events[i].from.getTime(), this.from.getTime()));
+                                this.to = new Date(Math.max(this.events[i].to.getTime(), this.to.getTime()));
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
             var IdGen = function() {
                 this.id = 1;  
             };
@@ -331,7 +430,7 @@
                             }else{
                                 //console.log("Event " + event._cgaId + ": More than one suitable cached group found. Merging groups and adding event");
                                 var mergedGroupId = this.cache.collisionGroups.nextId();
-                                var mergedGroup = this.createCollisionGroup(event, mergedGroupId);
+                                var mergedGroup = new CollisionGroup(event, this, mergedGroupId);
                                 for(var groupId in suitableCachedGroups){
                                     mergedGroup.addEvents(suitableCachedGroups[groupId].events, mergedGroupId);
                                     //console.log("Event " + event._cgaId + ": Removing stale cache group from cache");
@@ -355,87 +454,24 @@
                     //console.log("Cache size " + this.cache.collisionGroups.size());
                     return collisionGroup;
                 },
-                createCollisionGroup:function(event, id){
-                    var that = this;
-                    var group = {
-                        from: new Date(event.from),
-                        to: new Date(event.to),
-                        events:[],
-                        reorder:function(){
-                            that.orderEvents(this.events, false);
-                        },
-                        _setId:function(event, id){
-                            if(id == undefined || id == null) {
-                                return;
-                            }
-                            event.collisionGroupId = id;
-                        },
-                        _removeId:function(event){
-                            delete event.collisionGroupId;
-                        },
-                        setIds:function(id) {
-                            for(var i=0; i<this.events.length;i++){
-                                this._setId(this.events[i], id);
-                            }
-                        },
-                        removeIds:function() {
-                            for(var i=0; i<this.events.length;i++){
-                                this._removeId(this.events[i]);
-                            }
-                        },
-                        addEvents:function(events, id, reorder){
-                            for(var i=0; i<events.length; i++){
-                                this.addEvent(events[i], id, reorder);
-                            }
-                        },
-                        addEvent:function(e, id, reorder){
-                            this._setId(e, id);
-                            this.events.push(e);
-                            this.from = new Date(Math.min(e.from.getTime(), this.from.getTime()));
-                            this.to = new Date(Math.max(e.to.getTime(), this.to.getTime()));
-                            reorder === true && this.reorder();
-                        },
-                        removeEvent:function(e) {
-                            var removed = this.events.splice(this.events.indexOf(e), 1);
-                            if(removed.length == 1) {
-                                this._removeId(e);
-                                this.reorder();
-                                if (this.events.length > 0) {
-                                    this.from = new Date(this.events[0].from);
-                                    this.to = new Date(this.events[0].to);
-                                    for (var i = 1; i < this.events.length; i++) {
-                                        this.from = new Date(Math.min(this.events[i].from.getTime(), this.from.getTime()));
-                                        this.to = new Date(Math.max(this.events[i].to.getTime(), this.to.getTime()));
-                                    }
-                                }
-                                return true;
-                            }
-                            return false;
-                        }
-                    };
-                    group.addEvent(event, id);
-                    return group;
-                },
                 getCollisionGroup:function(events, event, order){
                     if(events.length == 0) {
                         return [];
                     }
                     events = order === false ? events.slice() : this.orderEvents(events);
                     var e = events.splice(event ? events.indexOf(event) : 0, 1)[0];
-                    var groups = [this.createCollisionGroup(e)];
+                    var groups = [new CollisionGroup(e, this)];
 
-                    var c = 0;
+                    var c = 0, i, j, e, found, group;
                     while(events.length > 0){
-                        var found = false;
-                        var e = events[c];
-                        out: for(var i = 0; i < groups.length; i++){
-                            var group = groups[i];
-                            for(var j = 0; j < group.events.length; j++){
-                                if(this.intersects(e, group.events[j])){
-                                    group.addEvent(e);
-                                    found = true;
-                                    break out;
-                                }
+                        found = false;
+                        e = events[c];
+                        for(i = 0; i < groups.length; i++){
+                            group = groups[i];
+                            if(this.intersects(e, group)) {
+                                group.addEvent(e);
+                                found = true;
+                                break;
                             }
                         }
                         if(!found) {
@@ -446,14 +482,14 @@
                                 }
                             }else{
                                 events.splice(0, 1);
-                                groups.push(this.createCollisionGroup(e));
+                                groups.push(new CollisionGroup(e, this));
                             }
                         }else{
                             events.splice(c, 1);
                             c = 0;
                         }
                     }
-                    for(var i = 0; i < groups.length; i++){
+                    for(i = 0; i < groups.length; i++){
                         groups[i].reorder();
                     }
 
@@ -462,12 +498,12 @@
                 getCollisionFreeMatrix:function(collisionGroup, copy){
                     var events = copy === false ? collisionGroup.events : collisionGroup.events.slice();
                     var matrix = [events.splice(0,1)];
-                    var columnIndex = 0;
+                    var columnIndex = 0, column, b, found, c;
                     while(events.length > 0){
-                        var column = matrix[columnIndex];
-                        var b = events[0];
-                        var found = false;
-                        for(var c = 0; c < column.length; c++){
+                        column = matrix[columnIndex];
+                        b = events[0];
+                        found = false;
+                        for(c = 0; c < column.length; c++){
                             if(this.intersects(column[c], b)) {
                                 found = true;
                                 break;
@@ -492,10 +528,10 @@
                     var group = this.findCollisionGroup(events, event, order, invalidateCache);
                     var matrix = this.getCollisionFreeMatrix(group[0]);
                     var columnIndex = 0;
-                    var totalColumns = matrix.length;
+                    var totalColumns = matrix.length, i, column;
                     out: for(; columnIndex < matrix.length; columnIndex++){
-                        var column = matrix[columnIndex];
-                        for(var i=0; i < column.length; i++){
+                        column = matrix[columnIndex];
+                        for(i=0; i < column.length; i++){
                             if(column[i] == event) {
                                 break out;
                             }
@@ -523,7 +559,7 @@
                     {name:"Bold Red", mask:"#DC2127"},
                     {name:"Gray", mask:"#E1E1E1"}
                 ],
-                _eventSizeCacheThreshold:100,
+                _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
                 _dayOver:null,
                 _eventOver:null,
@@ -535,56 +571,65 @@
                 _eventsInView:[],
                 _initialDragInfos:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
+                _headerDateFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'long'}),
+                _dayNameFormat : Intl.DateTimeFormat(this.locale, {weekday:'long'}),
+                _dayNumFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit'}),
+                _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
-                _collisionManagerCacheEnabled:true,
+//                _collisionManagerCacheEnabled:true,
                 ready:function(){
-                    this._manager = new CalendarManager(this._collisionManagerCacheEnabled);
+                    this._manager = new CalendarManager(true);
                     this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
-                    var date = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate(), 0, 0, 0, 0);
-                    var startDay = date.getDate() - date.getDay() + (this.startDayOfWeek % 7);
-                    var weekDays = [];
-                    date.setDate(startDay);
-                    this._viewFrom = new Date(date);
-                    for(var i = startDay; i < startDay + 7; i++){
-                        date.setDate(i);
-                        weekDays.push({
-                            name:Intl.DateTimeFormat(this.locale, {weekday:'long'}).format(date),
-                            day:i,
-                            month:date.getMonth(),
-                            year:date.getFullYear(),
-                            redraw:false
-                        });
-                    }
-                    this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-                    this._weekDays = weekDays;
-
+                    this.dateChanged();
                     console.log("Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                },
+                _dayNumDisplay:function(day) {
+                    return this._dayNumFormat.format(day.date) + "/" + this._monthNumFormat.format(day.date);
+                },
+                _dayNameDisplay:function(day) {
+                    return this._dayNameFormat.format(day.date);
+                },
+                _calendarWeekDisplay:function(from, to){
+                    if(!from || !to) {
+                        return;
+                    }
+                    var fromYear = from.getFullYear() != to.getFullYear() ? " " + from.getFullYear() : "";
+                    return this._headerDateFormat.format(from) + fromYear + " - " + this._headerDateFormat.format(to) + " " + to.getFullYear();
                 },
                 domReady:function(){
                     this.$.agendadays.scrollTop = this.hourHeight * this.showHour;
+                    this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px"
+                    this._drawBackground();
                 },
                 redrawAll:function(){
                     this._eventsInView.forEach(function(e){
                         e.redraw = this._manager.getRedrawsCount(e);
                     }.bind(this));
                 },
-                _collisionManagerCacheEnabledChanged:function(){
-                    this._manager.cache.collisionGroups.enabled = this._collisionManagerCacheEnabled;
-                    if(this._manager.cache.collisionGroups.enabled) {
-                        this._manager.primeCollisionGroupCache(this._eventsInView);
-                    }
-                    this.redrawAll();
-                },
-                toggleCache:function(){ // TODO REMOVE
-                    this._collisionManagerCacheEnabled = !this._collisionManagerCacheEnabled;
-                },
+//                _collisionManagerCacheEnabledChanged:function(){
+//                    this._manager.cache.collisionGroups.enabled = this._collisionManagerCacheEnabled;
+//                    if(this._manager.cache.collisionGroups.enabled) {
+//                        this._manager.primeCollisionGroupCache(this._eventsInView);
+//                    }
+//                    this.redrawAll();
+//                },
+//                toggleCache:function(){ // TODO REMOVE
+//                    this._collisionManagerCacheEnabled = !this._collisionManagerCacheEnabled;
+//                },
                 set events(events){
                     this._manager.orderEvents(events, false);
                     this._manager.setIds(events);
-                    var eventsInView = this._manager.getEventsInView(events, {from:this._viewFrom, to:this._viewTo});
+                    this._events = events;
+                },
+                _eventsChanged:function(){
+                    this._refreshEventsInView();
+                },
+                _refreshEventsInView:function(){
+//                    console.log("_refreshEventsInView")
+                    var eventsInView = this._manager.getEventsInView(this.events, {from:this._viewFrom, to:this._viewTo});
                     if(eventsInView.length < this._eventSizeCacheThreshold) {
                         console.log("Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
-                        this._manager.cache.collisionGroups.enabled = false
+                        this._manager.cache.collisionGroups.enabled = false;
                     }else{
                         console.log("Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
                         this._manager.cache.collisionGroups.enabled = true;
@@ -596,9 +641,9 @@
                         eventsMap[e._cgaId] = e;
                     }.bind(this));
 
-                    this._events = events;
                     this._eventsInView = eventsInView;
                     this._eventsMap = eventsMap;
+                    this.redrawAll();
                 },
                 get events(){
                     return this._events;
@@ -610,52 +655,68 @@
                         year: Number(e.currentTarget.dataset.year)
                     };
                 },
-                _onEventOver:function(e){
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this._hideCreateGhosts();
-                },
                 _onMouseMove:function(e){
-                    if(this._createGhost != undefined && this._createGhost.data.day != this._dayOver) {
-                        this._hideCreateGhosts();
-                    }
-                    var position = e.clientY + this.$.agendadays.scrollTop - this.$.agendadays.offsetTop - this.hourHeight / 2;
-                    var hours = this._getHoursForHeight(position);
-                    var minutes = this._getMinutesForHeight(position) - hours * 60;
-
-                    this._createGhost = this.$.agendadays.querySelector("#event-createghost-" + this._dayOver.day);
-                    var data = this._createGhost.data  = this._createGhost.data || {};
-
-                    data.day = this._dayOver;
-                    data.redraw = data.redraw || 0;
-                    data.from = data.from || new Date(0,0,0,0,0,0,0);
-                    data.to = data.to || new Date(0,0,0,0,0,0,0);
-
-                    data.from.setFullYear(data.day.year, data.day.month, data.day.day);
-                    data.to.setFullYear(data.day.year, data.day.month, data.day.day);
-                    data.from.setHours(hours, minutes);
-                    data.to.setHours(hours + 1, minutes);
-
-                    data.redraw = (data.redraw + 1) % 2;
-                    this._createGhost.setAttribute("style", this._getEventBoxFor(data, data.day.day).toStyleString());
-                    this._createGhost.classList.remove("hidden");
+                    var position = e.clientY - this._getAbsolutePosition(this.$.agendadays).top - this.hourHeight / 2;
+                    this._hoursOver = this._getHoursForHeight(position);
                 },
-                _hideCreateGhosts:function(){
-                    if(this._createGhost && !this._createGhost.classList.contains("hidden")) {
-                        this._createGhost.classList.add("hidden");
+                dateChanged:function(){
+                    var date = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDate(), 0, 0, 0, 0);
+                    var startDay = date.getDate() - date.getDay() + (this.startDayOfWeek % 7);
+                    var weekDays = [];
+                    date.setDate(startDay);
+                    this._viewFrom = new Date(date);
+                    for(var i = startDay; i < startDay + 7; i++){
+                        date.setDate(i);
+                        weekDays.push({
+                            day:i,
+                            month:date.getMonth(),
+                            year:date.getFullYear(),
+                            date:new Date(date)
+                        });
                     }
+                    this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+                    this._weekDays = weekDays;
+                    this._refreshEventsInView();
+                },
+                _onPreviousWeek:function(){
+                    this._addWeek(-1);
+                },
+                _onNextWeek:function(){
+                    this._addWeek(1);
+                },
+                _addWeek:function(weeks){
+                    this.date.setDate(this.date.getDate() + (weeks * 7));
+                    this.date = new Date(this.date);
+                },
+                _onNowWeek:function(){
+                    this.date = new Date();
+                },
+                _onCreateEvent:function(){
+                    this._createEvent();
+                },
+                _onSelectWeek:function(){
+                    this.$.datepicker.datetime = this.date.toISOString();
+                    this.$.datepicker.open();
+                },
+                _dateSelected:function(e){
+                    this.date = new Date(e.detail);
+                },
+                _onCalendarDblClick:function(e){
+                    var event = {
+                        from:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver, 0, 0 ,0),
+                        to:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver + 1, 0, 0 ,0)
+                    };
+                    this._createEvent(event);
                 },
                 _onEventDblClick:function(e){
-                    var op = e.currentTarget.dataset.id != undefined ? "edit" : "create";
-                    var event = op == "edit" ? this._getEventById(e.currentTarget.dataset.id) : {};
-                    if(op == "edit") {
-                        event._from = event.from;
-                        event._to = event.to;
-                    }else{
-                        event.from = this._createGhost.data.from;
-                        event.to = this._createGhost.data.to;
-                    }
-                    this.$.editor.openDialog(event, op == "edit");
+                    var event = this._getEventById(e.currentTarget.dataset.id);
+                    event._from = event.from;
+                    event._to = event.to;
+                    this.$.editor.openDialog(event);
+                    e.stopPropagation();
+                },
+                _createEvent:function(event){
+                    this.$.editor.openDialog(event || {}, false);
                 },
                 _onEditorClose:function(e){
                     switch(e.detail.result) {
@@ -688,7 +749,6 @@
                 _onEventDragStart:function(e){
                     e.preventDefault();
                     e.stopPropagation();
-                    this._hideCreateGhosts();
                     var eventElement;
                     if(e.currentTarget.dataset.targetId != undefined && e.currentTarget.dataset.targetDay != undefined) {
                         eventElement = this.$.agendadays.querySelector(".day[data-day='" + e.currentTarget.dataset.targetDay + "'] .event[data-id='" + e.currentTarget.dataset.targetId + "']")
@@ -744,7 +804,6 @@
                 _onEventDrag:function(e){
                     e.preventDefault();
                     e.stopPropagation();
-                    this._hideCreateGhosts();
                     if(!this._initialDragInfos) {
                         return;
                     }
@@ -815,7 +874,6 @@
                     this._initialDragInfos.fireUpdated();
                 },
                 _onEventDragEnd:function(e){
-                    this._hideCreateGhosts();
                     e && typeof e != "string" && e.preventDefault() && e.stopPropagation();
                     if (this._initialDragInfos && this._initialDragInfos.dragging) {
                         this._initialDragInfos.fireFinished();
@@ -902,7 +960,7 @@
                            event.to.getDate() == day.day ? "eventend" : "eventpart";
                 },
                 _getEventStyle:function(event, day){
-                    //console.log("_getEventStyle event.redraw=" + event.redraw + " - day = " + JSON.stringify(day))
+//                    console.log("_getEventStyle event.redraw=" + event.redraw + " - day = " + JSON.stringify(day))
                     if(event.redraw == undefined) {
                         var el = this.$.agendadays.querySelector(".event[data-id='" + event._cgaId + "'][data-day='" + day.day + "']");
                         //console.log( el && el.getAttribute("style"))
@@ -948,6 +1006,63 @@
                     var minuteHeight = this._getMinuteHeight();
                     return Math.round(height / minuteHeight) * this.dragMinuteStep;
                 },
+                _getAbsolutePosition:function(element) {
+                    var top = 0, left = 0;
+                    do {
+                        top += element.offsetTop  || 0;
+                        left += element.offsetLeft || 0;
+                        top -= element.scrollTop  || 0;
+                        left -= element.scrollLeft || 0;
+                        element = element.offsetParent;
+                    } while(element);
+
+                    return {
+                        top: top,
+                        left: left
+                    };
+                },
+                _drawBackground: function() {
+                    this._drawBackgroundLines();
+                    this._drawHours();
+                },
+                _drawBackgroundLines:function(){
+                    var canvas = this.$.hoursCanvas;
+                    canvas.width  = this.$.agenda.offsetWidth;
+                    canvas.height = 24 * this.hourHeight;
+                    canvas.style.height = canvas.height + "px";
+                    var i, ctx = canvas.getContext("2d");
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = "#eeeeee";
+                    for (i = 0; i < 24; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, (i + 0.5) * this.hourHeight + 0.5);
+                        ctx.lineTo(canvas.width, (i + 0.5) * this.hourHeight);
+                        ctx.stroke();
+                    }
+                    ctx.strokeStyle = "#ccc";
+                    for (i = 0; i < 24; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, (i + 1) * this.hourHeight + 0.5);
+                        ctx.lineTo(canvas.width, (i + 1)* this.hourHeight);
+                        ctx.stroke();
+                    }
+                },
+                _drawHours:function(){
+                    function pad(n, width, z) {
+                        z = z || '0';
+                        n = n + '';
+                        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                    }
+                    var i, div;
+                    var df = document.createDocumentFragment();
+                    for (i = 0; i < 24; i++) {
+                        div = document.createElement("div");
+                        div.innerHTML = pad(i, 2);
+                        div.style.top = ( (i) * this.hourHeight) + "px";
+                        df.appendChild(div);
+                    }
+                    this.$.hours.appendChild(df);
+                }
             });
         })();
     </script>
