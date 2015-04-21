@@ -2,9 +2,10 @@
 <link href="../paper-shadow/paper-shadow.html" rel="import">
 <link href="../core-icon/core-icon.html" rel="import">
 <link href="../core-list/core-list.html" rel="import">
+<link href="cg-event-quickeditor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list"  attributes="label events idProperty" layout vertical>
+<polymer-element name="cg-event-list"  attributes="label events idProperty colors categories" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -57,6 +58,14 @@
             .event-category paper-shadow {
                 border-radius:5px;
             }
+
+            .add-event {
+                color: #4285f4;
+            }
+            .add-event span {
+                margin:5px;
+            }
+
             .event {
                 padding:10px;
             }
@@ -107,6 +116,15 @@
                     </template>
                 </core-list>
             </div>
+            <div>
+                <paper-button id="addbutton" class="add-event" on-tap="{{_onAddClick}}">
+                    <core-icon icon="fa:calendar-o"></core-icon>
+                        <span>
+                            Add Event
+                        </span>
+                </paper-button>
+            </div>
+            <cg-event-quickeditor id="editor" colors="{{colors}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-quickeditor>
         </div>
     </template>
     <script>
@@ -114,6 +132,8 @@
             Polymer("cg-event-list", {
                 _id:1,
                 label:"Events",
+                colors:null,
+                categories:null,
                 idProperty:null,
                 scrolling:true,
                 events:[],
@@ -148,11 +168,41 @@
                         return at < bt ? 1 : at > bt ? -1 : 0;
                     });
                 },
+                _onAddClick:function(e){
+                    this.$.editor.openDialog();
+                },
+                _onEditorClosed:function(e){
+                    switch(e.detail.result){
+                        case "OK":
+                            if(e.detail.event.hasOwnProperty(idProperty)) {
+                                // update
+                            }else{
+                                this.events.push(e.detail.event);
+                            }
+                            break;
+                        case "DELETE":
+                            this.events.splice(this.events.indexOf(this._getEventById(e.detail.event.id)), 1);
+                            break;
+                        case "CANCEL": break;
+                    }
+                },
                 _onLabelClick:function(e){
                     this._onRecordPaymentClick(e);
                 },
                 _onRecordPaymentClick:function(e){
-                    this.fire("event-clicked", e.currentTarget.dataset.id);
+                    this.openEditor(e.currentTarget.dataset.id);
+                    //this.fire("event-clicked", e.currentTarget.dataset.id);
+                },
+                openEditor:function(eventId){
+                    this.$.editor.openDialog(this._getEventById(eventId));
+                },
+                _getEventById:function(id) {
+                    for(var i = 0; i < this.events.length; i++){
+                        if(this.events[i][this.idProperty] == id) {
+                            return this.events[i];
+                        }
+                    }
+                    return null;
                 }
             });
         })()

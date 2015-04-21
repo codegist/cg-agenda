@@ -1,5 +1,4 @@
 <link href="../polymer/polymer.html" rel="import">
-<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../core-toolbar/core-toolbar.html">
 <link rel="import" href="../core-icon-button/core-icon-button.html">
@@ -10,6 +9,10 @@
 <polymer-element name="cg-agenda" attributes="date startDayOfWeek hourHeight showHour dragMinuteStep colors">
     <template>
         <style>
+            :host {
+                display:block;
+            }
+
             .noselect {
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;
@@ -184,21 +187,7 @@
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
             <cg-event-quickeditor id="editor" on-close="{{_onEditorClose}}" colors="{{colors}}" categories="{{categories}}"></cg-event-quickeditor>
-            <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
-                <section>
-                    <p>Are you sure you want to delete the event "{{_currentEvent.label}}"?</p>
-                </section>
-                <paper-button affirmative class="colored" on-tap="{{_doDeleteEvent}}">
-                    <core-icon icon="check"></core-icon>
-                    yes
-                </paper-button>
-                <paper-button dismissive>
-                    <core-icon icon="clear"></core-icon>
-                    no
-                </paper-button>
-            </paper-action-dialog>
         </div>
-
     </template>
     <script>
         (function(){
@@ -736,18 +725,10 @@
                             this._commitEventChange(e.detail.event, newRange, op);
                             break;
                         case "DELETE":
-                            this._confirmDeleteEvent(e.detail.event);
+                            this._commitEventChange(e.detail.event, null, "delete");
                             break;
                         case "CANCEL":break;
                     }
-                },
-                _confirmDeleteEvent:function(event){
-                    this._currentEvent = event;
-                    this.$.confirmdelete.toggle();
-                },
-                _doDeleteEvent:function(){
-                    this._commitEventChange(this._currentEvent, null, "delete");
-                    delete this._currentEvent;
                 },
                 _onEventDragStart:function(e){
                     e.preventDefault();

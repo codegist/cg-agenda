@@ -1,7 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-input/paper-input-decorator.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<!--<link rel="import" href="../paper-dialog/paper-action-dialog.html">-->
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../core-icon/core-icon.html">
 <link rel="import" href="../core-pages/core-pages.html">
 <link rel="import" href="../paper-tabs/paper-tab.html">
@@ -10,11 +10,13 @@
 <link rel="import" href="../cg-input-tags/cg-input-tags.html">
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
-<link rel="import" href="cg-paper-action-dialog.html">
 
 <polymer-element name="cg-event-quickeditor" attributes="event categories colors">
     <template>
         <style>
+            :host {
+                display:block;
+            }
             :host .colored {
                 color: #4285f4;
             }
@@ -24,17 +26,18 @@
             :host #notes {
                 height:135px;
             }
-            :host cg-paper-action-dialog {
+            :host #dialog {
                 max-width:450px;
             }
-            /*:host paper-action-dialog /deep/ #scroller {*/
-                /*overflow:visible;*/
-            /*}*/
+            :host #dialog /deep/ #scroller {
+                overflow:visible;
+                max-height:none!important;
+            }
             :host cg-input-documents {
                 min-width:350px;
             }
         </style>
-        <cg-paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
+        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
             <div>
                 <paper-tabs selected="{{_selectedPage}}" noink noslide>
                     <paper-tab>General</paper-tab>
@@ -86,12 +89,25 @@
                 cancel
             </paper-button>
             <template if="{{ !create }}">
-                <paper-button dismissive class="custom" on-tap="{{delete}}">
+                <paper-button dismissive class="custom" on-tap="{{confirmDelete}}">
                     <core-icon dismissive icon="clear"></core-icon>
                     delete
                 </paper-button>
             </template>
-        </cg-paper-action-dialog>
+        </paper-action-dialog>
+        <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
+            <section>
+                <p>Are you sure you want to delete the event "{{_editCopy.label}}"?</p>
+            </section>
+            <paper-button affirmative class="colored" on-tap="{{delete}}">
+                <core-icon icon="check"></core-icon>
+                yes
+            </paper-button>
+            <paper-button dismissive>
+                <core-icon icon="clear"></core-icon>
+                no
+            </paper-button>
+        </paper-action-dialog>
     </template>
     <script>
         Polymer("cg-event-quickeditor", {
@@ -157,6 +173,9 @@
             cancel:function(){
                 this.closeDialog("CANCEL");
             },
+            confirmDelete:function(){
+                this.$.confirmdelete.toggle();
+            },
             delete:function(){
                 this.closeDialog("DELETE");
             },
@@ -190,7 +209,7 @@
                     event: this.event,
                     result: result
                 });
-            }
+            },
         });
     </script>
 </polymer-element>
