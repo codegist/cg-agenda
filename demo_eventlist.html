@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>cg-datetime-input Demo</title>
+    <link rel="import" href="cg-event-list.html">
+    <style>
+        .demo {
+            margin-bottom:60px;
+            min-height: 300px;
+        }
+        .demo-item {
+            padding: 2px;
+            min-height: 300px;
+        }
+    </style>
+</head>
+
+
+<body unresolved fullbleed layout vertical center center-justified>
+
+<template id="sandbox" is="auto-binding">
+
+    <section layout vertical left>
+        <h2>input select form demo required selected {{selected}}</h2>
+        <section>
+            <div vertical layout class="party-info-form">
+                <cg-event-list events="{{events}}" idProperty="id" label="Event List"></cg-event-list>
+            </div>
+        </section>
+    </section>
+</template>
+
+<script>
+    window.addEventListener('template-bound', function(){
+        var sandbox = document.getElementById('sandbox');
+        sandbox.events = [
+            {
+                from:new Date("2015-03-18T09:00:00.000-0500"),
+                to:new Date("2015-03-18T12:30:00.000-0500"),
+                label:"some label",
+                categories:["cat1","cat3","cat2","cat1","cat3","cat2","cat1","cat3","cat2"],
+                id:1
+            },
+            {
+                from:new Date("2015-03-18T09:00:00.000-0500"),
+                to:new Date("2015-03-18T10:00:00.000-0500"),
+                label:"some label",
+                categories:["cat1","cat3","cat2"],
+                id:2
+            },
+            {
+                from:new Date("2015-03-18T10:00:00.000-0500"),
+                to:new Date("2015-03-18T11:30:00.000-0500"),
+                label:"some label",
+                categories:["cat1","cat3","cat2"],
+                id:3
+            },
+            {
+                from:new Date("2015-03-18T11:30:00.000-0500"),
+                to:new Date("2015-03-18T12:30:00.000-0500"),
+                label:"some label",
+                categories:["cat1","cat3","cat2"],
+                id:4
+            },
+            {
+                from:new Date("2015-03-18T09:30:00.000-0500"),
+                to:new Date("2015-03-20T14:32:00.000-0500"),
+                label:"some label",
+                categories:["cat1","cat3","cat2"],
+                id:5
+            }
+        ];
+    });
+</script>
+
+</body>
+</html>

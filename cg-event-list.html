@@ -1,0 +1,160 @@
+<link href="../polymer/polymer.html" rel="import">
+<link href="../paper-shadow/paper-shadow.html" rel="import">
+<link href="../core-icon/core-icon.html" rel="import">
+<link href="../core-list/core-list.html" rel="import">
+<link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
+
+<polymer-element name="cg-event-list"  attributes="label events idProperty" layout vertical>
+    <template>
+        <style>
+            cg-event-list {
+                width:100%;
+                font-family: sans-serif;
+                height:250px;
+            }
+            #listScroller {
+                height:200px;
+                overflow:auto;
+            }
+            .event-type,
+            .event-duration {
+                width:16px!important;
+                height:16px!important;
+                color:#454545;
+            }
+            .event-time {
+                color:#454545;
+                font-size:12px;
+            }
+
+            .event-type,
+            .event-label,
+            .event-time,
+            .event-duration,
+            .event-payment,
+            .event-category {
+                margin-right:10px;
+                margin-bottom:6px;
+            }
+
+            .event-payment,
+            .event-category{
+                font-size: 12px;
+                padding: 4px;
+                display: inline-block;
+            }
+
+            .event-payment {
+                font-weight: bold;
+                cursor:pointer;
+                color: rgb(105, 101, 255);
+            }
+            .event-category {
+                color: #454545;
+            }
+
+            .event-payment paper-shadow,
+            .event-category paper-shadow {
+                border-radius:5px;
+            }
+            .event {
+                padding:10px;
+            }
+            .event:hover {
+                background-color:#dddddd;
+            }
+            .event .event-label:hover {
+                text-decoration: underline;
+                cursor:pointer;
+            }
+            .label {
+                font-size: 0.75em;
+                color:#757575;
+                padding-bottom:5px;
+            }
+        </style>
+        <div class="label">
+            {{label}}
+        </div>
+
+        <div id="events" layout vertical relative>
+            <paper-shadow z="1" fit></paper-shadow>
+            <div id="listScroller" hidden?="{{events.length == 0}}" >
+                <core-list id="list" data="{{events}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
+                    <template>
+                        <div class="event" layout horizontal>
+                            <div flex layout horizontal wrap>
+                                <div>
+                                    <core-icon class="event-type" icon="fa:calendar-o"></core-icon>
+                                    <!--<core-icon class="event-duration" icon="fa:clock-o" title="{{_displayDuration(model)}}"></core-icon>-->
+                                    <span class="event-time">{{_displayTime(model)}} ({{_displayDuration(model)}})</span>
+                                </div>
+                                <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model[idProperty]}}">{{model.label}}</span>
+                                <template if="{{!model.payment}}">
+                                    <div class="event-payment" relative on-tap="{{_onRecordPaymentClick}}" data-id="{{model[idProperty]}}">
+                                        <paper-shadow z="1" fit></paper-shadow>
+                                        record payment
+                                    </div>
+                                </template>
+                                <template repeat="{{model.categories as category}}">
+                                    <div class="event-category" relative>
+                                        <paper-shadow z="1" fit></paper-shadow>
+                                        {{category}}
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </core-list>
+            </div>
+        </div>
+    </template>
+    <script>
+        (function(){
+            Polymer("cg-event-list", {
+                _id:1,
+                label:"Events",
+                idProperty:null,
+                scrolling:true,
+                events:[],
+                _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
+                _displayDuration:function(event){
+                    if(!event) return null;
+                    var duration = (event.to.getTime() - event.from.getTime());
+                    var one_minute=1000*60;
+                    var one_hour=one_minute*60;
+                    var one_day=one_hour*24;
+
+                    var days = Math.floor(duration/one_day);
+                    duration -= days * one_day;
+                    var hours = Math.floor(duration/one_hour);
+                    duration -= hours * one_hour;
+                    var minutes = Math.floor(duration/one_minute);
+
+                    var durationDisplay = "";
+                    days > 0 && (durationDisplay += (days + " day" + (days > 1 ? "s":"")));
+                    hours > 0 && (durationDisplay += (durationDisplay ? ", " : "") + (hours + " hour" + (hours > 1 ? "s":"")));
+                    minutes > 0 && (durationDisplay += (durationDisplay ? ", " : "") + (minutes + " minute" + (minutes > 1 ? "s":"")));
+                    return durationDisplay;
+                },
+                _displayTime:function(event){
+                    if(!event) return null;
+                    return this._timeFormat.format(event.from);
+                },
+                eventsChanged:function(){
+                    this.events.sort(function(a,b){
+                        var at = a.from.getTime();
+                        var bt = b.from.getTime();
+                        return at < bt ? 1 : at > bt ? -1 : 0;
+                    });
+                },
+                _onLabelClick:function(e){
+                    this._onRecordPaymentClick(e);
+                },
+                _onRecordPaymentClick:function(e){
+                    this.fire("event-clicked", e.currentTarget.dataset.id);
+                }
+            });
+        })()
+    </script>
+</polymer-element>

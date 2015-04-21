@@ -1,7 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-input/paper-input-decorator.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-dialog/paper-action-dialog.html">
+<!--<link rel="import" href="../paper-dialog/paper-action-dialog.html">-->
 <link rel="import" href="../core-icon/core-icon.html">
 <link rel="import" href="../core-pages/core-pages.html">
 <link rel="import" href="../paper-tabs/paper-tab.html">
@@ -10,6 +10,7 @@
 <link rel="import" href="../cg-input-tags/cg-input-tags.html">
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
+<link rel="import" href="cg-paper-action-dialog.html">
 
 <polymer-element name="cg-event-quickeditor" attributes="event categories colors">
     <template>
@@ -23,17 +24,17 @@
             :host #notes {
                 height:135px;
             }
-            :host paper-action-dialog {
+            :host cg-paper-action-dialog {
                 max-width:450px;
             }
-            :host paper-action-dialog #scroller {
-                overflow:auto;
-            }
+            /*:host paper-action-dialog /deep/ #scroller {*/
+                /*overflow:visible;*/
+            /*}*/
             :host cg-input-documents {
                 min-width:350px;
             }
         </style>
-        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
+        <cg-paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
             <div>
                 <paper-tabs selected="{{_selectedPage}}" noink noslide>
                     <paper-tab>General</paper-tab>
@@ -70,7 +71,7 @@
                                     <cg-input-color required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-decorator>
                             </template>
-                            <cg-input-documents scrolling="false" label="Documents" documents="{{_editCopy.documents}}"></cg-input-documents>
+                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -90,7 +91,7 @@
                     delete
                 </paper-button>
             </template>
-        </paper-action-dialog>
+        </cg-paper-action-dialog>
     </template>
     <script>
         Polymer("cg-event-quickeditor", {

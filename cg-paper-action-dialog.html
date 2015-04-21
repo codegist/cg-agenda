@@ -1,0 +1,51 @@
+<link href="../polymer/polymer.html" rel="import">
+<link href="../paper-shadow/paper-shadow.html" rel="import">
+<link href="../paper-dialog/paper-action-dialog.html" rel="import">
+
+<polymer-element name="cg-paper-action-dialog" extends="paper-action-dialog" role="dialog" layout vertical>
+    <template>
+        <style>
+            :host {
+                background: #fff;
+                color: rgba(0, 0, 0, 0.87);
+                margin: 32px;
+                overflow: visible !important;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            #container {
+                box-sizing: border-box;
+                padding: 24px 24px 0 24px;
+            }
+
+            #actions {
+                padding: 16px;
+            }
+        </style>
+
+        <paper-shadow z="3" fit></paper-shadow>
+
+        <!-- need this because the host needs to be overflow: visible -->
+        <div id="container" relative flex auto>
+            <template if="{{heading}}">
+                <h1>{{heading}}</h1>
+            </template>
+
+            <content select=":not([affirmative]):not([dismissive])"></content>
+        </div>
+
+        <div id="actions" relative layout horizontal>
+            <content select="[dismissive]"></content>
+            <div flex></div>
+            <content select="[affirmative]"></content>
+        </div>
+
+    </template>
+    <script>
+        Polymer("cg-paper-action-dialog");
+    </script>
+
+</polymer-element>

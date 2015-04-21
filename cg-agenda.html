@@ -709,11 +709,14 @@
                     this._createEvent(event);
                 },
                 _onEventDblClick:function(e){
-                    var event = this._getEventById(e.currentTarget.dataset.id);
+                    this.openEvent(e.currentTarget.dataset.id);
+                    e.stopPropagation();
+                },
+                openEvent:function(eventId){
+                    var event = this._getEventById(eventId);
                     event._from = event.from;
                     event._to = event.to;
                     this.$.editor.openDialog(event);
-                    e.stopPropagation();
                 },
                 _createEvent:function(event){
                     this.$.editor.openDialog(event || {}, false);
