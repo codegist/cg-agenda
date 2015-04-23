@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>cg-datetime-input Demo</title>
-    <link rel="import" href="cg-event-quickeditor.html">
+    <link rel="import" href="cg-event-editor.html">
     <link rel="import" href="../paper-button/paper-button.html">
 
 </head>
@@ -19,7 +19,7 @@
         <span>from: {{event1.from}}</span>
         <span>to: {{event1.to}}</span>
         <span>notes: {{event1.notes}}</span>
-        <cg-event-quickeditor id="editor1" categories="{{categories}}" colors="{{colors}}"></cg-event-quickeditor>
+        <cg-event-editor id="editor1" categories="{{categories}}" colors="{{colors}}"></cg-event-editor>
         <paper-button on-tap="{{showEditor}}">OPEN</paper-button>
     </section>
     <section class="demo" layout vertical>
@@ -29,7 +29,17 @@
         <span>from: {{event2.from}}</span>
         <span>to: {{event2.to}}</span>
         <span>notes: {{event2.notes}}</span>
-        <cg-event-quickeditor id="editor2"></cg-event-quickeditor>
+        <cg-event-editor id="editor2"></cg-event-editor>
+        <paper-button on-tap="{{showCreateEditor}}">OPEN</paper-button>
+    </section>
+    <section class="demo" layout vertical>
+        <div>Without Event, with data requests tags</div>
+        <span>RESULT: {{result2}}</span>
+        <span>label: {{event2.label}}</span>
+        <span>from: {{event2.from}}</span>
+        <span>to: {{event2.to}}</span>
+        <span>notes: {{event2.notes}}</span>
+        <cg-event-editor id="editor2" colorsDataRequest="some-tag-colors" categoriesDataRequest="some-tag-categories"></cg-event-editor>
         <paper-button on-tap="{{showCreateEditor}}">OPEN</paper-button>
     </section>
 </template>

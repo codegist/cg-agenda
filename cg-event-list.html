@@ -2,7 +2,7 @@
 <link href="../paper-shadow/paper-shadow.html" rel="import">
 <link href="../core-icon/core-icon.html" rel="import">
 <link href="../core-list/core-list.html" rel="import">
-<link href="cg-event-quickeditor.html" rel="import">
+<link href="cg-event-editor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
 <polymer-element name="cg-event-list"  attributes="label events idProperty colors categories" layout vertical>
@@ -124,7 +124,7 @@
                         </span>
                 </paper-button>
             </div>
-            <cg-event-quickeditor id="editor" colors="{{colors}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-quickeditor>
+            <cg-event-editor id="editor" colors="{{colors}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-editor>
         </div>
     </template>
     <script>

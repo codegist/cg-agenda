@@ -3,6 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>cg-datetime-input Demo</title>
+    <link rel="import" href="../cg-datasource/cg-datasource-testdata.html">
     <link rel="import" href="cg-agenda.html">
     <style>
         .demo {
@@ -20,6 +21,7 @@
 <body unresolved fullbleed layout vertical center center-justified>
 
 <template id="sandbox" is="auto-binding">
+    <cg-datasource-testdata></cg-datasource-testdata>
     <section class="demo" layout horizontal>
         <cg-agenda flex id="agenda"></cg-agenda>
         <!--<div style="width:50px"></div>-->
@@ -30,200 +32,7 @@
 <script>
     window.addEventListener('template-bound', function(){
         var sandbox = document.getElementById('sandbox');
-
-        var labels = ["nonspillable","marcel","physiotherapy","ironmonger","pistollike","undernutrition","papillomatous","enslaving"];
-        var notes = [
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam nunc augue, finibus malesuada orci quis, ornare bibendum nulla. Donec massa lorem, placerat at diam sit amet, vulputate sagittis lorem.",
-            "Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed tempus magna et ligula imperdiet gravida.",
-            "Cras ut interdum diam, ut rutrum nunc. Donec augue ligula, ultricies ac purus ac, fringilla efficitur enim.",
-            "Vivamus efficitur fermentum diam, sed blandit tellus viverra sit amet. Nam ut suscipit urna. Maecenas et bibendum orci.",
-            "Curabitur ut mi vitae purus congue venenatis. Fusce eu enim libero. Quisque quis accumsan nibh, et pulvinar mauris. Phasellus sit amet metus at felis porta fermentum at id velit.",
-            "In hac habitasse platea dictumst. Vestibulum dictum tincidunt justo eu ornare. Suspendisse aliquet arcu sem, vitae sollicitudin metus ultrices sit amet.",
-            "Nulla vehicula at sapien quis ultricies. Etiam eu mauris gravida, laoreet erat ac, suscipit urna. Proin volutpat tempus magna, quis ornare velit convallis vel."
-        ];
-        var categories = [
-            "Root canal","Pulpotomy","Apicoectomy","Prosthodontics",
-            "Crowns","Veneers","Bridges","Implants","Dentures",
-            "Implant-supported prosthesis","Extraction","Fiberotomy"
-        ];
-
-        var colors = [
-            {name:"Bold Blue", mask:"#5484ED"},
-            {name:"Blue", mask:"#A4BDFC"},
-            {name:"Bold Green", mask:"#51B749"},
-            {name:"Yellow", mask:"#FBD75B"},
-            {name:"Red", mask:"#FF887C"},
-            {name:"Bold Red", mask:"#DC2127"},
-            {name:"Gray", mask:"#E1E1E1"}
-        ];
-        var documents = [{
-            "name": "c29bf435b98b.jpg",
-            "size": 359551,
-            "type": "image/jpeg",
-            "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
-        }, {
-            "name": "docs.zip",
-            "size": 1607693765,
-            "type": "application/zip",
-            "description":"Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae."
-        }, {
-            "name": "eclipse-java-luna-SR1-linux-gtk-x86_64.tar.gz",
-            "size": 160242552,
-            "type": "application/gzip"
-        }, {
-            "name": "jdk-8u25-linux-x64.gz",
-            "size": 160872482,
-            "type": "application/gzip"
-        }, {
-            "name": "salamander",
-            "size": 63,
-            "type": "",
-            "description":"Proin semper augue justo, sit amet dictum erat porttitor vitae."
-        }, {
-            "name": "singlepath.svg",
-            "size": 47770,
-            "type": "image/svg+xml",
-            "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
-        }, {
-            "name": "stock-vector-natural-grass-and-gr.jpg",
-            "size": 71119,
-            "type": "image/jpeg",
-            "description":"Sed tempus magna et ligula imperdiet gravida."
-        }];
-
-
-        // TEST DATA
-        var id=0;
-        var groupedEvents = [
-            {
-                from:new Date("2015-03-18T09:00:00.000-0500"),
-                to:new Date("2015-03-18T12:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T09:00:00.000-0500"),
-                to:new Date("2015-03-18T10:00:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T10:00:00.000-0500"),
-                to:new Date("2015-03-18T11:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T11:30:00.000-0500"),
-                to:new Date("2015-03-18T12:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T09:30:00.000-0500"),
-                to:new Date("2015-03-18T14:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T10:30:00.000-0500"),
-                to:new Date("2015-03-18T12:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T11:00:00.000-0500"),
-                to:new Date("2015-03-18T13:30:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T12:30:00.000-0500"),
-                to:new Date("2015-03-18T14:00:00.000-0500")
-            },
-            {
-                from:new Date("2015-03-18T14:00:00.000-0500"),
-                to:new Date("2015-03-18T17:00:00.000-0500")
-            }
-        ];
-
-        var nonGrouped = [{
-            from:new Date("2015-03-18T14:00:00.000-0500"),
-            to:new Date("2015-03-18T15:00:00.000-0500")
-        }];
-
-        var multidayTemplate = [
-//            {
-//                from:new Date("2015-03-16T09:00:00.000-0500"),
-//                to:new Date("2015-03-19T15:00:00.000-0500")
-//            },
-            {
-                from:new Date("2015-03-17T09:00:00.000-0500"),
-                to:new Date("2015-03-19T20:00:00.000-0500")
-            }
-        ];
-        var rdm = function(e){
-            return parseInt(Math.random() * e);
-        };
-        var rdmStr = function(words, length){
-            words = words.slice();
-            var str = "";
-            for(var i =0; i < length; i++) {
-                var index = rdm(words.length)
-                var word = words.splice(index, 1)[0];
-                str += word + " ";
-            }
-            return str;
-        };
-        var rdmArr = function(words, min, max){
-            words = words.slice();
-            var arr = [];
-            var size = (min || 0) + rdm(max || words.length);
-            for(var i =0; i < size; i++) {
-                var index = rdm(words.length)
-                var word = words.splice(index, 1)[0];
-                arr.push(word);
-            }
-            return arr;
-        };
-        function getShiftedDateFrom(date, days, hours){
-            date = new Date(date);
-            days && date.setDate(date.getDate() + days);
-            hours && date.setHours(date.getHours() + hours);
-            return date;
-        }
-        function getShiftedGroupFrom(group, days, hours){
-            var shifted = [];
-            group.forEach(function(event){
-                shifted.push({
-                    label:rdmStr(labels, 4),
-                    notes:rdmStr(notes, 4),
-                    categories:rdmArr(categories),
-                    documents:rdmArr(documents),
-                    color:rdmArr(colors, 1, 1)[0].mask,
-                    from:getShiftedDateFrom(event.from, days, hours),
-                    to:getShiftedDateFrom(event.to, days, hours),
-                });
-            });
-            return shifted;
-        }
-        function generateEvents(template, n, days, hours){
-            var group = [];
-            var shift = template;
-            for(var i =0; i<n;i++){
-                shift = getShiftedGroupFrom(shift, days, hours);
-                group = group.concat(shift);
-            }
-            return group;
-        }
-        var groupedEvents = generateEvents(getShiftedGroupFrom(groupedEvents, 0), 1, 0, 0);
-        var bigGroupedGroup = generateEvents(getShiftedGroupFrom(groupedEvents, -3), 30, 0, 9);
-        var bigNonGrouped = generateEvents(getShiftedGroupFrom(nonGrouped, -3), 200, 0, 1);
-
-
-//        sandbox.$.agenda2._collisionManagerCacheEnabled = false;
-
         sandbox.$.agenda.date = new Date("2015-03-16T18:30:20.815Z");
-        sandbox.$.agenda.colors = colors;
-        sandbox.$.agenda.categories = categories;
-//        sandbox.$.agenda.events = groupedEvents;
-//        sandbox.$.agenda.events = bigEvent;
-//        sandbox.$.agenda.events = bigNonGrouped;
-        sandbox.$.agenda.events = bigGroupedGroup;
-//        sandbox.$.agenda.events = multiday;
-//        sandbox.$.agenda2.events = events;
-
-//        sandbox.tags = o;
-//        sandbox.selected = ["banana 11","banana 12"];
-//        setTimeout(function(){
-//            sandbox.$.agenda.date = new Date("2015-02-03T18:30:20.815Z");
-//        },5000)
     });
 </script>
 

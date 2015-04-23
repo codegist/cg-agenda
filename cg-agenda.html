@@ -4,9 +4,12 @@
 <link rel="import" href="../core-icon-button/core-icon-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 <link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
-<link rel="import" href="cg-event-quickeditor.html">
+<link rel="import" href="../cg-base/cg-base.html">
+<link rel="import" href="cg-event-editor.html">
 
-<polymer-element name="cg-agenda" attributes="date startDayOfWeek hourHeight showHour dragMinuteStep colors">
+<script src="../jquery/dist/jquery.min.js"></script>
+
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors">
     <template>
         <style>
             :host {
@@ -130,8 +133,6 @@
             }
         </style>
         <div id="agenda" layout vertical flex>
-            <!--<paper-button on-tap="{{toggleCache}}">toggle cache {{_collisionManagerCacheEnabled == true?"ON":"OFF"}}</paper-button>-->
-            <!--<paper-button on-tap="{{redrawAll}}">redraw all</paper-button>-->
             <core-toolbar id="header" class="header">
                 <core-icon-button class="action-button" id="previous" icon="fa:caret-left" on-tap="{{_onPreviousWeek}}"></core-icon-button>
                 <core-icon-button class="action-button" id="next" icon="fa:caret-right" on-tap="{{_onNextWeek}}"></core-icon-button>
@@ -186,7 +187,10 @@
             </div>
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
-            <cg-event-quickeditor id="editor" on-close="{{_onEditorClose}}" colors="{{colors}}" categories="{{categories}}"></cg-event-quickeditor>
+            <cg-event-editor id="editor" on-close="{{_onEditorClose}}"
+                             datarequest="cg-agenda-editor"
+                             colors="{{colors}}"
+                             categories="{{categories}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -206,10 +210,10 @@
                     if(id == undefined || id == null) {
                         return;
                     }
-                    event.collisionGroupId = id;
+                    event._collisionGroupId = id;
                 },
                 _removeId:function(event){
-                    delete event.collisionGroupId;
+                    delete event._collisionGroupId;
                 },
                 setIds:function(id) {
                     for(var i=0; i<this.events.length;i++){
@@ -270,6 +274,14 @@
                         enabled:collisionCacheGroups === false ? false : true,
                         idGen: new IdGen(),
                         cache:{},
+                        disable:function(){
+                            this.enabled = false;
+                            this.flush();
+                        },
+                        enable:function(){
+                            this.enabled = true;
+                            this.flush();
+                        },
                         nextId :function(){
                             return this.idGen.next();
                         },
@@ -283,16 +295,20 @@
                             this.cache = {};
                             this.idGen.reset();
                         }
+                    },
+                    reset:function(){
+                        this.collisionGroups.disable();
                     }
                 };
             };
             CalendarManager.prototype = {
                 intersects: function(e1, e2){
-                    var s1 = e1.from.getTime();
-                    var e1 = e1.to.getTime();
-                    var s2 = e2.from.getTime();
-                    var e2 = e2.to.getTime();
-                    return (s1 < s2 && e1 > s2) || (s1 >= s2 && (e1 < e2 || (s1 < e2))) || s1 <= s2 && e1 >= e2;
+                    var es1 = e1.from.getTime();
+                    var ee1 = e1.to.getTime();
+                    var es2 = e2.from.getTime();
+                    var ee2 = e2.to.getTime();
+                    return (es1 <= ee2 && es2 <= ee1 );
+//                    return (s1 < s2 && e1 > s2) || (s1 >= s2 && (e1 < e2 || (s1 < e2))) || s1 <= s2 && e1 >= e2;
                 },
                 getEventsInView:function(events, view){
                     var inView = [];
@@ -323,6 +339,10 @@
                 setId:function(event) {
                     event._cgaId = event._cgaId || this.idGen.next();
                 },
+                reset:function(){
+                    this.idGen.reset();
+                    this.cache.reset();
+                },
                 eventComparator:function(a,b){
                     var aFrom = a.from.getTime();
                     var bFrom = b.from.getTime();
@@ -344,7 +364,7 @@
                 },
                 invalidateCollisionGroupCache:function(event){
                     //console.log("Event " + event._cgaId + " needs to be removed from cache.");
-                    var oldGroupId = event.collisionGroupId;
+                    var oldGroupId = event._collisionGroupId;
                     var cachedGroup = this.cache.collisionGroups.cache[oldGroupId];
                     var collisionGroup;
                     if(cachedGroup && cachedGroup.removeEvent(event)) {
@@ -385,9 +405,9 @@
                     var collisionGroup;
                     if(flushFromCache === true) {
                         collisionGroup = this.invalidateCollisionGroupCache(event);
-                    }else if(event.collisionGroupId != undefined) {
+                    }else if(event._collisionGroupId != undefined) {
                         //console.log("Event " + event._cgaId + " has a collisionGroupId, looking it up.")
-                        var cachedGroup = this.cache.collisionGroups.cache[event.collisionGroupId];
+                        var cachedGroup = this.cache.collisionGroups.cache[event._collisionGroupId];
                         if(cachedGroup) {
                             //console.log("Event " + event._cgaId + " cached collision group found, using it.")
                             //console.log("[Cache HIT]");
@@ -539,15 +559,9 @@
                 hourHeight:40,
                 showHour:8,
                 dragMinuteStep:15,
-                colors: [
-                    {name:"Bold Blue", mask:"#5484ED"},
-                    {name:"Blue", mask:"#A4BDFC"},
-                    {name:"Bold Green", mask:"#51B749"},
-                    {name:"Yellow", mask:"#FBD75B"},
-                    {name:"Red", mask:"#FF887C"},
-                    {name:"Bold Red", mask:"#DC2127"},
-                    {name:"Gray", mask:"#E1E1E1"}
-                ],
+                defaultColor: {name:"Bold Blue", mask:"#5484ED"},
+                colors:null,
+                datarequest:"cg-agenda",
                 _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
                 _dayOver:null,
@@ -555,6 +569,7 @@
                 _viewFrom:null,
                 _viewTo:null,
                 _weekDays:[],
+                _providedEvents:false,
                 _events:[],
                 _eventsMap:{},
                 _eventsInView:[],
@@ -565,7 +580,6 @@
                 _dayNumFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit'}),
                 _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
-//                _collisionManagerCacheEnabled:true,
                 ready:function(){
                     this._manager = new CalendarManager(true);
                     this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
@@ -595,33 +609,35 @@
                         e.redraw = this._manager.getRedrawsCount(e);
                     }.bind(this));
                 },
-//                _collisionManagerCacheEnabledChanged:function(){
-//                    this._manager.cache.collisionGroups.enabled = this._collisionManagerCacheEnabled;
-//                    if(this._manager.cache.collisionGroups.enabled) {
-//                        this._manager.primeCollisionGroupCache(this._eventsInView);
-//                    }
-//                    this.redrawAll();
-//                },
-//                toggleCache:function(){ // TODO REMOVE
-//                    this._collisionManagerCacheEnabled = !this._collisionManagerCacheEnabled;
-//                },
                 set events(events){
-                    this._manager.orderEvents(events, false);
-                    this._manager.setIds(events);
+                    this._providedEvents = true;
                     this._events = events;
                 },
-                _eventsChanged:function(){
-                    this._refreshEventsInView();
-                },
                 _refreshEventsInView:function(){
+                    var range = {from:this._viewFrom, to:this._viewTo};
+                    if(this._providedEvents) {
+                        console.log("Agenda - Events provided, using them");
+                        this._setEvents(this._manager.getEventsInView(this.events, range));
+                    }else{
+                        console.log("Agenda - Events not provided, firing data request");
+                        this.fireDataRequest("events-in-range", range, function(response){
+                            this._setEvents(response.data);
+                        }.bind(this));
+                    }
+                },
+                _setEvents:function(events){
+                    this._manager.orderEvents(events, false);
+                    this._events = this._manager.setIds(events);
+                },
+                _eventsChanged:function(){
 //                    console.log("_refreshEventsInView")
-                    var eventsInView = this._manager.getEventsInView(this.events, {from:this._viewFrom, to:this._viewTo});
+                    var eventsInView = this._events.slice();
                     if(eventsInView.length < this._eventSizeCacheThreshold) {
                         console.log("Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
-                        this._manager.cache.collisionGroups.enabled = false;
+                        this._manager.cache.collisionGroups.disable();
                     }else{
                         console.log("Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
-                        this._manager.cache.collisionGroups.enabled = true;
+                        this._manager.cache.collisionGroups.enable();
                         this._manager.primeCollisionGroupCache(eventsInView);
                     }
                     var eventsMap = {};
@@ -655,13 +671,13 @@
                     date.setDate(startDay);
                     this._viewFrom = new Date(date);
                     for(var i = startDay; i < startDay + 7; i++){
-                        date.setDate(i);
                         weekDays.push({
                             day:i,
                             month:date.getMonth(),
                             year:date.getFullYear(),
                             date:new Date(date)
                         });
+                        date.setDate(date.getDate() + 1);
                     }
                     this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
                     this._weekDays = weekDays;
@@ -971,7 +987,7 @@
                         height:height,
                         width:100,
                         left:0,
-                        backgroundColor:event ? event.color : this.colors[0].mask,
+                        backgroundColor:event && event.color ? event.color.mask : this.defaultColor.mask,
                         toStyleString:function(additional){
                             return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;background-color:" + this.backgroundColor;
                         }

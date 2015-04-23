@@ -11,7 +11,7 @@
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 
-<polymer-element name="cg-event-quickeditor" attributes="event categories colors">
+<polymer-element name="cg-event-editor" attributes="event eventId categories colors datarequest">
     <template>
         <style>
             :host {
@@ -64,17 +64,22 @@
                     </div>
                     <div class="page-wrapper" relative>
                         <div layout vertical>
-                            <template if="{{categories.length > 0}}">
+                            <template if="{{categories.length > 0 || datarequest}}">
                                 <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-tags tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                    <cg-input-tags datarequest="{{datarequest}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
                                 </paper-input-decorator>
                             </template>
-                            <template if="{{colors.length > 0}}">
+                            <template if="{{colors.length > 0 || datarequest}}">
                                 <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-color required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                    <cg-input-color datarequest="{{datarequest}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-decorator>
                             </template>
-                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}"></cg-input-documents>
+                            <!--TODO THIS IS HORRIBLY MESSY-->
+                            <cg-input-documents forcedatarequest="true"
+                                                selected="{{_editCopy.documents}}"
+                                                datarequest="{{datarequest}}"
+                                                defaultparams="{{_documentListParams}}"
+                                                firerequest="{{_documentListFireRequest}}" label="Documents"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -110,14 +115,18 @@
         </paper-action-dialog>
     </template>
     <script>
-        Polymer("cg-event-quickeditor", {
+        Polymer("cg-event-editor", {
             event:null,
             heading:"",
             existingEvent:"Edit event",
             addEvent:"Add event",
             create:false,
-            categories:[],
-            colors:[],
+            categories:null,
+            colors:null,
+            colorsDataRequest:null,
+            categoriesDataRequest:null,
+            _documentListParams:null,
+            _documentListFireRequest:false,
             _selectedPage:0,
             _inputs:null,
             _editCopy:null,
@@ -192,6 +201,11 @@
                     categories:this.event.categories?this.event.categories.slice():[],
                     documents:this.event.documents?this.event.documents.slice():[],
                 };
+//                TODO event._id is implementation specific. should be parametrised
+                this._documentListParams = {
+                    eventId:this.event._cgaId
+                };
+                this._documentListFireRequest = true;
             },
             openDialog:function(event, edit){
                 this._selectedPage = 0;
