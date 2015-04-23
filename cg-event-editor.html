@@ -74,12 +74,8 @@
                                     <cg-input-color datarequest="{{datarequest}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-decorator>
                             </template>
-                            <!--TODO THIS IS HORRIBLY MESSY-->
-                            <cg-input-documents forcedatarequest="true"
-                                                selected="{{_editCopy.documents}}"
-                                                datarequest="{{datarequest}}"
-                                                defaultparams="{{_documentListParams}}"
-                                                firerequest="{{_documentListFireRequest}}" label="Documents"></cg-input-documents>
+                            <cg-input-documents label="Documents" selected="{{_editCopy.documents}}" datarequest="{{datarequest}}"
+                                                defaultparams="{{_documentInputParams}}"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -123,10 +119,7 @@
             create:false,
             categories:null,
             colors:null,
-            colorsDataRequest:null,
-            categoriesDataRequest:null,
-            _documentListParams:null,
-            _documentListFireRequest:false,
+            _documentInputParams:null,
             _selectedPage:0,
             _inputs:null,
             _editCopy:null,
@@ -201,11 +194,7 @@
                     categories:this.event.categories?this.event.categories.slice():[],
                     documents:this.event.documents?this.event.documents.slice():[],
                 };
-//                TODO event._id is implementation specific. should be parametrised
-                this._documentListParams = {
-                    eventId:this.event._cgaId
-                };
-                this._documentListFireRequest = true;
+                this._documentInputParams = { event:this.event };
             },
             openDialog:function(event, edit){
                 this._selectedPage = 0;
