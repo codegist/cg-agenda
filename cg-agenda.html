@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn">
     <template>
         <style>
             :host {
@@ -561,6 +561,7 @@
                 dragMinuteStep:15,
                 defaultColor: {name:"Bold Blue", mask:"#5484ED"},
                 colors:null,
+                highlightedFn:function(data){return true},
                 dataTagPrefix:"cg-agenda",
                 _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
@@ -583,8 +584,7 @@
                 ready:function(){
                     this._manager = new CalendarManager(true);
                     this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
-                    this.dateChanged();
-                    console.log("Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+
                 },
                 _dayNumDisplay:function(day) {
                     return this._dayNumFormat.format(day.date) + "/" + this._monthNumFormat.format(day.date);
@@ -603,6 +603,8 @@
                     this.$.agendadays.scrollTop = this.hourHeight * this.showHour;
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px"
                     this._drawBackground();
+                    this.dateChanged();
+                    console.log("Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
                 },
                 redrawAll:function(){
                     this._eventsInView.forEach(function(e){
@@ -982,14 +984,16 @@
                 _getEventBoxFor:function(range, day, event){
                     var top = range.from.getDate() == day ? this._getHeightForDate(range.from) : 0;
                     var height = this._getHeightForDate(range.to.getDate() == day ? range.to : new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59)) - top;
+                    var opacity = this.highlightedFn(event) ? 1.0 : .2;
                     return {
                         top:top,
                         height:height,
                         width:100,
                         left:0,
+                        opacity:opacity,
                         backgroundColor:event && event.color ? event.color.mask : this.defaultColor.mask,
                         toStyleString:function(additional){
-                            return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;background-color:" + this.backgroundColor;
+                            return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;background-color:" + this.backgroundColor + ";opacity:" + this.opacity;
                         }
                     };
                 },
