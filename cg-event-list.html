@@ -2,10 +2,11 @@
 <link href="../paper-shadow/paper-shadow.html" rel="import">
 <link href="../core-icon/core-icon.html" rel="import">
 <link href="../core-list/core-list.html" rel="import">
+<link href="../cg-base/cg-base.html" rel="import">
 <link href="cg-event-editor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list"  attributes="label events idProperty colors categories" layout vertical>
+<polymer-element name="cg-event-list" extends="cg-base" attributes="label events colors categories dataTagPrefix dataBaseParams" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -98,9 +99,9 @@
                                     <!--<core-icon class="event-duration" icon="fa:clock-o" title="{{_displayDuration(model)}}"></core-icon>-->
                                     <span class="event-time">{{_displayTime(model)}} ({{_displayDuration(model)}})</span>
                                 </div>
-                                <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model[idProperty]}}">{{model.label}}</span>
+                                <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
                                 <template if="{{!model.payment}}">
-                                    <div class="event-payment" relative on-tap="{{_onRecordPaymentClick}}" data-id="{{model[idProperty]}}">
+                                    <div class="event-payment" relative on-tap="{{_onRecordPaymentClick}}" data-id="{{model._cgelId}}">
                                         <paper-shadow z="1" fit></paper-shadow>
                                         record payment
                                     </div>
@@ -124,7 +125,7 @@
                         </span>
                 </paper-button>
             </div>
-            <cg-event-editor id="editor" colors="{{colors}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-editor>
+            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}" dataBaseParams="{{dataBaseParams}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -134,10 +135,12 @@
                 label:"Events",
                 colors:null,
                 categories:null,
-                idProperty:null,
                 scrolling:true,
-                events:[],
+                events:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
+                created:function(){
+                    this.events = [];
+                },
                 _displayDuration:function(event){
                     if(!event) return null;
                     var duration = (event.to.getTime() - event.from.getTime());
@@ -167,6 +170,10 @@
                         var bt = b.from.getTime();
                         return at < bt ? 1 : at > bt ? -1 : 0;
                     });
+                    this._id = 0;
+                    this.events.forEach(function(e) {
+                        e._cgelId = this._id++;
+                    }.bind(this));
                 },
                 _onAddClick:function(e){
                     this.$.editor.openDialog();
@@ -174,17 +181,22 @@
                 _onEditorClosed:function(e){
                     switch(e.detail.result){
                         case "OK":
-                            if(e.detail.event.hasOwnProperty(idProperty)) {
-                                // update
+                            if(e.detail.event._cgelId) {
+//                                 update
                             }else{
                                 this.events.push(e.detail.event);
                             }
                             break;
                         case "DELETE":
-                            this.events.splice(this.events.indexOf(this._getEventById(e.detail.event.id)), 1);
+                            this.events.splice(this.events.indexOf(this._getEventByInternalId(e.detail.event._cgelId)), 1);
                             break;
                         case "CANCEL": break;
                     }
+                },
+                onRefreshData:function(){
+                    this.fireDataRequest('event-list', function(response){
+                        this.events = response.data;
+                    }.bind(this));
                 },
                 _onLabelClick:function(e){
                     this._onRecordPaymentClick(e);
@@ -194,11 +206,11 @@
                     //this.fire("event-clicked", e.currentTarget.dataset.id);
                 },
                 openEditor:function(eventId){
-                    this.$.editor.openDialog(this._getEventById(eventId));
+                    this.$.editor.openDialog(this._getEventByInternalId(eventId));
                 },
-                _getEventById:function(id) {
+                _getEventByInternalId:function(id) {
                     for(var i = 0; i < this.events.length; i++){
-                        if(this.events[i][this.idProperty] == id) {
+                        if(this.events[i]._cgelId == id) {
                             return this.events[i];
                         }
                     }

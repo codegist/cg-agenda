@@ -11,7 +11,7 @@
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 
-<polymer-element name="cg-event-editor" attributes="event eventId categories colors datarequest">
+<polymer-element name="cg-event-editor" attributes="event eventId categories colors dataTagPrefix">
     <template>
         <style>
             :host {
@@ -64,18 +64,18 @@
                     </div>
                     <div class="page-wrapper" relative>
                         <div layout vertical>
-                            <template if="{{categories.length > 0 || datarequest}}">
+                            <template if="{{categories.length > 0 || dataTagPrefix}}">
                                 <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-tags datarequest="{{datarequest}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                    <cg-input-tags dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
                                 </paper-input-decorator>
                             </template>
-                            <template if="{{colors.length > 0 || datarequest}}">
+                            <template if="{{colors.length > 0 || dataTagPrefix}}">
                                 <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-color datarequest="{{datarequest}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                    <cg-input-color dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-decorator>
                             </template>
-                            <cg-input-documents label="Documents" selected="{{_editCopy.documents}}" datarequest="{{datarequest}}"
-                                                defaultparams="{{_documentInputParams}}"></cg-input-documents>
+                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
+                                                dataBaseParams="{{_documentInputParams}}"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>

@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>cg-datetime-input Demo</title>
-    <link rel="import" href="../cg-datasource/cg-datasource-testdata.html">
+    <link rel="import" href="cg-datasource-testdata.html">
     <link rel="import" href="cg-agenda.html">
     <style>
         .demo {
@@ -23,7 +23,7 @@
 <template id="sandbox" is="auto-binding">
     <cg-datasource-testdata></cg-datasource-testdata>
     <section class="demo" layout horizontal>
-        <cg-agenda flex id="agenda"></cg-agenda>
+        <cg-agenda flex id="agenda" dataTagPrefix="demo"></cg-agenda>
         <!--<div style="width:50px"></div>-->
         <!--<cg-agenda flex id="agenda2"></cg-agenda>-->
     </section>

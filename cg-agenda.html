@@ -188,7 +188,7 @@
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
             <cg-event-editor id="editor" on-close="{{_onEditorClose}}"
-                             datarequest="cg-agenda-editor"
+                             dataTagPrefix="{{dataTagPrefix}}"
                              colors="{{colors}}"
                              categories="{{categories}}"></cg-event-editor>
         </div>
@@ -561,7 +561,7 @@
                 dragMinuteStep:15,
                 defaultColor: {name:"Bold Blue", mask:"#5484ED"},
                 colors:null,
-                datarequest:"cg-agenda",
+                dataTagPrefix:"cg-agenda",
                 _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
                 _dayOver:null,
@@ -620,9 +620,9 @@
                         this._setEvents(this._manager.getEventsInView(this.events, range));
                     }else{
                         console.log("Agenda - Events not provided, firing data request");
-                        this.fireDataRequest("events-in-range", range, function(response){
+                        this.fireDataRequest("events-in-range", function(response){
                             this._setEvents(response.data);
-                        }.bind(this));
+                        }.bind(this), range);
                     }
                 },
                 _setEvents:function(events){
