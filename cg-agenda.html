@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents">
     <template>
         <style>
             :host {
@@ -94,7 +94,7 @@
                 margin:3px;
             }
             :host .event.dd-ghost {
-                opacity: 0.5;
+                opacity: 0.5!important;
                 z-index:2;
             }
             :host .weekdays .day-name-large {
@@ -139,6 +139,7 @@
                 <core-icon-button class="action-button" id="create_icon_button" icon="create" on-tap="{{_onCreateEvent}}">Add event</core-icon-button>
                 <core-icon-button class="action-button" id="today_icon_button" icon="fa:calendar-o" on-tap="{{_onNowWeek}}">Today</core-icon-button>
                 <core-icon-button class="action-button" id="calendar_button" icon="fa:calendar" on-tap="{{_onSelectWeek}}">{{_calendarWeekDisplay(_viewFrom, _viewTo)}}</core-icon-button>
+                <core-icon-button class="action-button" id="calendar_button" icon="fa:calendar" on-tap="{{redrawAll}}">REDRAW</core-icon-button>
             </core-toolbar>
             <div id="weekdays" class="weekdays noselect" layout horizontal>
                 <template repeat="{{_weekDays as day}}">
@@ -321,7 +322,8 @@
                     return inView;
                 },
                 getRedrawsCount:function(event){
-                    return (event.to.getDate() - event.from.getDate()) + 1;
+                    // + 2 because redraw trigger gets used by isEventOfDay and getEventClass
+                    return Math.ceil((event.to.getTime()-event.from.getTime())/(1000*60*60*24)) + 2;
                 },
                 minutediff:function(range) {
                     return (range.to.getTime()-range.from.getTime())/(1000*60);
@@ -331,7 +333,8 @@
                     events.sort(this.eventComparator);
                     return events;
                 },
-                setIds:function(events){
+                setIds:function(events, reset){
+                    reset === true && this.idGen.reset();
                     events.forEach(function(e){
                         this.setId(e);
                     }.bind(this));
@@ -564,6 +567,7 @@
                 colors:null,
                 highlightedFn:function(data){return true},
                 dataTagPrefix:"cg-agenda",
+                redrawOnApplicationEvents:null,
                 _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
                 _dayOver:null,
@@ -584,6 +588,7 @@
                 _manager:null,
                 created:function(){
                     this.super();
+                    this.redrawOnApplicationEvents = [];
                     this._weekDays = [];
                     this._events = [];
                     this._eventsInView = [];
@@ -616,6 +621,7 @@
                 redrawAll:function(){
                     this._eventsInView.forEach(function(e){
                         e.redraw = this._manager.getRedrawsCount(e);
+                        console.log()
                     }.bind(this));
                 },
                 set events(events){
@@ -675,10 +681,15 @@
                                 break;
                         }
                     }
+                    this.redrawOnApplicationEvents.forEach(function(redrawOnType){
+                        if(redrawOnType == type) {
+                            this.redrawAll();
+                        }
+                    }.bind(this));
                 },
                 _setEvents:function(events){
                     this._manager.orderEvents(events, false);
-                    this._events = this._manager.setIds(events);
+                    this._events = this._manager.setIds(events, true);
                 },
                 _eventsChanged:function(){
 //                    console.log("_refreshEventsInView")
@@ -693,7 +704,6 @@
                     }
                     var eventsMap = {};
                     eventsInView.forEach(function(e){
-                        e.redraw = this._manager.getRedrawsCount(e);
                         eventsMap[e._cgaId] = e;
                     }.bind(this));
 
@@ -722,11 +732,16 @@
                     date.setDate(startDay);
                     this._viewFrom = new Date(date);
                     for(var i = startDay; i < startDay + 7; i++){
+                        var from = new Date(date);
+                        var to = new Date(date);
+                        to.setHours(23,59,59,999);
                         weekDays.push({
-                            day:i,
+                            day:date.getDate(),
                             month:date.getMonth(),
                             year:date.getFullYear(),
-                            date:new Date(date)
+                            date:new Date(date),
+                            from:from,
+                            to:to,
                         });
                         date.setDate(date.getDate() + 1);
                     }
@@ -808,7 +823,7 @@
                         eventElementsPerDay[day].cloneEl = clone;
                         eventElementsPerDay[day].dayDDOverlayEl.appendChild(clone);
                     }.bind(this));
-
+                    event._dragging = true;
                     var that = this;
                     this._initialDragInfos = {
                         role: e.currentTarget.dataset.role,
@@ -908,17 +923,31 @@
                     e && typeof e != "string" && e.preventDefault() && e.stopPropagation();
                     if (this._initialDragInfos && this._initialDragInfos.dragging) {
                         this._initialDragInfos.fireFinished();
-                        //console.log("_onEventDragEnd " + e)
+                        var elements = [];
+                        var overlays = [];
                         for(var day in this._initialDragInfos.elements) {
                             var el = this._initialDragInfos.elements[day];
-                            if(el == null) continue;
-                            el.cloneEl && el.cloneEl.parentElement.removeChild(el.cloneEl);
-                            el.originalEl && el.originalEl.classList.remove("hidden");
+                            if(el.cloneEl == null && el.originalEl == null) continue;
+                            el.originalEl && elements.push(el.originalEl);
+                            el.cloneEl && overlays.push(el.cloneEl);
                         }
-                        this.fire("event-drag-end", {
+                        var data = {
                             event:this._initialDragInfos.event,
-                            newPosition: this._initialDragInfos.dragging
-                        });
+                            newPosition: this._initialDragInfos.dragging,
+                            elements:elements,
+                            overlays:overlays
+                        };
+                        data.commitDrop = function(){
+                            delete this.event._dragging;
+                            this.elements.forEach(function(e){
+                                e.classList.remove("hidden");
+                            });
+                            this.overlays.forEach(function(e){
+                                e.parentElement.removeChild(e)
+                            });
+                        }.bind(data);
+
+                        this.fire("event-drag-end", data);
                         delete this._initialDragInfos;
                     }
                 },
@@ -926,15 +955,16 @@
                     if(this.isDataAware()) {
                         var toSave = Platform.mixin({}, e.detail.event, e.detail.newPosition);
                         this.fireDataRequest("save", function(response){
-                            this._onEventDragEndedDone(e, response.data);
+                            this._onEventDragEndedCommitted(e, response.data);
                         }.bind(this), {event:toSave});
                     }else{
-                        this._onEventDragEndedDone(e);
+                        this._onEventDragEndedCommitted(e);
                     }
                 },
-                _onEventDragEndedDone:function(e, eventToFire){
+                _onEventDragEndedCommitted:function(e, toFire){
                     this._commitEventChange(e.detail.event, e.detail.newPosition, "edit");
-                    this.fireApplicationEvent("event-updated", eventToFire || e);
+                    e.detail.commitDrop();
+                    this.fireApplicationEvent("event-updated", toFire || e.detail.event);
                 },
                 _commitEventChange:function(event, newRange, operation) {
                     if(operation == "edit" || operation == "delete") {
@@ -990,11 +1020,7 @@
                 },
                 _isEventOfDay:function(event, day){
                     //console.log(event.from + " - " + new Date(day.year, day.month, day.day, 23, 59 ,59, 999));
-                    var range = event.dragging || event;
-                    return this._manager.intersects(range, {
-                        from:new Date(day.year, day.month, day.day, 0, 0 ,0, 0),
-                        to:new Date(day.year, day.month, day.day, 23, 59 ,59, 999)
-                    });
+                    return this._manager.intersects(event, day);
                 },
                 _getEventClass:function(event, day){
                     return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
@@ -1010,7 +1036,7 @@
                     }
 
                     var info = this._manager.findCollisionMatrixInfoForSingleEvent(this._eventsInView, event);
-                    var box = this._getEventBoxFor(event.dragging || event, day.day, event);
+                    var box = this._getEventBoxFor(event, day.day, event);
                     box.left = (box.width / info.totalColumns) * (info.column - 1);
                     box.width = box.width / info.totalColumns;
 
