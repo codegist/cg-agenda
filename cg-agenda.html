@@ -681,11 +681,9 @@
                                 break;
                         }
                     }
-                    this.redrawOnApplicationEvents.forEach(function(redrawOnType){
-                        if(redrawOnType == type) {
-                            this.redrawAll();
-                        }
-                    }.bind(this));
+                    if(this.redrawOnApplicationEvents && this.redrawOnApplicationEvents.indexOf(type) != -1) {
+                        this.redrawAll();
+                    }
                 },
                 _setEvents:function(events){
                     this._manager.orderEvents(events, false);
