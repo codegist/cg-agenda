@@ -570,11 +570,11 @@
                 _eventOver:null,
                 _viewFrom:null,
                 _viewTo:null,
-                _weekDays:[],
+                _weekDays:null,
                 _providedEvents:false,
-                _events:[],
+                _events:null,
                 _eventsMap:{},
-                _eventsInView:[],
+                _eventsInView:null,
                 _initialDragInfos:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false}),
                 _headerDateFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'long'}),
@@ -582,6 +582,12 @@
                 _dayNumFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit'}),
                 _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
+                created:function(){
+                    this.super();
+                    this._weekDays = [];
+                    this._events = [];
+                    this._eventsInView = [];
+                },
                 ready:function(){
                     this._manager = new CalendarManager(true);
                     this.addEventListener("event-drag-end", this._onEventDragEnded.bind(this));

@@ -100,10 +100,15 @@
         <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
             <section>
                 <p>Are you sure you want to delete the event "{{_editCopy.label}}"?</p>
+                <p>Also delete attached documents or keep them?</p>
             </section>
-            <paper-button affirmative class="colored" on-tap="{{delete}}">
+            <paper-button affirmative class="colored" on-tap="{{delete}}" data-docs="delete">
                 <core-icon icon="check"></core-icon>
-                yes
+                yes delete all
+            </paper-button>
+            <paper-button affirmative class="colored" on-tap="{{delete}}" data-docs="keep">
+                <core-icon icon="check"></core-icon>
+                yes, but keep documents
             </paper-button>
             <paper-button dismissive>
                 <core-icon icon="clear"></core-icon>
@@ -186,14 +191,15 @@
             confirmDelete:function(){
                 this.$.confirmdelete.toggle();
             },
-            delete:function(){
+            delete:function(e){
+                var params = {deleteDocs:e.currentTarget.dataset.docs == "delete"};
                 if(this.isDataAware()){
                     this.fireDataRequest("delete", function(response){
                         this.event = Platform.mixin(this.event, response.data);
-                        this.closeDialog("DELETE");
-                    }.bind(this), {original:this.event})
+                        this.closeDialog("DELETE", params);
+                    }.bind(this), {original:this.event, deleteDocs: params.deleteDocs})
                 }else {
-                    this.closeDialog("DELETE");
+                    this.closeDialog("DELETE", params);
                 }
             },
             _editCopyChanged:function(){
@@ -221,7 +227,7 @@
                     this.$.dialog.toggle();
                 }.bind(this), 10);
             },
-            closeDialog:function(result){
+            closeDialog:function(result, params){
                 switch(result) {
                     case "OK":
                         if(this.create) {
@@ -231,7 +237,7 @@
                         }
                         break;
                     case "DELETE":
-                        this.fireApplicationEvent("event-deleted", this.event);
+                        this.fireApplicationEvent("event-deleted", {docsDeleted:params.deleteDocs, event:this.event});
                         break;
                 }
                 this.$.dialog.open = false;

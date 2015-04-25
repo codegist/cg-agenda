@@ -90,7 +90,7 @@
         <div id="events" layout vertical relative>
             <paper-shadow z="1" fit></paper-shadow>
             <div id="listScroller" hidden?="{{events.length == 0}}" >
-                <core-list id="list" data="{{events}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
+                <core-list id="list" data="{{_eventsView}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
                     <template>
                         <div class="event" layout horizontal>
                             <div flex layout horizontal wrap>
@@ -137,6 +137,7 @@
                 categories:null,
                 scrolling:true,
                 events:null,
+                _eventsView:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
                 created:function(){
                     this.super();
@@ -165,19 +166,19 @@
                     if(!event) return null;
                     return this._timeFormat.format(event.from);
                 },
-                sortEvents:function(){
-                    this.events.sort(function(a,b){
+                sortEventView:function(){
+                    this._eventsView = this.events.slice().sort(function(a,b){
                         var at = a.from.getTime();
                         var bt = b.from.getTime();
                         return at < bt ? 1 : at > bt ? -1 : 0;
-                    });
+                    })
                 },
                 eventsChanged:function(){
-                    this.sortEvents();
                     this._id = 1;
                     this.events.forEach(function(e) {
                         e._cgelId = this._id++;
                     }.bind(this));
+                    this.sortEventView();
                 },
                 _onAddClick:function(e){
                     this.$.editor.openDialog();
@@ -187,7 +188,7 @@
                         console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
                         switch (type) {
                             case "event-updated":
-                                this.sortEvents();
+                                this.sortEventView();
                                 break;
                             case "event-created":
                                 this.events.push(event.params);
