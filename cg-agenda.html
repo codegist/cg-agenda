@@ -187,8 +187,9 @@
             </div>
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
-            <cg-event-editor id="editor" on-close="{{_onEditorClose}}"
+            <cg-event-editor id="editor"
                              dataTagPrefix="{{dataTagPrefix}}"
+                             dataBaseParams="{{dataBaseParams}}"
                              colors="{{colors}}"
                              categories="{{categories}}"></cg-event-editor>
         </div>
@@ -583,7 +584,7 @@
                 _manager:null,
                 ready:function(){
                     this._manager = new CalendarManager(true);
-                    this.addEventListener("event-change-committed", this._onEventChangeCommitted.bind(this));
+                    this.addEventListener("event-drag-end", this._onEventDragEnded.bind(this));
 
                 },
                 _dayNumDisplay:function(day) {
@@ -625,6 +626,48 @@
                         this.fireDataRequest("events-in-range", function(response){
                             this._setEvents(response.data);
                         }.bind(this), range);
+                    }
+                },
+                onApplicationEvent:function(type, event){
+                    if(event.source == this) {
+                        console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is self, ignoring");
+                        return;
+                    }
+                    if(event.source == this.$.editor) {
+                        console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is known, updating data");
+                        switch(type) {
+                            case "event-updated":
+                            case "event-created":
+                                event = event.params;
+                                var newRange = {
+                                    from:event.from,
+                                    to:event.to
+                                };
+                                var op = type == "event-updated" ? "edit" : "create";
+                                event.from = event._from || event.from;
+                                event.to = event._to || event.to;
+                                delete event._from;
+                                delete event._to;
+                                this._commitEventChange(event, newRange, op);
+                                break;
+                            case "event-deleted":
+                                this._commitEventChange(event.params, null, "delete");
+                                break;
+                        }
+                    }else{
+                        switch(type){
+                            case "event-updated":
+                            case "event-created":
+                            case "event-deleted":
+                                console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
+                                if(this._manager.intersects(event.params, {from:this._viewFrom, to:this._viewTo})) {
+                                    console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
+                                    this._refreshEventsInView();
+                                }else{
+                                    console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
+                                }
+                                break;
+                        }
                     }
                 },
                 _setEvents:function(events){
@@ -727,26 +770,6 @@
                 },
                 _createEvent:function(event){
                     this.$.editor.openDialog(event || {}, false);
-                },
-                _onEditorClose:function(e){
-                    switch(e.detail.result) {
-                        case "OK":
-                            var newRange = {
-                                from:e.detail.event.from,
-                                to:e.detail.event.to
-                            };
-                            var op = e.detail.event._from ? "edit" : "create";
-                            e.detail.event.from = e.detail.event._from || e.detail.event.from;
-                            e.detail.event.to = e.detail.event._to || e.detail.event.to;
-                            delete e.detail.event._from;
-                            delete e.detail.event._to;
-                            this._commitEventChange(e.detail.event, newRange, op);
-                            break;
-                        case "DELETE":
-                            this._commitEventChange(e.detail.event, null, "delete");
-                            break;
-                        case "CANCEL":break;
-                    }
                 },
                 _onEventDragStart:function(e){
                     e.preventDefault();
@@ -886,15 +909,26 @@
                             el.cloneEl && el.cloneEl.parentElement.removeChild(el.cloneEl);
                             el.originalEl && el.originalEl.classList.remove("hidden");
                         }
-                        this.fire("event-change-committed", {
+                        this.fire("event-drag-end", {
                             event:this._initialDragInfos.event,
                             newPosition: this._initialDragInfos.dragging
                         });
                         delete this._initialDragInfos;
                     }
                 },
-                _onEventChangeCommitted:function(e){
+                _onEventDragEnded:function(e){
+                    if(this.isDataAware()) {
+                        var toSave = Platform.mixin({}, e.detail.event, e.detail.newPosition);
+                        this.fireDataRequest("save", function(response){
+                            this._onEventDragEndedDone(e, response.data);
+                        }.bind(this), {event:toSave});
+                    }else{
+                        this._onEventDragEndedDone(e);
+                    }
+                },
+                _onEventDragEndedDone:function(e, eventToFire){
                     this._commitEventChange(e.detail.event, e.detail.newPosition, "edit");
+                    this.fireApplicationEvent("event-updated", eventToFire || e);
                 },
                 _commitEventChange:function(event, newRange, operation) {
                     if(operation == "edit" || operation == "delete") {

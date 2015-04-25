@@ -10,8 +10,9 @@
 <link rel="import" href="../cg-input-tags/cg-input-tags.html">
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
+<link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" attributes="event eventId categories colors dataTagPrefix">
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event eventId categories colors dataTagPrefix">
     <template>
         <style>
             :host {
@@ -163,14 +164,21 @@
                 this.$.okButton.disabled = !valid;
             },
             ok:function(){
-                this.event.from = new Date(this._editCopy.from);
-                this.event.to = new Date(this._editCopy.to);
-                this.event.label = this._editCopy.label;
-                this.event.notes = this._editCopy.notes;
-                this.event.color = this._editCopy.color;
-                this.event.documents = this._editCopy.documents.slice();
-                this.event.categories = this._editCopy.categories.slice();
-                this.closeDialog("OK");
+                if(this.isDataAware()){
+                    this.fireDataRequest("save", function(response){
+                        this.event = Platform.mixin(this.event, response.data);
+                        this.closeDialog("OK");
+                    }.bind(this), {original:this.event, save:this._editCopy})
+                }else{
+                    this.event.from = new Date(this._editCopy.from);
+                    this.event.to = new Date(this._editCopy.to);
+                    this.event.label = this._editCopy.label;
+                    this.event.notes = this._editCopy.notes;
+                    this.event.color = this._editCopy.color;
+                    this.event.documents = this._editCopy.documents.slice();
+                    this.event.categories = this._editCopy.categories.slice();
+                    this.closeDialog("OK");
+                }
             },
             cancel:function(){
                 this.closeDialog("CANCEL");
@@ -179,7 +187,14 @@
                 this.$.confirmdelete.toggle();
             },
             delete:function(){
-                this.closeDialog("DELETE");
+                if(this.isDataAware()){
+                    this.fireDataRequest("delete", function(response){
+                        this.event = Platform.mixin(this.event, response.data);
+                        this.closeDialog("DELETE");
+                    }.bind(this), {original:this.event})
+                }else {
+                    this.closeDialog("DELETE");
+                }
             },
             _editCopyChanged:function(){
 //                this.$.notesDec.update(this.$.notes);
@@ -190,7 +205,7 @@
                     to:this.event.to ? this.event.to.toISOString() : "",
                     label:this.event.label,
                     notes:this.event.notes,
-                    color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0].mask : ""),
+                    color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
                     categories:this.event.categories?this.event.categories.slice():[],
                     documents:this.event.documents?this.event.documents.slice():[],
                 };
@@ -207,11 +222,25 @@
                 }.bind(this), 10);
             },
             closeDialog:function(result){
+                switch(result) {
+                    case "OK":
+                        if(this.create) {
+                            this.fireApplicationEvent("event-created", this.event);
+                        }else{
+                            this.fireApplicationEvent("event-updated", this.event);
+                        }
+                        break;
+                    case "DELETE":
+                        this.fireApplicationEvent("event-deleted", this.event);
+                        break;
+                }
                 this.$.dialog.open = false;
                 this.fire("close", {
                     event: this.event,
                     result: result
                 });
+                this.event = {};
+
             },
         });
     </script>

@@ -125,7 +125,7 @@
                         </span>
                 </paper-button>
             </div>
-            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}" dataBaseParams="{{dataBaseParams}}" categories="{{categories}}" on-close="={{_onEditorClosed}}"></cg-event-editor>
+            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}" dataBaseParams="{{dataBaseParams}}" categories="{{categories}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -139,6 +139,7 @@
                 events:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
                 created:function(){
+                    this.super();
                     this.events = [];
                 },
                 _displayDuration:function(event){
@@ -164,13 +165,16 @@
                     if(!event) return null;
                     return this._timeFormat.format(event.from);
                 },
-                eventsChanged:function(){
+                sortEvents:function(){
                     this.events.sort(function(a,b){
                         var at = a.from.getTime();
                         var bt = b.from.getTime();
                         return at < bt ? 1 : at > bt ? -1 : 0;
                     });
-                    this._id = 0;
+                },
+                eventsChanged:function(){
+                    this.sortEvents();
+                    this._id = 1;
                     this.events.forEach(function(e) {
                         e._cgelId = this._id++;
                     }.bind(this));
@@ -178,19 +182,29 @@
                 _onAddClick:function(e){
                     this.$.editor.openDialog();
                 },
-                _onEditorClosed:function(e){
-                    switch(e.detail.result){
-                        case "OK":
-                            if(e.detail.event._cgelId) {
-//                                 update
-                            }else{
-                                this.events.push(e.detail.event);
-                            }
-                            break;
-                        case "DELETE":
-                            this.events.splice(this.events.indexOf(this._getEventByInternalId(e.detail.event._cgelId)), 1);
-                            break;
-                        case "CANCEL": break;
+                onApplicationEvent:function(type, event){
+                    if(event.source == this.$.editor) {
+                        console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
+                        switch (type) {
+                            case "event-updated":
+                                this.sortEvents();
+                                break;
+                            case "event-created":
+                                this.events.push(event.params);
+                                break;
+                            case "event-deleted":
+                                this.events.splice(this._getEventIndex(event.params._cgelId), 1);
+                                break;
+                        }
+                    }else{
+                        switch(type){
+                            case "event-updated":
+                            case "event-created":
+                            case "event-deleted":
+                                console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
+                                this.onRefreshData();
+                                break;
+                        }
                     }
                 },
                 onRefreshData:function(){
@@ -208,13 +222,17 @@
                 openEditor:function(eventId){
                     this.$.editor.openDialog(this._getEventByInternalId(eventId));
                 },
-                _getEventByInternalId:function(id) {
+                _getEventIndex:function(id) {
                     for(var i = 0; i < this.events.length; i++){
                         if(this.events[i]._cgelId == id) {
-                            return this.events[i];
+                            return i;
                         }
                     }
-                    return null;
+                    return -1;
+                },
+                _getEventByInternalId:function(id) {
+                    var index = this._getEventIndex(id);
+                    return index != -1 ? this.events[index] : null;
                 }
             });
         })()
