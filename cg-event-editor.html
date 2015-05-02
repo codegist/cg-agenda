@@ -170,10 +170,15 @@
             },
             ok:function(){
                 if(this.isDataAware()){
-                    this.fireDataRequest("save", function(response){
-                        this.event = Platform.mixin(this.event, response.data);
-                        this.closeDialog("OK");
-                    }.bind(this), {original:this.event, save:this._editCopy})
+                    this.fireDataRequest({
+                        type:"save",
+                        params:{original:this.event, save:this._editCopy},
+                        success:function(response){
+                            this.event = Platform.mixin(this.event, response.data);
+                            this.closeDialog("OK");
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
                 }else{
                     this.event.from = new Date(this._editCopy.from);
                     this.event.to = new Date(this._editCopy.to);
@@ -194,10 +199,15 @@
             delete:function(e){
                 var params = {deleteDocs:e.currentTarget.dataset.docs == "delete"};
                 if(this.isDataAware()){
-                    this.fireDataRequest("delete", function(response){
-                        this.event = Platform.mixin(this.event, response.data);
-                        this.closeDialog("DELETE", params);
-                    }.bind(this), {original:this.event, deleteDocs: params.deleteDocs})
+                    this.fireDataRequest({
+                        type:"delete",
+                        params:{original:this.event, deleteDocs: params.deleteDocs},
+                        success:function(response){
+                            this.event = Platform.mixin(this.event, response.data);
+                            this.closeDialog("DELETE", params);
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
                 }else {
                     this.closeDialog("DELETE", params);
                 }

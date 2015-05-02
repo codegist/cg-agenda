@@ -635,9 +635,14 @@
                         this._setEvents(this._manager.getEventsInView(this.events, range));
                     }else{
                         console.log("Agenda - Events not provided, firing data request");
-                        this.fireDataRequest("events-in-range", function(response){
-                            this._setEvents(response.data);
-                        }.bind(this), range);
+                        this.fireDataRequest({
+                            type:"events-in-range",
+                            params:range,
+                            success:function(response){
+                                this._setEvents(response.data);
+                            }.bind(this),
+                            failure:function(response){}.bind(this)
+                        });
                     }
                 },
                 onApplicationEvent:function(type, event){
@@ -952,9 +957,14 @@
                 _onEventDragEnded:function(e){
                     if(this.isDataAware()) {
                         var toSave = Platform.mixin({}, e.detail.event, e.detail.newPosition);
-                        this.fireDataRequest("save", function(response){
-                            this._onEventDragEndedCommitted(e, response.data);
-                        }.bind(this), {event:toSave});
+                        this.fireDataRequest({
+                            type:"save",
+                            params:{event:toSave},
+                            success:function(response){
+                                this._onEventDragEndedCommitted(e, response.data);
+                            }.bind(this),
+                            failure:function(response){}.bind(this)
+                        });
                     }else{
                         this._onEventDragEndedCommitted(e);
                     }

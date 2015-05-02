@@ -209,9 +209,13 @@
                     }
                 },
                 onRefreshData:function(){
-                    this.fireDataRequest('event-list', function(response){
-                        this.events = response.data;
-                    }.bind(this));
+                    this.fireDataRequest({
+                        type:"event-list",
+                        success:function(response){
+                            this.events = response.data;
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
                 },
                 _onLabelClick:function(e){
                     this._onRecordPaymentClick(e);
