@@ -6,7 +6,7 @@
 <link href="cg-event-editor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list" extends="cg-base" attributes="label events colors categories dataTagPrefix dataBaseParams" layout vertical>
+<polymer-element name="cg-event-list" extends="cg-base" attributes="label events colors categories dataTagPrefix dataBaseParams uploadUrl" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -125,7 +125,10 @@
                         </span>
                 </paper-button>
             </div>
-            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}" dataBaseParams="{{dataBaseParams}}" categories="{{categories}}"></cg-event-editor>
+            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}"
+                             uploadUrl="{{uploadUrl}}"
+                             dataBaseParams="{{dataBaseParams}}"
+                             categories="{{categories}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -133,6 +136,7 @@
             Polymer("cg-event-list", {
                 _id:1,
                 label:"Events",
+                uploadUrl:null,
                 colors:null,
                 categories:null,
                 scrolling:true,

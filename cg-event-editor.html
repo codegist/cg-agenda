@@ -12,7 +12,7 @@
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" extends="cg-base" attributes="event eventId categories colors dataTagPrefix">
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event eventId categories colors dataTagPrefix uploadUrl">
     <template>
         <style>
             :host {
@@ -76,7 +76,7 @@
                                 </paper-input-decorator>
                             </template>
                             <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
-                                                dataBaseParams="{{_documentInputParams}}"></cg-input-documents>
+                                                uploadUrl="{{uploadUrl}}" dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -119,6 +119,7 @@
     <script>
         Polymer("cg-event-editor", {
             event:null,
+            uploadUrl:null,
             heading:"",
             existingEvent:"Edit event",
             addEvent:"Add event",
@@ -175,6 +176,7 @@
                         params:{original:this.event, save:this._editCopy},
                         success:function(response){
                             this.event = Platform.mixin(this.event, response.data);
+                            this.$.documentsEditor.saveDocuments();
                             this.closeDialog("OK");
                         }.bind(this),
                         failure:function(response){}.bind(this)
@@ -201,8 +203,9 @@
                 if(this.isDataAware()){
                     this.fireDataRequest({
                         type:"delete",
-                        params:{original:this.event, deleteDocs: params.deleteDocs},
+                        params:{original:this.event},
                         success:function(response){
+                            params.deleteDocs && this.$.documentsEditor.deleteAllDocuments();
                             this.event = Platform.mixin(this.event, response.data);
                             this.closeDialog("DELETE", params);
                         }.bind(this),
@@ -247,7 +250,12 @@
                         }
                         break;
                     case "DELETE":
-                        this.fireApplicationEvent("event-deleted", {docsDeleted:params.deleteDocs, event:this.event});
+                        this.fireApplicationEvent("event-deleted", this.event);
+                        if(params.deleteDocs === true && this.event.documents) {
+                            this.event.documents.forEach(function(doc){
+                                this.fireApplicationEvent("document-deleted", doc);
+                            }.bind(this));
+                        }
                         break;
                 }
                 this.$.dialog.open = false;

@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents uploadUrl">
     <template>
         <style>
             :host {
@@ -191,6 +191,7 @@
             <cg-event-editor id="editor"
                              dataTagPrefix="{{dataTagPrefix}}"
                              dataBaseParams="{{dataBaseParams}}"
+                             uploadUrl="{{uploadUrl}}"
                              colors="{{colors}}"
                              categories="{{categories}}"></cg-event-editor>
         </div>
@@ -559,6 +560,7 @@
 
             Polymer("cg-agenda", {
                 date:new Date(),
+                uploadUrl:null,
                 startDayOfWeek:1,
                 hourHeight:60,
                 showHour:8,
