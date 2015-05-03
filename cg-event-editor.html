@@ -21,6 +21,12 @@
             :host .colored {
                 color: #4285f4;
             }
+            :host .colored.invalid {
+                color: #d34336;
+            }
+            :host .colored.invalid core-icon {
+                margin-right:5px;
+            }
             :host .range #from {
                 padding-right:20px;
             }
@@ -38,7 +44,7 @@
                 min-width:350px;
             }
         </style>
-        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog">
+        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog" closeSelector="{{closeSelector}}">
             <div>
                 <paper-tabs selected="{{_selectedPage}}" noink noslide>
                     <paper-tab>General</paper-tab>
@@ -59,7 +65,7 @@
                                 </paper-input-decorator>
                             </div>
                             <paper-input-decorator label="Notes" floatingLabel>
-                                <textarea value="{{_editCopy.notes}}" id="notes" on-keypress="{{_validate}}"></textarea>
+                                <textarea value="{{_editCopy.notes}}" id="notes"></textarea>
                             </paper-input-decorator>
                         </div>
                     </div>
@@ -81,8 +87,8 @@
                     </div>
                 </core-pages>
             </div>
-            <paper-button affirmative class="colored custom" on-tap="{{ok}}" id="okButton">
-                <core-icon affirmative icon="check"></core-icon>
+            <paper-button affirmative class="colored custom {{isValid ? 'valid' : 'invalid'}}" on-tap="{{ok}}" id="okButton">
+                <core-icon affirmative icon="{{isValid ? 'check' : 'fa:exclamation-triangle'}}"></core-icon>
                 <template if="{{ !create }}">ok</template>
                 <template if="{{ create }}">add</template>
             </paper-button>
@@ -123,6 +129,8 @@
             heading:"",
             existingEvent:"Edit event",
             addEvent:"Add event",
+            closeSelector: '',
+            isValid:false,
             create:false,
             categories:null,
             colors:null,
@@ -131,29 +139,33 @@
             _inputs:null,
             _editCopy:null,
             _validationError:"Invalid or required",
+
             domReady:function(){
-                // TODO : why on-change attribute works on all input but not on cg-datetime-input where it works in other places??
                 this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
-                [].slice.call(this.shadowRoot.querySelectorAll("input,textarea,cg-input-tags")).forEach(function(e){
-                    e.addEventListener("change", this._validate.bind(this));
-                    e.addEventListener("keydown", this._validate.bind(this));
-                    e.addEventListener("cut", this._validate.bind(this));
-                    e.addEventListener("paste", this._validate.bind(this));
-                    e.addEventListener("blur", this._validate.bind(this));
-                    e.addEventListener("focus", this._validate.bind(this));
-                }, this);
+                this._inputs.forEach(function(input){
+                    // listen to change in validity state
+                    input._validityObserver = new PathObserver(input, "isInvalid");
+                    input._validityObserver.open(this._validate.bind(this));
+                }.bind(this));
+                // for dates that depends from each others, validate on change as well
+                this.$.to.addEventListener("change", this._validate.bind(this));
+                this.$.from.addEventListener("change", this._validate.bind(this));
             },
-            _validate:function(e, callback, delay){
-                this._doValidate();
-                // TODO HACK. Second slightly delayed validation
-                // TODO HACK. For some reason when selecting date from button rather than typing it,
-                // TODO HACK. change event comes with stale value, see cg-base-input > addEventListener('datetime-changed' and _onInputChange:
-                this.job("validate", function(){
-                    this._doValidate();
-                    callback && callback();
-                }.bind(this), delay || 300);
+            detached:function(){
+                this._inputs.forEach(function(input){
+                    input._validityObserver && input._validityObserver.close();
+                }.bind(this));
+            },
+            _validate:function(callback){
+                this.async(function(){
+                    var valid = this._doValidate();
+                    typeof callback === "function" && callback.call(this, valid);
+                });
             },
             _doValidate:function(){
+                if(!this._editCopy) {
+                    return;
+                }
                 var valid = true;
                 this._inputs.forEach(function(e){
                     e.inputAction();
@@ -167,30 +179,33 @@
                     valid = false;
                     this.$.to.isInvalid = true;
                 }
-                this.$.okButton.disabled = !valid;
+                return this.isValid = valid;
             },
             ok:function(){
-                if(this.isDataAware()){
-                    this.fireDataRequest({
-                        type:"save",
-                        params:{original:this.event, save:this._editCopy},
-                        success:function(response){
-                            this.event = Platform.mixin(this.event, response.data);
-                            this.$.documentsEditor.saveDocuments();
-                            this.closeDialog("OK");
-                        }.bind(this),
-                        failure:function(response){}.bind(this)
-                    });
-                }else{
-                    this.event.from = new Date(this._editCopy.from);
-                    this.event.to = new Date(this._editCopy.to);
-                    this.event.label = this._editCopy.label;
-                    this.event.notes = this._editCopy.notes;
-                    this.event.color = this._editCopy.color;
-                    this.event.documents = this._editCopy.documents.slice();
-                    this.event.categories = this._editCopy.categories.slice();
-                    this.closeDialog("OK");
-                }
+                this._validate(function(valid){
+                    if(!valid) return;
+                    if(this.isDataAware()){
+                        this.fireDataRequest({
+                            type:"save",
+                            params:{original:this.event, save:this._editCopy},
+                            success:function(response){
+                                this.event = Platform.mixin(this.event, response.data);
+                                this.$.documentsEditor.saveDocuments();
+                                this.closeDialog("OK");
+                            }.bind(this),
+                            failure:function(response){}.bind(this)
+                        });
+                    }else{
+                        this.event.from = new Date(this._editCopy.from);
+                        this.event.to = new Date(this._editCopy.to);
+                        this.event.label = this._editCopy.label;
+                        this.event.notes = this._editCopy.notes;
+                        this.event.color = this._editCopy.color;
+                        this.event.documents = this._editCopy.documents.slice();
+                        this.event.categories = this._editCopy.categories.slice();
+                        this.closeDialog("OK");
+                    }
+                });
             },
             cancel:function(){
                 this.closeDialog("CANCEL");
@@ -215,20 +230,22 @@
                     this.closeDialog("DELETE", params);
                 }
             },
-            _editCopyChanged:function(){
-//                this.$.notesDec.update(this.$.notes);
-            },
             eventChanged:function(){
-                this._editCopy = {
-                    from:this.event.from ? this.event.from.toISOString() : "",
-                    to:this.event.to ? this.event.to.toISOString() : "",
-                    label:this.event.label,
-                    notes:this.event.notes,
-                    color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
-                    categories:this.event.categories?this.event.categories.slice():[],
-                    documents:this.event.documents?this.event.documents.slice():[],
-                };
-                this._documentInputParams = { event:this.event };
+                if(this.event) {
+                    this._editCopy = {
+                        from:this.event.from ? this.event.from.toISOString() : "",
+                        to:this.event.to ? this.event.to.toISOString() : "",
+                        label:this.event.label,
+                        notes:this.event.notes,
+                        color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
+                        categories:this.event.categories?this.event.categories.slice():[],
+                        documents:this.event.documents?this.event.documents.slice():[],
+                    };
+                    this._documentInputParams = { event:this.event };
+                }else{
+                    this._editCopy = undefined;
+                    this._documentInputParams = undefined;
+                }
             },
             openDialog:function(event, edit){
                 this._selectedPage = 0;
@@ -236,9 +253,9 @@
                 this.event = event || {};
                 this.heading = this.create ? this.addEvent : this.existingEvent;
                 this.eventChanged();
-                this._validate(null, function(){
+                this._validate(function(){
                     this.$.dialog.toggle();
-                }.bind(this), 10);
+                });
             },
             closeDialog:function(result, params){
                 switch(result) {
@@ -258,12 +275,12 @@
                         }
                         break;
                 }
-                this.$.dialog.open = false;
+                this.$.dialog.close();
                 this.fire("close", {
                     event: this.event,
                     result: result
                 });
-                this.event = {};
+                this.event = undefined;
 
             },
         });
