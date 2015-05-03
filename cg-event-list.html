@@ -97,7 +97,7 @@
                                 <div>
                                     <core-icon class="event-type" icon="fa:calendar-o"></core-icon>
                                     <!--<core-icon class="event-duration" icon="fa:clock-o" title="{{_displayDuration(model)}}"></core-icon>-->
-                                    <span class="event-time">{{_displayTime(model)}} ({{_displayDuration(model)}})</span>
+                                    <span class="event-time">{{_displayTime(model.from)}} ({{_displayDuration(model.from, model.to)}})</span>
                                 </div>
                                 <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
                                 <template if="{{!model.payment}}">
@@ -147,9 +147,9 @@
                     this.super();
                     this.events = [];
                 },
-                _displayDuration:function(event){
-                    if(!event) return null;
-                    var duration = (event.to.getTime() - event.from.getTime());
+                _displayDuration:function(from, to){
+                    if(!from || !to) return;
+                    var duration = (to.getTime() - from.getTime());
                     var one_minute=1000*60;
                     var one_hour=one_minute*60;
                     var one_day=one_hour*24;
@@ -166,9 +166,9 @@
                     minutes > 0 && (durationDisplay += (durationDisplay ? ", " : "") + (minutes + " minute" + (minutes > 1 ? "s":"")));
                     return durationDisplay;
                 },
-                _displayTime:function(event){
-                    if(!event) return null;
-                    return this._timeFormat.format(event.from);
+                _displayTime:function(from){
+                    if(!from) return;
+                    return this._timeFormat.format(from);
                 },
                 sortEventView:function(){
                     this._eventsView = this.events.slice().sort(function(a,b){

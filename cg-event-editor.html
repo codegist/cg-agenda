@@ -173,11 +173,13 @@
                         valid = false;
                     }
                 }, this);
-                var start = new Date(this._editCopy.from).getTime();
-                var end = new Date(this._editCopy.to).getTime();
-                if(start >= end) {
-                    valid = false;
-                    this.$.to.isInvalid = true;
+                if(this._editCopy.from && this._editCopy.to) {
+                    var start = this._editCopy.from.getTime();
+                    var end = this._editCopy.to.getTime();
+                    if(start >= end) {
+                        valid = false;
+                        this.$.to.isInvalid = true;
+                    }
                 }
                 return this.isValid = valid;
             },
@@ -196,8 +198,8 @@
                             failure:function(response){}.bind(this)
                         });
                     }else{
-                        this.event.from = new Date(this._editCopy.from);
-                        this.event.to = new Date(this._editCopy.to);
+                        this.event.from = this._editCopy.from;
+                        this.event.to = this._editCopy.to;
                         this.event.label = this._editCopy.label;
                         this.event.notes = this._editCopy.notes;
                         this.event.color = this._editCopy.color;
@@ -233,8 +235,8 @@
             eventChanged:function(){
                 if(this.event) {
                     this._editCopy = {
-                        from:this.event.from ? this.event.from.toISOString() : "",
-                        to:this.event.to ? this.event.to.toISOString() : "",
+                        from:this.event.from,
+                        to:this.event.to,
                         label:this.event.label,
                         notes:this.event.notes,
                         color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
