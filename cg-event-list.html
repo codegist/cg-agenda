@@ -1,0 +1,235 @@
+<link href="../polymer/polymer.html" rel="import">
+<link href="../paper-shadow/paper-shadow.html" rel="import">
+<link href="../core-icon/core-icon.html" rel="import">
+<link href="../core-list/core-list.html" rel="import">
+<link href="../cg-base/cg-base.html" rel="import">
+<link href="../cg-utils/cg-utils.html" rel="import">
+<link href="cg-event-editor.html" rel="import">
+<link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
+
+<polymer-element name="cg-event-list" extends="cg-base" attributes="label events colors categories dataTagPrefix dataBaseParams uploadUrl" layout vertical>
+    <template>
+        <style>
+            cg-event-list {
+                width:100%;
+                font-family: sans-serif;
+                height:250px;
+            }
+            #listScroller {
+                height:200px;
+                overflow:auto;
+            }
+            .event-type,
+            .event-duration {
+                width:16px!important;
+                height:16px!important;
+                color:#454545;
+            }
+            .event-time {
+                color:#454545;
+                font-size:12px;
+            }
+
+            .event-type,
+            .event-label,
+            .event-time,
+            .event-duration,
+            .event-payment,
+            .event-category {
+                margin-right:10px;
+                margin-bottom:6px;
+            }
+
+            .event-payment,
+            .event-category{
+                font-size: 12px;
+                padding: 4px;
+                display: inline-block;
+            }
+
+            .event-payment {
+                font-weight: bold;
+                cursor:pointer;
+                color: rgb(105, 101, 255);
+            }
+            .event-category {
+                color: #454545;
+            }
+
+            .event-payment paper-shadow,
+            .event-category paper-shadow {
+                border-radius:5px;
+            }
+
+            .add-event {
+                color: #4285f4;
+            }
+            .add-event span {
+                margin:5px;
+            }
+
+            .event {
+                padding:10px;
+            }
+            .event:hover {
+                background-color:#dddddd;
+            }
+            .event .event-label:hover {
+                text-decoration: underline;
+                cursor:pointer;
+            }
+            .label {
+                font-size: 0.75em;
+                color:#757575;
+                padding-bottom:5px;
+            }
+        </style>
+        <div class="label">
+            {{label}}
+        </div>
+
+        <div id="events" layout vertical relative>
+            <paper-shadow z="1" fit></paper-shadow>
+            <div id="listScroller" hidden?="{{events.length == 0}}" >
+                <core-list id="list" data="{{_eventsView}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
+                    <template>
+                        <div class="event" layout horizontal>
+                            <div flex layout horizontal wrap>
+                                <div>
+                                    <core-icon class="event-type" icon="fa:calendar-o"></core-icon>
+                                    <!--<core-icon class="event-duration" icon="fa:clock-o" title="{{_displayDuration(model)}}"></core-icon>-->
+                                    <span class="event-time">{{_displayTime(model.from)}} ({{_displayDuration(model.from, model.to)}})</span>
+                                </div>
+                                <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
+                                <template if="{{!model.bill}}">
+                                    <div class="event-payment" relative on-tap="{{_onRecordPaymentClick}}" data-id="{{model._cgelId}}">
+                                        <paper-shadow z="1" fit></paper-shadow>
+                                        record payment
+                                    </div>
+                                </template>
+                                <template repeat="{{model.categories as category}}">
+                                    <div class="event-category" relative>
+                                        <paper-shadow z="1" fit></paper-shadow>
+                                        {{category}}
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </core-list>
+            </div>
+            <div>
+                <paper-button id="addbutton" class="add-event" on-tap="{{_onAddClick}}">
+                    <core-icon icon="fa:calendar-o"></core-icon>
+                        <span>
+                            Add Event
+                        </span>
+                </paper-button>
+            </div>
+            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}"
+                             uploadUrl="{{uploadUrl}}"
+                             dataBaseParams="{{dataBaseParams}}"
+                             categories="{{categories}}"></cg-event-editor>
+        </div>
+    </template>
+    <script>
+        (function(){
+            Polymer("cg-event-list", {
+                _id:1,
+                label:"Events",
+                uploadUrl:null,
+                colors:null,
+                categories:null,
+                scrolling:true,
+                events:null,
+                _eventsView:null,
+                _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
+                created:function(){
+                    this.super();
+                    this.events = [];
+                },
+                _displayDuration:function(from, to){
+                    if(!from || !to) return;
+                    return CGUtils.formatDuration(to.getTime() - from.getTime());
+                },
+                _displayTime:function(from){
+                    if(!from) return;
+                    return this._timeFormat.format(from);
+                },
+                sortEventView:function(){
+                    this._eventsView = this.events.slice().sort(function(a,b){
+                        var at = a.from.getTime();
+                        var bt = b.from.getTime();
+                        return at < bt ? 1 : at > bt ? -1 : 0;
+                    })
+                },
+                eventsChanged:function(){
+                    this._id = 1;
+                    this.events.forEach(function(e) {
+                        e._cgelId = this._id++;
+                    }.bind(this));
+                    this.sortEventView();
+                },
+                _onAddClick:function(e){
+                    this.$.editor.openDialog();
+                },
+                onApplicationEvent:function(type, event){
+                    if(event.source == this.$.editor) {
+                        console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
+                        switch (type) {
+                            case "event-updated":
+                                this.sortEventView();
+                                break;
+                            case "event-created":
+                                this.events.push(event.params);
+                                break;
+                            case "event-deleted":
+                                this.events.splice(this._getEventIndex(event.params._cgelId), 1);
+                                break;
+                        }
+                    }else{
+                        switch(type){
+                            case "event-updated":
+                            case "event-created":
+                            case "event-deleted":
+                                console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
+                                this.onRefreshData();
+                                break;
+                        }
+                    }
+                },
+                onRefreshData:function(){
+                    this.fireDataRequest({
+                        type:"event-list",
+                        success:function(response){
+                            this.events = response.data;
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
+                },
+                _onLabelClick:function(e){
+                    this._onRecordPaymentClick(e);
+                },
+                _onRecordPaymentClick:function(e){
+                    this.openEditor(e.currentTarget.dataset.id);
+                    //this.fire("event-clicked", e.currentTarget.dataset.id);
+                },
+                openEditor:function(eventId){
+                    this.$.editor.openDialog(this._getEventByInternalId(eventId));
+                },
+                _getEventIndex:function(id) {
+                    for(var i = 0; i < this.events.length; i++){
+                        if(this.events[i]._cgelId == id) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                },
+                _getEventByInternalId:function(id) {
+                    var index = this._getEventIndex(id);
+                    return index != -1 ? this.events[index] : null;
+                }
+            });
+        })()
+    </script>
+</polymer-element>

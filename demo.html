@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>cg-datetime-input Demo</title>
+    <link rel="import" href="cg-datasource-testdata.html">
+    <link rel="import" href="cg-agenda.html">
+    <style>
+        .demo {
+            position:absolute;
+            width: 100%;
+            top:0px;
+        }
+        cg-agenda /deep/ .agendadays {
+            height:450px;
+        }
+    </style>
+</head>
+
+
+<body unresolved fullbleed layout vertical center center-justified>
+
+<template id="sandbox" is="auto-binding">
+    <cg-datasource-testdata></cg-datasource-testdata>
+    <section class="demo" layout horizontal>
+        <cg-agenda flex id="agenda" dataTagPrefix="demo"></cg-agenda>
+        <!--<div style="width:50px"></div>-->
+        <!--<cg-agenda flex id="agenda2"></cg-agenda>-->
+    </section>
+</template>
+
+<script>
+    window.addEventListener('template-bound', function(){
+        var sandbox = document.getElementById('sandbox');
+        sandbox.$.agenda.date = new Date("2015-03-16T18:30:20.815Z");
+    });
+</script>
+
+</body>
+</html>

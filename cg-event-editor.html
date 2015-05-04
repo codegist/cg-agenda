@@ -1,0 +1,290 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-input/paper-input-decorator.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../core-icon/core-icon.html">
+<link rel="import" href="../core-pages/core-pages.html">
+<link rel="import" href="../paper-tabs/paper-tab.html">
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../cg-datetime-picker/cg-datetime-input.html">
+<link rel="import" href="../cg-input-tags/cg-input-tags.html">
+<link rel="import" href="../cg-input-color/cg-input-color.html">
+<link rel="import" href="../cg-input-documents/cg-input-documents.html">
+<link rel="import" href="../cg-base/cg-base.html">
+
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event eventId categories colors dataTagPrefix uploadUrl">
+    <template>
+        <style>
+            :host {
+                display:block;
+            }
+            :host .colored {
+                color: #4285f4;
+            }
+            :host .colored.invalid {
+                color: #d34336;
+            }
+            :host .colored.invalid core-icon {
+                margin-right:5px;
+            }
+            :host .range #from {
+                padding-right:20px;
+            }
+            :host #notes {
+                height:135px;
+            }
+            :host #dialog {
+                max-width:450px;
+            }
+            :host #dialog /deep/ #scroller {
+                overflow:visible;
+                max-height:none!important;
+            }
+            :host cg-input-documents {
+                min-width:350px;
+            }
+        </style>
+        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog" closeSelector="{{closeSelector}}">
+            <div>
+                <paper-tabs selected="{{_selectedPage}}" noink noslide>
+                    <paper-tab>General</paper-tab>
+                    <paper-tab>More</paper-tab>
+                </paper-tabs>
+                <core-pages selected="{{_selectedPage}}">
+                    <div class="page-wrapper">
+                        <div layout vertical>
+                            <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
+                                <input is="core-input" required value="{{_editCopy.label}}">
+                            </paper-input-decorator>
+                            <div class="range" layout horizontal>
+                                <paper-input-decorator label="From" floatingLabel error="{{_validationError}}" autoValidate id="from">
+                                    <cg-datetime-input required datetime="{{_editCopy.from}}"></cg-datetime-input>
+                                </paper-input-decorator>
+                                <paper-input-decorator label="To" floatingLabel error="{{_validationError}}" autoValidate id="to">
+                                    <cg-datetime-input required datetime="{{_editCopy.to}}"></cg-datetime-input>
+                                </paper-input-decorator>
+                            </div>
+                            <paper-input-decorator label="Notes" floatingLabel>
+                                <textarea value="{{_editCopy.notes}}" id="notes"></textarea>
+                            </paper-input-decorator>
+                        </div>
+                    </div>
+                    <div class="page-wrapper" relative>
+                        <div layout vertical>
+                            <template if="{{categories.length > 0 || dataTagPrefix}}">
+                                <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
+                                    <cg-input-tags dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                </paper-input-decorator>
+                            </template>
+                            <template if="{{colors.length > 0 || dataTagPrefix}}">
+                                <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
+                                    <cg-input-color dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                </paper-input-decorator>
+                            </template>
+                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
+                                                uploadUrl="{{uploadUrl}}" dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
+                        </div>
+                    </div>
+                </core-pages>
+            </div>
+            <paper-button affirmative class="colored custom {{isValid ? 'valid' : 'invalid'}}" on-tap="{{ok}}" id="okButton">
+                <core-icon affirmative icon="{{isValid ? 'check' : 'fa:exclamation-triangle'}}"></core-icon>
+                <template if="{{ !create }}">ok</template>
+                <template if="{{ create }}">add</template>
+            </paper-button>
+            <paper-button dismissive class="custom" on-tap="{{cancel}}">
+                <core-icon dismissive icon="clear"></core-icon>
+                cancel
+            </paper-button>
+            <template if="{{ !create }}">
+                <paper-button dismissive class="custom" on-tap="{{confirmDelete}}">
+                    <core-icon dismissive icon="clear"></core-icon>
+                    delete
+                </paper-button>
+            </template>
+        </paper-action-dialog>
+        <paper-action-dialog heading="Delete event?" backdrop autoCloseDisabled layered="true" id="confirmdelete">
+            <section>
+                <p>Are you sure you want to delete the event "{{_editCopy.label}}"?</p>
+                <p>Also delete attached documents or keep them?</p>
+            </section>
+            <paper-button affirmative class="colored" on-tap="{{delete}}" data-docs="delete">
+                <core-icon icon="check"></core-icon>
+                yes delete all
+            </paper-button>
+            <paper-button affirmative class="colored" on-tap="{{delete}}" data-docs="keep">
+                <core-icon icon="check"></core-icon>
+                yes, but keep documents
+            </paper-button>
+            <paper-button dismissive>
+                <core-icon icon="clear"></core-icon>
+                no
+            </paper-button>
+        </paper-action-dialog>
+    </template>
+    <script>
+        Polymer("cg-event-editor", {
+            event:null,
+            uploadUrl:null,
+            heading:"",
+            existingEvent:"Edit event",
+            addEvent:"Add event",
+            closeSelector: '',
+            isValid:false,
+            create:false,
+            categories:null,
+            colors:null,
+            _documentInputParams:null,
+            _selectedPage:0,
+            _inputs:null,
+            _editCopy:null,
+            _validationError:"Invalid or required",
+
+            domReady:function(){
+                this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
+                this._inputs.forEach(function(input){
+                    // listen to change in validity state
+                    input._validityObserver = new PathObserver(input, "isInvalid");
+                    input._validityObserver.open(this._validate.bind(this));
+                }.bind(this));
+                // for dates that depends from each others, validate on change as well
+                this.$.to.addEventListener("change", this._validate.bind(this));
+                this.$.from.addEventListener("change", this._validate.bind(this));
+            },
+            detached:function(){
+                this._inputs.forEach(function(input){
+                    input._validityObserver && input._validityObserver.close();
+                }.bind(this));
+            },
+            _validate:function(callback){
+                this.async(function(){
+                    var valid = this._doValidate();
+                    typeof callback === "function" && callback.call(this, valid);
+                });
+            },
+            _doValidate:function(){
+                if(!this._editCopy) {
+                    return;
+                }
+                var valid = true;
+                this._inputs.forEach(function(e){
+                    e.inputAction();
+                    if(e.isInvalid) {
+                        valid = false;
+                    }
+                }, this);
+                if(this._editCopy.from && this._editCopy.to) {
+                    var start = this._editCopy.from.getTime();
+                    var end = this._editCopy.to.getTime();
+                    if(start >= end) {
+                        valid = false;
+                        this.$.to.isInvalid = true;
+                    }
+                }
+                return this.isValid = valid;
+            },
+            ok:function(){
+                this._validate(function(valid){
+                    if(!valid) return;
+                    if(this.isDataAware()){
+                        this.fireDataRequest({
+                            type:"save",
+                            params:{original:this.event, save:this._editCopy},
+                            success:function(response){
+                                this.event = Platform.mixin(this.event, response.data);
+                                this.$.documentsEditor.saveDocuments();
+                                this.closeDialog("OK");
+                            }.bind(this),
+                            failure:function(response){}.bind(this)
+                        });
+                    }else{
+                        this.event.from = this._editCopy.from;
+                        this.event.to = this._editCopy.to;
+                        this.event.label = this._editCopy.label;
+                        this.event.notes = this._editCopy.notes;
+                        this.event.color = this._editCopy.color;
+                        this.event.documents = this._editCopy.documents.slice();
+                        this.event.categories = this._editCopy.categories.slice();
+                        this.closeDialog("OK");
+                    }
+                });
+            },
+            cancel:function(){
+                this.closeDialog("CANCEL");
+            },
+            confirmDelete:function(){
+                this.$.confirmdelete.toggle();
+            },
+            delete:function(e){
+                var params = {deleteDocs:e.currentTarget.dataset.docs == "delete"};
+                if(this.isDataAware()){
+                    this.fireDataRequest({
+                        type:"delete",
+                        params:{original:this.event},
+                        success:function(response){
+                            params.deleteDocs && this.$.documentsEditor.deleteAllDocuments();
+                            this.event = Platform.mixin(this.event, response.data);
+                            this.closeDialog("DELETE", params);
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
+                }else {
+                    this.closeDialog("DELETE", params);
+                }
+            },
+            eventChanged:function(){
+                if(this.event) {
+                    this._editCopy = {
+                        from:this.event.from,
+                        to:this.event.to,
+                        label:this.event.label,
+                        notes:this.event.notes,
+                        color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
+                        categories:this.event.categories?this.event.categories.slice():[],
+                        documents:this.event.documents?this.event.documents.slice():[],
+                    };
+                    this._documentInputParams = { event:this.event };
+                }else{
+                    this._editCopy = undefined;
+                    this._documentInputParams = undefined;
+                }
+            },
+            openDialog:function(event, edit){
+                this._selectedPage = 0;
+                this.create = edit === false || event === undefined;
+                this.event = event || {};
+                this.heading = this.create ? this.addEvent : this.existingEvent;
+                this.eventChanged();
+                this._validate(function(){
+                    this.$.dialog.open();
+                });
+            },
+            closeDialog:function(result, params){
+                switch(result) {
+                    case "OK":
+                        if(this.create) {
+                            this.fireApplicationEvent("event-created", this.event);
+                        }else{
+                            this.fireApplicationEvent("event-updated", this.event);
+                        }
+                        break;
+                    case "DELETE":
+                        this.fireApplicationEvent("event-deleted", this.event);
+                        if(params.deleteDocs === true && this.event.documents) {
+                            this.event.documents.forEach(function(doc){
+                                this.fireApplicationEvent("document-deleted", doc);
+                            }.bind(this));
+                        }
+                        break;
+                }
+                this.$.dialog.close();
+                this.fire("close", {
+                    event: this.event,
+                    result: result
+                });
+                this.event = undefined;
+
+            },
+        });
+    </script>
+</polymer-element>

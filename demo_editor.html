@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>cg-datetime-input Demo</title>
+    <link rel="import" href="cg-datasource-testdata.html">
+    <link rel="import" href="cg-event-editor.html">
+    <link rel="import" href="../paper-button/paper-button.html">
+
+</head>
+
+
+<body unresolved fullbleed layout vertical center center-justified>
+
+<template id="sandbox" is="auto-binding">
+    <cg-datasource-testdata></cg-datasource-testdata>
+    <div layout horizontal wrap>
+        <section class="demo" layout vertical>
+            <h2>With Event</h2>
+            <span>label: {{event1.label | max(50)}}</span>
+            <span>from: {{event1.from}}</span>
+            <span>to: {{event1.to}}</span>
+            <span>notes: {{event1.notes | max(50)}}</span>
+            <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result1}}</pre></span>
+            <cg-event-editor id="editor1" categories="{{categories}}" colors="{{colors}}" on-close="{{editor1Closed}}"></cg-event-editor>
+            <paper-button on-tap="{{showEditor1}}">OPEN</paper-button>
+        </section>
+        <section class="demo" layout vertical>
+            <h2>Without Event</h2>
+            <span>label: {{event2.label | max(50)}}</span>
+            <span>from: {{event2.from}}</span>
+            <span>to: {{event2.to}}</span>
+            <span>notes: {{event2.notes | max(50)}}</span>
+            <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result2}}</pre></span>
+            <cg-event-editor id="editor2" on-close="{{editor2Closed}}"></cg-event-editor>
+            <paper-button on-tap="{{showEditor2}}">OPEN</paper-button>
+        </section>
+        <section class="demo" layout vertical>
+            <h2>Without Event, with datasources</h2>
+            <span>label: {{event2.label | max(50)}}</span>
+            <span>from: {{event2.from}}</span>
+            <span>to: {{event2.to}}</span>
+            <span>notes: {{event2.notes | max(50)}}</span>
+            <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result2}}</pre></span>
+            <cg-event-editor id="editor3" dataTagPrefix="demo" on-close="{{editor3Closed}}"></cg-event-editor>
+            <paper-button on-tap="{{showEditor3}}">OPEN</paper-button>
+        </section>
+        <section class="demo" layout vertical>
+            <h2>With Event, with datasources</h2>
+            <span>label: {{event4.label | max(50)}}</span>
+            <span>from: {{event4.from}}</span>
+            <span>to: {{event4.to}}</span>
+            <span>notes: {{event4.notes | max(50)}}</span>
+            <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result4}}</pre></span>
+            <cg-event-editor id="editor4" dataTagPrefix="demo" on-close="{{editor4Closed}}"></cg-event-editor>
+            <paper-button on-tap="{{showEditor4}}">OPEN</paper-button>
+        </section>
+    </div>
+</template>
+
+<script>
+    window.addEventListener('template-bound', function(){
+        var sandbox = document.getElementById('sandbox');
+        sandbox.categories = ["category 1","category 2","category 3","category 4","category 5"];
+        sandbox.colors = [
+            {name:"Bold Blue", mask:"#5484ED"},
+            {name:"Blue", mask:"#A4BDFC"},
+            {name:"Bold Green", mask:"#51B749"},
+            {name:"Yellow", mask:"#FBD75B"},
+            {name:"Red", mask:"#FF887C"},
+            {name:"Bold Red", mask:"#DC2127"},
+            {name:"Gray", mask:"#E1E1E1"}
+        ];
+        sandbox.max = function(val, max){
+            return val && val.length > max ? val.substr(0, max) +"..." : val;
+        };
+        sandbox.result1 = "";
+        sandbox.result2 = "";
+        sandbox.result4 = "";
+        sandbox.event2 = {};
+        sandbox.event1 = {
+            label:"Some label",
+            categories:["category 3","category 5"],
+            color:{name:"Yellow", mask:"#FBD75B"},
+            notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Sed tempus magna et ligula imperdiet gravida.",
+            from: new Date("2015-03-03T15:30:00.000Z"),
+            to: new Date("2015-03-03T18:15:00.000Z"),
+            documents : [{
+                    "name": "c29bf435b98b.jpg",
+                    "size": 359551,
+                    "type": "image/jpeg",
+                    "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
+                }, {
+                    "name": "docs.zip",
+                    "size": 1607693765,
+                    "type": "application/zip",
+                    "description":"Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae."
+                }, {
+                    "name": "eclipse-java-luna-SR1-linux-gtk-x86_64.tar.gz",
+                    "size": 160242552,
+                    "type": "application/gzip"
+                }, {
+                    "name": "jdk-8u25-linux-x64.gz",
+                    "size": 160872482,
+                    "type": "application/gzip"
+                }, {
+                    "name": "salamander",
+                    "size": 63,
+                    "type": "",
+                    "description":"Proin semper augue justo, sit amet dictum erat porttitor vitae."
+                }, {
+                    "name": "singlepath.svg",
+                    "size": 47770,
+                    "type": "image/svg+xml",
+                    "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum."
+                }, {
+                    "name": "stock-vector-natural-grass-and-ground-seamless-borders-set-of-vector-cartoon-illustrations-of-grass-field-71024461.jpg",
+                    "size": 71119,
+                    "type": "image/jpeg",
+                    "description":"Sed tempus magna et ligula imperdiet gravida."
+                }]
+        };
+        sandbox.event4 = {
+            userId:1,
+            label:"Some label",
+            categories:["category 3","category 5"],
+            color:{name:"Yellow", mask:"#FBD75B"},
+            notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Sed tempus magna et ligula imperdiet gravida.",
+            from: new Date("2015-03-03T15:30:00.000Z"),
+            to: new Date("2015-03-03T18:15:00.000Z"),
+        };
+
+
+        sandbox.editor1Closed = function(e){
+            sandbox.result1 = e.detail.result + " - " + JSON.stringify(e.detail.event, null, "\t");
+        };
+        sandbox.editor2Closed = function(e){
+            sandbox.event2 = e.event;
+            sandbox.result2 = e.detail.result + " - " + JSON.stringify(e.detail.event, null, "\t");
+        };
+        sandbox.editor3Closed = function(e){
+            sandbox.event2 = e.event;
+            sandbox.result2 = e.detail.result + " - " + JSON.stringify(e.detail.event, null, "\t");
+        };
+        sandbox.editor4Closed = function(e){
+            sandbox.event4 = e.event;
+            sandbox.result4 = e.detail.result + " - " + JSON.stringify(e.detail.event, null, "\t");
+        };
+
+        sandbox.showEditor1 = function(e){
+            sandbox.$.editor1.openDialog(sandbox.event1);
+        };
+        sandbox.showEditor2 = function(e){
+            sandbox.$.editor2.openDialog();
+        };
+        sandbox.showEditor3 = function(e){
+            sandbox.$.editor3.openDialog();
+        };
+        sandbox.showEditor4 = function(e){
+            sandbox.$.editor4.openDialog(sandbox.event4);
+        };
+    });
+</script>
+
+</body>
+</html>
