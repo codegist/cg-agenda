@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-input/paper-input-decorator.html">
+<link rel="import" href="../paper-shadow/paper-shadow.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../core-icon/core-icon.html">
@@ -12,7 +13,7 @@
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" extends="cg-base" attributes="event eventId categories colors dataTagPrefix uploadUrl">
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showMetaData eventId categories colors dataTagPrefix uploadUrl">
     <template>
         <style>
             :host {
@@ -43,8 +44,22 @@
             :host cg-input-documents {
                 min-width:350px;
             }
+            :host .metadata {
+                font-size: 12px;
+                padding: 4px;
+                display: inline-block;
+                cursor:pointer;
+                color: #6965FF;
+            }
+            :host .metadata paper-shadow {
+                border-radius:5px;
+            }
+
+            :host .event-metadata /deep/ .unfocused-underline {
+                background-color: transparent;
+            }
         </style>
-        <paper-action-dialog heading="{{heading}}" layered="false" autoCloseDisabled id="dialog" closeSelector="{{closeSelector}}">
+        <paper-action-dialog heading="{{heading}}" backdrop autoCloseDisabled layered="false" id="dialog" closeSelector="{{closeSelector}}">
             <div>
                 <paper-tabs selected="{{_selectedPage}}" noink noslide>
                     <paper-tab>General</paper-tab>
@@ -53,6 +68,19 @@
                 <core-pages selected="{{_selectedPage}}">
                     <div class="page-wrapper">
                         <div layout vertical>
+                            <template if="{{showMetaData && event.metadatas[showMetaData]}}">
+                                <paper-input-decorator label="{{event.metadatas[showMetaData].desc}}" floatingLabel class="event-metadata">
+                                    <input value="{{event.metadatas[showMetaData].display}}" hidden>
+                                    <div>
+                                        <div relative class="metadata"
+                                             on-tap="{{_metadataClicked}}"
+                                             data-type="{{event.metadatas[showMetaData].type}}">
+                                            <paper-shadow z="1" fit></paper-shadow>
+                                            {{event.metadatas[showMetaData].display}}
+                                        </div>
+                                    </div>
+                                </paper-input-decorator>
+                            </template>
                             <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
                                 <input is="core-input" required value="{{_editCopy.label}}">
                             </paper-input-decorator>
@@ -127,6 +155,7 @@
             event:null,
             uploadUrl:null,
             heading:"",
+            showMetaData:null,
             existingEvent:"Edit event",
             addEvent:"Add event",
             closeSelector: '',
@@ -141,6 +170,7 @@
             _validationError:"Invalid or required",
 
             domReady:function(){
+                console.log("[cg-event-dialog] domReady");
                 this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
                 this._inputs.forEach(function(input){
                     // listen to change in validity state
@@ -209,11 +239,17 @@
                     }
                 });
             },
+            close:function(){
+                this.cancel();
+            },
             cancel:function(){
                 this.closeDialog("CANCEL");
             },
             confirmDelete:function(){
                 this.$.confirmdelete.toggle();
+            },
+            _metadataClicked:function(e){
+                this.fireApplicationEvent("metadata-clicked", this.event.metadatas[e.currentTarget.dataset.type]);
             },
             delete:function(e){
                 var params = {deleteDocs:e.currentTarget.dataset.docs == "delete"};

@@ -22,7 +22,7 @@
             <span>to: {{event1.to}}</span>
             <span>notes: {{event1.notes | max(50)}}</span>
             <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result1}}</pre></span>
-            <cg-event-editor id="editor1" categories="{{categories}}" colors="{{colors}}" on-close="{{editor1Closed}}"></cg-event-editor>
+            <cg-event-editor showMetaData="user" id="editor1" categories="{{categories}}" colors="{{colors}}" on-close="{{editor1Closed}}"></cg-event-editor>
             <paper-button on-tap="{{showEditor1}}">OPEN</paper-button>
         </section>
         <section class="demo" layout vertical>
@@ -85,6 +85,13 @@
             notes:"Sed id lacus vitae tortor convallis rhoncus a non ipsum. Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Sed tempus magna et ligula imperdiet gravida.",
             from: new Date("2015-03-03T15:30:00.000Z"),
             to: new Date("2015-03-03T18:15:00.000Z"),
+            metadatas:{
+                user:{
+                    id:1234,
+                    desc:"Patient",
+                    display:"Vera Tarifeno Rosalia del Carmen"
+                }
+            },
             documents : [{
                     "name": "c29bf435b98b.jpg",
                     "size": 359551,

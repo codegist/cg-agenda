@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents uploadUrl showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events showMetaData date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents uploadUrl showAddEvent createDisabled">
     <template>
         <style>
             :host {
@@ -151,35 +151,33 @@
                     </div>
                 </template>
             </div>
-            <div class="agendadays noselect" layout horizontal id="agendadays" on-mousemove="{{_onMouseMove}}" on-dblclick="{{_onCalendarDblClick}}" relative>
+            <div class="agendadays noselect" layout horizontal id="agendadays" relative
+                 on-mousemove="{{_onMouseMove}}"
+                 on-mouseover="{{_onDayOver}}"
+                 on-dblclick="{{_onCalendarDblClick}}"
+                 on-trackstart="{{_onEventDragStart}}"
+                 on-track="{{_onEventDrag}}"
+                 on-trackend="{{_onEventDragEnd}}">
                 <canvas id="hoursCanvas" style="width:100%"></canvas>
                 <div id="hours"></div>
                 <template repeat="{{_weekDays as day}}">
-                    <div flex class="agengaday noselect day" data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" on-mouseover="{{_onDayOver}}" relative>
+                    <div flex class="agengaday noselect day" weekday data-day="{{day.day}}" data-month="{{day.month}}" data-year="{{day.year}}" relative>
                         <template repeat="{{_eventsInView as e}}">
                             <template if="{{_isEventOfDay(e, day, e.redraw)}}">
                                 <div class="event noselect {{_getEventClass(e, day, e.redraw)}}"
                                      style="{{_getEventStyle(e, day, e.redraw)}}"
+                                     event
                                      data-role="move"
                                      data-id="{{e._cgaId}}"
                                      data-day="{{day.day}}"
-                                     on-dblclick="{{_onEventDblClick}}"
-                                     layout vertical
-                                     on-mousemove="{{_onEventOver}}"
-                                     on-trackstart="{{_onEventDragStart}}"
-                                     on-track="{{_onEventDrag}}"
-                                     on-trackend="{{_onEventDragEnd}}">
+                                     layout vertical>
                                     <div class="header noselect">{{_eventRangeDisplay(e, day, e.redraw)}}</div>
-                                    <div flex class="content noselect">{{e.label}}</div>
+                                    <div flex class="content noselect">
+                                        <template if="{{showMetaData && e.metadatas[showMetaData]}}"><strong>{{e.metadatas[showMetaData].display}}</strong><br/></template>
+                                        {{e.label}}
+                                    </div>
                                     <div class="footer noselect">
-                                        <div class="resizer"
-                                             data-role="resize"
-                                             data-target-id="{{e._cgaId}}"
-                                             data-target-day="{{day.day}}"
-                                             on-trackstart="{{_onEventDragStart}}"
-                                             on-track="{{_onEventDrag}}"
-                                             on-trackend="{{_onEventDragEnd}}"
-                                        ></div>
+                                        <div class="resizer" data-role="resize"></div>
                                     </div>
                                 </div>
                             </template>
@@ -191,6 +189,7 @@
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
             <cg-event-editor id="editor"
+                             showMetaData="{{showMetaData}}"
                              dataTagPrefix="{{dataTagPrefix}}"
                              dataBaseParams="{{dataBaseParams}}"
                              uploadUrl="{{uploadUrl}}"
@@ -564,6 +563,7 @@
                 date:new Date(),
                 uploadUrl:null,
                 showAddEvent:true,
+                showMetaData:null,
                 createDisabled:false,
                 startDayOfWeek:1,
                 hourHeight:60,
@@ -618,6 +618,7 @@
                     return this._headerDateFormat.format(from) + fromYear + " - " + this._headerDateFormat.format(to) + " " + to.getFullYear();
                 },
                 domReady:function(){
+                    console.log("[cg-agenda] domReady");
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px"
                     this._drawBackground();
                     this.dateChanged();
@@ -726,10 +727,13 @@
                     return this._events;
                 },
                 _onDayOver:function(e){
+                    var dayElement = e.target;
+                    while(!dayElement.hasAttribute("weekday") && dayElement != e.currentTarget) dayElement = dayElement.parentElement;
+                    if(dayElement == dayElement == e.currentTarget) return;
                     this._dayOver = {
-                        day: Number(e.currentTarget.dataset.day),
-                        month: Number(e.currentTarget.dataset.month),
-                        year: Number(e.currentTarget.dataset.year)
+                        day: Number(dayElement.dataset.day),
+                        month: Number(dayElement.dataset.month),
+                        year: Number(dayElement.dataset.year)
                     };
                 },
                 _onMouseMove:function(e){
@@ -784,17 +788,22 @@
                     this.date = new Date(e.detail);
                 },
                 _onCalendarDblClick:function(e){
-                    if(!this.createDisabled) {
+                    e.stopPropagation();
+                    var eventElement = e.target;
+                    while(!eventElement.hasAttribute("event") && eventElement != e.currentTarget) eventElement = eventElement.parentElement;
+                    if(eventElement != e.currentTarget) {
+                        return this.openEvent(eventElement.dataset.id);
+                    }else {
                         var event = {
                             from:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver, 0, 0 ,0),
                             to:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver + 1, 0, 0 ,0)
                         };
-                        this.createEvent(event);
+                        if(!this.createDisabled) {
+                            this.createEvent(event);
+                        }else{
+                            this.fireApplicationEvent("create-event-request", event);
+                        }
                     }
-                },
-                _onEventDblClick:function(e){
-                    this.openEvent(e.currentTarget.dataset.id);
-                    e.stopPropagation();
                 },
                 openEvent:function(eventId){
                     var event = this._getEventById(eventId);
@@ -808,15 +817,17 @@
                 _onEventDragStart:function(e){
                     e.preventDefault();
                     e.stopPropagation();
-                    var eventElement;
-                    if(e.currentTarget.dataset.targetId != undefined && e.currentTarget.dataset.targetDay != undefined) {
-                        eventElement = this.$.agendadays.querySelector(".day[data-day='" + e.currentTarget.dataset.targetDay + "'] .event[data-id='" + e.currentTarget.dataset.targetId + "']")
-                    }else{
-                        eventElement = e.currentTarget;
-                    }
+                    var eventElement = e.target;
+                    var roleElement = eventElement;
+                    while(!roleElement.dataset.hasOwnProperty("role") && roleElement != e.currentTarget) roleElement = roleElement.parentElement;
+                    if(roleElement == e.currentTarget) return;
+
+                    while(!eventElement.hasAttribute("event") && eventElement != e.currentTarget) eventElement = eventElement.parentElement;
+                    if(eventElement == e.currentTarget) return;
 
                     var eventId = eventElement.dataset.id;
                     var event = this._eventsMap[eventId];
+                    event._dragging = true;
                     var eventElements = [].slice.call(this.$.agendadays.querySelectorAll(".event[data-id='" + eventId + "']"));
                     var eventElementsPerDay = {};
                     for(var i = 0; i < this._weekDays.length; i++){
@@ -836,10 +847,10 @@
                         eventElementsPerDay[day].cloneEl = clone;
                         eventElementsPerDay[day].dayDDOverlayEl.appendChild(clone);
                     }.bind(this));
-                    event._dragging = true;
+
                     var that = this;
                     this._initialDragInfos = {
-                        role: e.currentTarget.dataset.role,
+                        role: roleElement.dataset.role,
                         elements:eventElementsPerDay,
                         event:event,
                         mouseY:e.clientY,

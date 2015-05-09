@@ -50,7 +50,7 @@
             .event-payment {
                 font-weight: bold;
                 cursor:pointer;
-                color: rgb(105, 101, 255);
+                color: #6965FF;
             }
             .event-category {
                 color: #454545;
@@ -147,6 +147,9 @@
                 created:function(){
                     this.super();
                     this.events = [];
+                },
+                domReady:function(){
+                    console.log("[cg-event-list] domReady");
                 },
                 _displayDuration:function(from, to){
                     if(!from || !to) return;
