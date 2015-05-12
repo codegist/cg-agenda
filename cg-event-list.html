@@ -143,7 +143,6 @@
                 scrolling:true,
                 events:null,
                 _eventsView:null,
-                _dirty:false,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
                 created:function(){
                     this.super();
@@ -193,22 +192,10 @@
                             case "event-updated":
                             case "event-created":
                             case "event-deleted":
-                                if(this.elementVisible) {
-                                    console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
-                                    this.onRefreshData();
-                                }else{
-                                    console.log("[cg-event-list] onApplicationEvent(type:'"+type+"'), element is not visible, postpone datarefresh");
-                                    this._dirty = true;
-                                }
+                                console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
+                                this.doIfVisible(this.onRefreshData);
                                 break;
                         }
-                    }
-                },
-                onOwnerVisibilityChanged:function(visible){
-                    if(this._dirty === true && visible === true) {
-                        console.log("[cg-event-list] onOwnerVisibilityChanged(visible:'"+visible+"') element is marked dirty, refresh data");
-                        this.onRefreshData();
-                        this._dirty = false;
                     }
                 },
                 onRefreshData:function(){

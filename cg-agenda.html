@@ -592,7 +592,6 @@
                 _dayNumFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit'}),
                 _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
-                _dirty:false,
                 created:function(){
                     this.super();
                     this.redrawOnApplicationEvents = [];
@@ -653,13 +652,6 @@
                         });
                     }
                 },
-                onOwnerVisibilityChanged:function(visible){
-                    if(this._dirty === true && visible === true) {
-                        console.log("[cg-agenda] onOwnerVisibilityChanged(visible:'"+visible+"') element is marked dirty, refresh data");
-                        this._refreshEventsInView();
-                        this._dirty = false;
-                    }
-                },
                 onApplicationEvent:function(type, event){
                     if(event.source == this) {
                         console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is self, ignoring");
@@ -694,20 +686,15 @@
                             case "event-updated":
                             case "event-created":
                             case "event-deleted":
-                                if(this.elementVisible) {
-                                    console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
-                                    if (this._manager.intersects(event.params, {
-                                                from: this._viewFrom,
-                                                to: this._viewTo
-                                            })) {
-                                        console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
-                                        this._refreshEventsInView();
-                                    } else {
-                                        console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
-                                    }
-                                }else{
-                                    console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, element is not visible, postpone datarefresh");
-                                    this._dirty = true;
+                                console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
+                                if (this._manager.intersects(event.params, {
+                                            from: this._viewFrom,
+                                            to: this._viewTo
+                                        })) {
+                                    console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
+                                    this.doIfVisible(this._refreshEventsInView);
+                                } else {
+                                    console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
                                 }
                                 break;
                         }
