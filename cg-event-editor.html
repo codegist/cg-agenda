@@ -170,6 +170,7 @@
             _validationError:"Invalid or required",
 
             domReady:function(){
+                this.super();
                 console.log("[cg-event-dialog] domReady");
                 this._inputs = [].slice.call(this.shadowRoot.querySelectorAll("paper-input-decorator"));
                 this._inputs.forEach(function(input){
