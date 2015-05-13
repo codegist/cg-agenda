@@ -97,7 +97,6 @@
                             <div flex layout horizontal wrap>
                                 <div>
                                     <core-icon class="event-type" icon="fa:calendar-o"></core-icon>
-                                    <!--<core-icon class="event-duration" icon="fa:clock-o" title="{{_displayDuration(model)}}"></core-icon>-->
                                     <span class="event-time">{{_displayTime(model.from)}} ({{_displayDuration(model.from, model.to)}})</span>
                                 </div>
                                 <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
