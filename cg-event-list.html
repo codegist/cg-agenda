@@ -7,7 +7,7 @@
 <link href="cg-event-editor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list" extends="cg-base" attributes="label events colors categories dataTagPrefix dataBaseParams uploadUrl" layout vertical>
+<polymer-element name="cg-event-list" extends="cg-base" attributes="label events nolabel colors categories dataTagPrefix dataBaseParams uploadUrl" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -84,9 +84,11 @@
                 padding-bottom:5px;
             }
         </style>
-        <div class="label">
-            {{label}}
-        </div>
+        <template if="{{!nolabel}}">
+            <div class="label">
+                {{label}}
+            </div>
+        </template>
 
         <div id="events" layout vertical relative>
             <paper-shadow z="1" fit></paper-shadow>
@@ -135,6 +137,7 @@
         (function(){
             Polymer("cg-event-list", {
                 _id:1,
+                nolabel:false,
                 label:"Events",
                 uploadUrl:null,
                 colors:null,

@@ -733,7 +733,7 @@
                 _onDayOver:function(e){
                     var dayElement = e.target;
                     while(!dayElement.hasAttribute("weekday") && dayElement != e.currentTarget) dayElement = dayElement.parentElement;
-                    if(dayElement == dayElement == e.currentTarget) return;
+                    if(dayElement == e.currentTarget) return;
                     this._dayOver = {
                         day: Number(dayElement.dataset.day),
                         month: Number(dayElement.dataset.month),
