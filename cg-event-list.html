@@ -4,10 +4,9 @@
 <link href="../core-list/core-list.html" rel="import">
 <link href="../cg-base/cg-base.html" rel="import">
 <link href="../cg-utils/cg-utils.html" rel="import">
-<link href="cg-event-editor.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list" extends="cg-base" attributes="label events nolabel colors categories dataTagPrefix dataBaseParams uploadUrl" layout vertical>
+<polymer-element name="cg-event-list" extends="cg-base" attributes="label events nolabel colors categories dataTagPrefix dataBaseParams" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -127,10 +126,6 @@
                         </span>
                 </paper-button>
             </div>
-            <cg-event-editor id="editor" colors="{{colors}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-list'}}"
-                             uploadUrl="{{uploadUrl}}"
-                             dataBaseParams="{{dataBaseParams}}"
-                             categories="{{categories}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -139,7 +134,6 @@
                 _id:1,
                 nolabel:false,
                 label:"Events",
-                uploadUrl:null,
                 colors:null,
                 categories:null,
                 scrolling:true,
@@ -173,10 +167,10 @@
                     this.sortEventView();
                 },
                 _onAddClick:function(e){
-                    this.$.editor.openDialog();
+                    this.globals.eventEditor.openDialog();
                 },
                 onApplicationEvent:function(type, event){
-                    if(event.source == this.$.editor) {
+                    if(event.source == this.globals.eventDialog) { // TODO WONT WORK ANYMORE
                         console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
                         switch (type) {
                             case "event-updated":
@@ -200,6 +194,9 @@
                         }
                     }
                 },
+                contextChanged:function(){
+                    this.onRefreshData();
+                },
                 onRefreshData:function(){
                     this.fireDataRequest({
                         type:"event-list",
@@ -213,11 +210,12 @@
                     this._onRecordPaymentClick(e);
                 },
                 _onRecordPaymentClick:function(e){
+
                     this.openEditor(e.currentTarget.dataset.id);
                     //this.fire("event-clicked", e.currentTarget.dataset.id);
                 },
                 openEditor:function(eventId){
-                    this.$.editor.openDialog(this._getEventByInternalId(eventId));
+                    this.globals.eventEditor.openDialog(this._getEventByInternalId(eventId));
                 },
                 _getEventIndex:function(id) {
                     for(var i = 0; i < this.events.length; i++){

@@ -5,11 +5,10 @@
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 <link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
 <link rel="import" href="../cg-base/cg-base.html">
-<link rel="import" href="cg-event-editor.html">
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events showMetaData date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents uploadUrl showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events showMetaData date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
     <template>
         <style>
             :host {
@@ -188,13 +187,6 @@
             </div>
             <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
             <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
-            <cg-event-editor id="editor"
-                             showMetaData="{{showMetaData}}"
-                             dataTagPrefix="{{dataTagPrefix}}"
-                             dataBaseParams="{{dataBaseParams}}"
-                             uploadUrl="{{uploadUrl}}"
-                             colors="{{colors}}"
-                             categories="{{categories}}"></cg-event-editor>
         </div>
     </template>
     <script>
@@ -561,9 +553,7 @@
 
             Polymer("cg-agenda", {
                 date:new Date(),
-                uploadUrl:null,
                 showAddEvent:true,
-                showMetaData:null,
                 createDisabled:false,
                 startDayOfWeek:1,
                 hourHeight:60,
@@ -657,7 +647,7 @@
                         console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is self, ignoring");
                         return;
                     }
-                    if(event.source == this.$.editor) {
+                    if(event.source == this.globals.eventEditor) { // TODO WONT WORK ANYMORE
                         console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is known, updating data");
                         switch(type) {
                             case "event-updated":
@@ -813,10 +803,10 @@
                     var event = this._getEventById(eventId);
                     event._from = event.from;
                     event._to = event.to;
-                    this.$.editor.openDialog(event);
+                    this.globals.eventEditor.openDialog(event);
                 },
                 createEvent:function(event){
-                    this.$.editor.openDialog(event || {}, false);
+                    this.globals.eventEditor.openDialog(event || {}, false);
                 },
                 _onEventDragStart:function(e){
                     e.preventDefault();

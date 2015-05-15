@@ -13,7 +13,7 @@
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showMetaData eventId categories colors dataTagPrefix uploadUrl">
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showMetaData eventId categories colors dataTagPrefix">
     <template>
         <style>
             :host {
@@ -44,6 +44,9 @@
             :host cg-input-documents {
                 min-width:350px;
             }
+            :host .metadata-link {
+                display: inline;
+            }
             :host .metadata {
                 font-size: 12px;
                 padding: 4px;
@@ -68,17 +71,21 @@
                 <core-pages selected="{{_selectedPage}}">
                     <div class="page-wrapper">
                         <div layout vertical>
-                            <template if="{{showMetaData && event.metadatas[showMetaData]}}">
-                                <paper-input-decorator label="{{event.metadatas[showMetaData].desc}}" floatingLabel class="event-metadata">
-                                    <input value="{{event.metadatas[showMetaData].display}}" hidden>
-                                    <div>
-                                        <div relative class="metadata"
-                                             on-tap="{{_metadataClicked}}"
-                                             data-type="{{event.metadatas[showMetaData].type}}">
-                                            <paper-shadow z="1" fit></paper-shadow>
-                                            {{event.metadatas[showMetaData].display}}
+                            <template if="{{showMetaData.length > 0}}">
+                                <paper-input-decorator label="Links" floatingLabel class="event-metadata">
+                                <input value="link" hidden>
+                                <template repeat="{{showMetaData as metadata}}">
+                                    <template if="{{event.metadatas[metadata]}}">
+                                        <div class="metadata-link">
+                                            <div relative class="metadata"
+                                                 on-tap="{{_metadataClicked}}"
+                                                 data-type="{{event.metadatas[metadata].type}}">
+                                                <paper-shadow z="1" fit></paper-shadow>
+                                                {{event.metadatas[metadata].display}}
+                                            </div>
                                         </div>
-                                    </div>
+                                    </template>
+                                </template>
                                 </paper-input-decorator>
                             </template>
                             <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
@@ -99,18 +106,14 @@
                     </div>
                     <div class="page-wrapper" relative>
                         <div layout vertical>
-                            <template if="{{categories.length > 0 || dataTagPrefix}}">
-                                <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-tags dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
-                                </paper-input-decorator>
-                            </template>
-                            <template if="{{colors.length > 0 || dataTagPrefix}}">
-                                <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                                    <cg-input-color dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
-                                </paper-input-decorator>
-                            </template>
+                            <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
+                                <cg-input-tags dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                            </paper-input-decorator>
+                            <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
+                                <cg-input-color dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                            </paper-input-decorator>
                             <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
-                                                uploadUrl="{{uploadUrl}}" dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
+                                                dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -153,7 +156,6 @@
     <script>
         Polymer("cg-event-editor", {
             event:null,
-            uploadUrl:null,
             heading:"",
             showMetaData:null,
             existingEvent:"Edit event",
@@ -287,6 +289,22 @@
                 }
             },
             openDialog:function(event, edit){
+                if(typeof event == "object"){
+                    this._doOpenDialog(event, edit);
+                }else{
+                    this.fireDataRequest({
+                        type:"event-details",
+                        params:{
+                            event:event
+                        },
+                        success:function(response){
+                            this._doOpenDialog(response.data, edit);
+                        }.bind(this),
+                        failure:function(response){}.bind(this)
+                    });
+                }
+            },
+            _doOpenDialog:function(event,edit){
                 this._selectedPage = 0;
                 this.create = edit === false || event === undefined;
                 this.event = event || {};
