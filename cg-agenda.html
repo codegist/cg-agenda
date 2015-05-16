@@ -185,8 +185,6 @@
                     </div>
                 </template>
             </div>
-            <!--TODO DATE PICKER SHOULD WORKD WITH DATES-->
-            <cg-date-picker-dialog id="datepicker" on-datetime-changed="{{_dateSelected}}"></cg-date-picker-dialog>
         </div>
     </template>
     <script>
@@ -584,6 +582,7 @@
                 _manager:null,
                 created:function(){
                     this.super();
+                    this.super();
                     this.redrawOnApplicationEvents = [];
                     this._weekDays = [];
                     this._events = [];
@@ -610,6 +609,7 @@
                 domReady:function(){
                     this.super();
                     console.log("[cg-agenda] domReady");
+                    this.$.datepicker = this.globals.dateDialog || this.appendChild(document.createElement('cg-date-picker-dialog'));
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px"
                     this._drawBackground();
                     this.dateChanged();
@@ -775,11 +775,9 @@
                     this.createEvent();
                 },
                 _onSelectWeek:function(){
-                    this.$.datepicker.datetime = this.date.toISOString();
-                    this.$.datepicker.open();
-                },
-                _dateSelected:function(e){
-                    this.date = new Date(e.detail);
+                    this.$.datepicker.open(this.date, function(e){
+                        this.date = new Date(e.detail);
+                    }.bind(this));
                 },
                 _onCalendarDblClick:function(e){
                     e.stopPropagation();

@@ -206,7 +206,7 @@
                     });
                 },
                 _onLabelClick:function(e){
-                    this.openEditor(e);
+                    this.openEditor(e.currentTarget.dataset.id);
                 },
                 openEditor:function(eventId){
                     this.fireApplicationLink("event", {
