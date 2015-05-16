@@ -11,9 +11,10 @@
 <link rel="import" href="../cg-input-tags/cg-input-tags.html">
 <link rel="import" href="../cg-input-color/cg-input-color.html">
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
+<link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showMetaData eventId categories colors dataTagPrefix">
+<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showLinks eventId categories colors dataTagPrefix">
     <template>
         <style>
             :host {
@@ -44,21 +45,7 @@
             :host cg-input-documents {
                 min-width:350px;
             }
-            :host .metadata-link {
-                display: inline;
-            }
-            :host .metadata {
-                font-size: 12px;
-                padding: 4px;
-                display: inline-block;
-                cursor:pointer;
-                color: #6965FF;
-            }
-            :host .metadata paper-shadow {
-                border-radius:5px;
-            }
-
-            :host .event-metadata /deep/ .unfocused-underline {
+            :host .event-links /deep/ .unfocused-underline {
                 background-color: transparent;
             }
         </style>
@@ -71,19 +58,12 @@
                 <core-pages selected="{{_selectedPage}}">
                     <div class="page-wrapper">
                         <div layout vertical>
-                            <template if="{{showMetaData.length > 0}}">
-                                <paper-input-decorator label="Links" floatingLabel class="event-metadata">
+                            <template if="{{showLinks.length > 0}}">
+                                <paper-input-decorator label="Links" floatingLabel class="event-links">
                                 <input value="link" hidden>
-                                <template repeat="{{showMetaData as metadata}}">
-                                    <template if="{{event.metadatas[metadata]}}">
-                                        <div class="metadata-link">
-                                            <div relative class="metadata"
-                                                 on-tap="{{_metadataClicked}}"
-                                                 data-type="{{event.metadatas[metadata].type}}">
-                                                <paper-shadow z="1" fit></paper-shadow>
-                                                {{event.metadatas[metadata].display}}
-                                            </div>
-                                        </div>
+                                <template repeat="{{showLinks as link}}">
+                                    <template if="{{event.links[link]}}">
+                                        <cg-link link="{{event.links[link]}}" source="{{self}}"></cg-link>
                                     </template>
                                 </template>
                                 </paper-input-decorator>
@@ -157,7 +137,7 @@
         Polymer("cg-event-editor", {
             event:null,
             heading:"",
-            showMetaData:null,
+            showLinks:null,
             existingEvent:"Edit event",
             addEvent:"Add event",
             closeSelector: '',
@@ -251,9 +231,6 @@
             confirmDelete:function(){
                 this.$.confirmdelete.toggle();
             },
-            _metadataClicked:function(e){
-                this.fireApplicationEvent("metadata-clicked", this.event.metadatas[e.currentTarget.dataset.type]);
-            },
             delete:function(e){
                 var params = {deleteDocs:e.currentTarget.dataset.docs == "delete"};
                 if(this.isDataAware()){
@@ -339,7 +316,7 @@
                 });
                 this.event = undefined;
 
-            },
+            }
         });
     </script>
 </polymer-element>

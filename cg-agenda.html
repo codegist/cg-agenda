@@ -8,7 +8,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events showMetaData date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
     <template>
         <style>
             :host {
@@ -172,7 +172,7 @@
                                      layout vertical>
                                     <div class="header noselect">{{_eventRangeDisplay(e, day, e.redraw)}}</div>
                                     <div flex class="content noselect">
-                                        <template if="{{showMetaData && e.metadatas[showMetaData]}}"><strong>{{e.metadatas[showMetaData].display}}</strong><br/></template>
+                                        <template if="{{showLink && e.links[showLink]}}"><strong>{{e.links[showLink].display}}</strong><br/></template>
                                         {{e.label}}
                                     </div>
                                     <div class="footer noselect">
