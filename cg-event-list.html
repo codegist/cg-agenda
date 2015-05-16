@@ -143,6 +143,16 @@
                     this.super();
                     this.events = [];
                 },
+                domReady:function(){
+                    this.super();
+                    this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEventEditor());
+                },
+                _createEventEditor:function(){
+                    var editor = document.createElement("cg-event-editor");
+                    editor.setAttribute("colors", "{{colors}}");
+                    editor.setAttribute("categories", "{{categories}}");
+                    return editor;
+                },
                 _displayDuration:function(from, to){
                     if(!from || !to) return;
                     return CGUtils.formatDuration(to.getTime() - from.getTime());
@@ -169,7 +179,7 @@
                     this.globals.eventEditor.openDialog();
                 },
                 onApplicationEvent:function(type, event){
-                    if(event.source == this.globals.eventDialog) { // TODO WONT WORK ANYMORE
+                    if(event.source == this) {
                         console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
                         switch (type) {
                             case "event-updated":
@@ -209,10 +219,7 @@
                     this.openEditor(e.currentTarget.dataset.id);
                 },
                 openEditor:function(eventId){
-                    this.fireApplicationLink("event", {
-                        data:this._getEventByInternalId(eventId),
-                        callback:this.callbackWrapper
-                    }, this.source);
+                    this.$.eventEditor.openDialog(this._getEventByInternalId(eventId), undefined, this);
                 },
                 _getEventIndex:function(id) {
                     for(var i = 0; i < this.events.length; i++){

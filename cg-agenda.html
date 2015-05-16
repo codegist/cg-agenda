@@ -5,6 +5,7 @@
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 <link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
 <link rel="import" href="../cg-base/cg-base.html">
+<link rel="import" href="cg-event-editor.html">
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
@@ -580,6 +581,7 @@
                 _dayNumFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit'}),
                 _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
+                _editorSource:null,
                 created:function(){
                     this.super();
                     this.super();
@@ -587,6 +589,7 @@
                     this._weekDays = [];
                     this._events = [];
                     this._eventsInView = [];
+                    this._editorSource = {};
                 },
                 ready:function(){
                     this._manager = new CalendarManager(true);
@@ -609,12 +612,20 @@
                 domReady:function(){
                     this.super();
                     console.log("[cg-agenda] domReady");
-                    this.$.datepicker = this.globals.dateDialog || this.appendChild(document.createElement('cg-date-picker-dialog'));
-                    this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px"
+                    this.$.datepicker = this.globals.dateDialog || this.shadowRoot.appendChild(document.createElement('cg-date-picker-dialog'));
+                    this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEditor());
+                    this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
                     this._drawBackground();
                     this.dateChanged();
                     this.$.agendadays.scrollTop = (this.hourHeight * this.showHour);
                     console.log("[cg-agenda] Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                },
+                _createEditor:function(){
+                    var editor = document.createElement("cg-event-editor");
+                    editor.setAttribute("categories", "{{categories}}");
+                    editor.setAttribute("colors", "{{colors}}");
+                    editor.setAttribute("showMetaData", "{{showMetaData}}");
+                    return editor;
                 },
                 redrawAll:function(){
                     this._eventsInView.forEach(function(e){
@@ -647,7 +658,7 @@
                         console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is self, ignoring");
                         return;
                     }
-                    if(event.source == this.globals.eventEditor) { // TODO WONT WORK ANYMORE
+                    if(event.source == this._editorSource) {
                         console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is known, updating data");
                         switch(type) {
                             case "event-updated":
@@ -801,10 +812,10 @@
                     var event = this._getEventById(eventId);
                     event._from = event.from;
                     event._to = event.to;
-                    this.globals.eventEditor.openDialog(event);
+                    this.$.eventEditor.openDialog(event, undefined, this._editorSource);
                 },
                 createEvent:function(event){
-                    this.globals.eventEditor.openDialog(event || {}, false);
+                    this.$.eventEditor.openDialog(event || {}, false, this._editorSource);
                 },
                 _onEventDragStart:function(e){
                     e.preventDefault();

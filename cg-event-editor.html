@@ -148,6 +148,7 @@
             _documentInputParams:null,
             _selectedPage:0,
             _inputs:null,
+            _callerScope:null,
             _editCopy:null,
             _validationError:"Invalid or required",
 
@@ -265,7 +266,12 @@
                     this._documentInputParams = undefined;
                 }
             },
-            openDialog:function(event, edit){
+            openDialog:function(event, edit, closeCallbackOrCallerScope){
+                if(typeof closeCallbackOrCallerScope == "function") {
+                    this.listenOnce('close', closeCallbackOrCallerScope);
+                }else{
+                    this._callerScope = closeCallbackOrCallerScope;
+                }
                 if(typeof event == "object"){
                     this._doOpenDialog(event, edit);
                 }else{
@@ -295,16 +301,16 @@
                 switch(result) {
                     case "OK":
                         if(this.create) {
-                            this.fireApplicationEvent("event-created", this.event);
+                            this.fireApplicationEvent("event-created", this.event, this._callerScope);
                         }else{
-                            this.fireApplicationEvent("event-updated", this.event);
+                            this.fireApplicationEvent("event-updated", this.event, this._callerScope);
                         }
                         break;
                     case "DELETE":
-                        this.fireApplicationEvent("event-deleted", this.event);
+                        this.fireApplicationEvent("event-deleted", this.event, this._callerScope);
                         if(params.deleteDocs === true && this.event.documents) {
                             this.event.documents.forEach(function(doc){
-                                this.fireApplicationEvent("document-deleted", doc);
+                                this.fireApplicationEvent("document-deleted", doc, this._callerScope);
                             }.bind(this));
                         }
                         break;
