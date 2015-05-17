@@ -13,8 +13,9 @@
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-base/cg-base.html">
+<link rel="import" href="../cg-utils/cg-utils.html">
 
-<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors">
+<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors augmentEvent">
     <template>
         <style>
             :host {
@@ -92,7 +93,7 @@
                             <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
                                 <cg-input-color cgName="{{cgName}}s/colors" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                             </paper-input-decorator>
-                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor" ownedby="event"></cg-input-documents>
+                            <cg-input-documents label="Documents" cgName="documents/event" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -149,7 +150,17 @@
             _callerScope:null,
             _editCopy:null,
             _validationError:"Invalid or required",
-
+            _eventTemplate:{
+                label: null,
+                notes: null,
+                from: null,
+                to: null,
+                color: {
+                    name: null,
+                    mask: null,
+                },
+                categories: [],
+            },
             domReady:function(){
                 this.super();
                 console.log("[cg-event-dialog] domReady");
@@ -162,6 +173,11 @@
                 // for dates that depends from each others, validate on change as well
                 this.$.to.addEventListener("change", this._validate.bind(this));
                 this.$.from.addEventListener("change", this._validate.bind(this));
+            },
+            colorsChanged:function(){
+                if(this.colors && this.colors.length > 0) {
+                    this._eventTemplate.color = this.colors[0];
+                }
             },
             detached:function(){
                 this.super();
@@ -204,20 +220,15 @@
                             type:"save",
                             params:{original:this.event, save:this._editCopy},
                             success:function(response){
-                                this.event = Platform.mixin(this.event, response.data);
-                                this.$.documentsEditor.saveDocuments();
-                                this.closeDialog("OK");
+                                this.$.documentsEditor.saveDocuments(function(responses){
+                                    this.event = CGUtils.clone(false, {}, this.event, response.data);
+                                    this.closeDialog("OK");
+                                }.bind(this));
                             }.bind(this),
                             failure:function(response){}.bind(this)
                         });
                     }else{
-                        this.event.from = this._editCopy.from;
-                        this.event.to = this._editCopy.to;
-                        this.event.label = this._editCopy.label;
-                        this.event.notes = this._editCopy.notes;
-                        this.event.color = this._editCopy.color;
-                        this.event.documents = this._editCopy.documents.slice();
-                        this.event.categories = this._editCopy.categories.slice();
+                        this.event = CGUtils.clone(true, {}, this.event, this._editCopy);
                         this.closeDialog("OK");
                     }
                 });
@@ -238,9 +249,15 @@
                         type:"delete",
                         params:{original:this.event},
                         success:function(response){
-                            params.deleteDocs && this.$.documentsEditor.deleteAllDocuments();
-                            this.event = Platform.mixin(this.event, response.data);
-                            this.closeDialog("DELETE", params);
+                            if(params.deleteDocs) {
+                                this.$.documentsEditor.deleteAllDocuments(function(responses){
+                                    this.event = CGUtils.clone(false, {}, this.event, response.data);
+                                    this.closeDialog("DELETE", params);
+                                }.bind(this));
+                            }else{
+                                this.event = CGUtils.clone(false, {}, this.event, response.data);
+                                this.closeDialog("DELETE", params);
+                            }
                         }.bind(this),
                         failure:function(response){}.bind(this)
                     });
@@ -250,18 +267,15 @@
             },
             eventChanged:function(){
                 if(this.event) {
-                    this._editCopy = {
-                        from:this.event.from,
-                        to:this.event.to,
-                        label:this.event.label,
-                        notes:this.event.notes,
-                        color:this.event.color || (this.colors && this.colors.length > 1 ? this.colors[0] : ""),
-                        categories:this.event.categories?this.event.categories.slice():[],
-                        documents:this.event.documents?this.event.documents.slice():[],
-                    };
+                    this.$.documentsEditor.dataContext = {event : this.event};
+                    this._editCopy = CGUtils.clone(true, {}, this._eventTemplate, this.event);
                 }else{
+                    delete this.$.documentsEditor.dataContext.event;
                     this._editCopy = undefined;
                 }
+            },
+            augmentEvent:function(event, create){
+                return event;
             },
             openDialog:function(event, edit, closeCallbackOrCallerScope){
                 if(typeof closeCallbackOrCallerScope == "function") {
@@ -287,9 +301,8 @@
             _doOpenDialog:function(event,edit){
                 this._selectedPage = 0;
                 this.create = edit === false || event === undefined;
-                this.event = event || {};
+                this.event = this.augmentEvent ? this.augmentEvent(event, this.create) : {};
                 this.heading = this.create ? this.addEvent : this.existingEvent;
-                this.$.documentsEditor.dataContext = {event : this.event};
                 this.eventChanged();
                 this._validate(function(){
                     this.$.dialog.open();
@@ -313,6 +326,7 @@
                         }
                         break;
                 }
+                delete this.$.documentsEditor.dataContext.event;
                 this.$.dialog.close();
                 this.fire("close", {
                     event: this.event,

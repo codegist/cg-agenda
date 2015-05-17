@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled">
     <template>
         <style>
             :host {
@@ -562,6 +562,7 @@
                 colors:null,
                 highlightedFn:function(data){return true},
                 redrawOnApplicationEvents:null,
+                reloadOnApplicationEvents:null,
                 _eventSizeCacheThreshold:50,
                 _draggingTerminateTimeout:1000,
                 _dayOver:null,
@@ -585,6 +586,7 @@
                     this.super();
                     this.super();
                     this.redrawOnApplicationEvents = [];
+                    this.reloadOnApplicationEvents = [];
                     this._weekDays = [];
                     this._events = [];
                     this._eventsInView = [];
@@ -681,7 +683,7 @@
                     }else{
                         switch(type){
                             case "agenda-create-event":
-                                this.createEvent();
+                                this.createEvent(event.params);
                                 break;
                             case "event-updated":
                             case "event-created":
@@ -702,6 +704,12 @@
                     if(this.redrawOnApplicationEvents && this.redrawOnApplicationEvents.indexOf(type) != -1) {
                         this.redrawAll();
                     }
+                    if(this.reloadOnApplicationEvents && this.reloadOnApplicationEvents.indexOf(type) != -1) {
+                        this.reload();
+                    }
+                },
+                contextChanged:function(){
+                    this.redrawAll();
                 },
                 _setEvents:function(events){
                     this._manager.orderEvents(events, false);
