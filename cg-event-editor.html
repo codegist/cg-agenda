@@ -164,6 +164,7 @@
                 this.$.from.addEventListener("change", this._validate.bind(this));
             },
             detached:function(){
+                this.super();
                 this._inputs.forEach(function(input){
                     input._validityObserver && input._validityObserver.close();
                 }.bind(this));
