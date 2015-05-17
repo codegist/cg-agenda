@@ -5,6 +5,7 @@
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 <link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
 <link rel="import" href="../cg-base/cg-base.html">
+<link rel="import" href="../cg-utils/cg-utils.html">
 <link rel="import" href="cg-event-editor.html">
 
 <script src="../jquery/dist/jquery.min.js"></script>
@@ -297,18 +298,10 @@
                 };
             };
             CalendarManager.prototype = {
-                intersects: function(e1, e2){
-                    var es1 = e1.from.getTime();
-                    var ee1 = e1.to.getTime();
-                    var es2 = e2.from.getTime();
-                    var ee2 = e2.to.getTime();
-                    return (es1 <= ee2 && es2 <= ee1 );
-//                    return (s1 < s2 && e1 > s2) || (s1 >= s2 && (e1 < e2 || (s1 < e2))) || s1 <= s2 && e1 >= e2;
-                },
                 getEventsInView:function(events, view){
                     var inView = [];
                     events.forEach(function(e){
-                        if(this.intersects(e, view)){
+                        if(CGUtils.utils.dateRangeIntersects(e, view)){
                             inView.push(e);
                         }
                     }.bind(this));
@@ -341,11 +334,8 @@
                     this.cache.reset();
                 },
                 eventComparator:function(a,b){
-                    var aFrom = a.from.getTime();
-                    var bFrom = b.from.getTime();
-                    var aTo = a.to.getTime();
-                    var bTo = b.to.getTime();
-                    return  aFrom < bFrom ? -1 : aFrom > bFrom ? 1 : aTo < bTo ? 1 : aTo > bTo ? -1 : 0;
+                    var res = CGUtils.comparators.dateRange(a,b);
+                    return res != 0 ? res : CGUtils.comparators.number(a._cgaId, b._cgaId);
                 },
                 primeCollisionGroupCache:function(events){
                     console.log("[cg-agenda] Priming cache");
@@ -419,7 +409,7 @@
                         var groups = 0;
                         for(var id in this.cache.collisionGroups.cache){
                             var group = this.cache.collisionGroups.cache[id];
-                            if(this.intersects(event, group)) {
+                            if(CGUtils.utils.dateRangeIntersects(event, group)) {
                                 suitableCachedGroups[id] = group;
                                 groups++;
                             }
@@ -474,7 +464,7 @@
                         e = events[c];
                         for(i = 0; i < groups.length; i++){
                             group = groups[i];
-                            if(this.intersects(e, group)) {
+                            if(CGUtils.utils.dateRangeIntersects(e, group)) {
                                 group.addEvent(e);
                                 found = true;
                                 break;
@@ -510,7 +500,7 @@
                         b = events[0];
                         found = false;
                         for(c = 0; c < column.length; c++){
-                            if(this.intersects(column[c], b)) {
+                            if(CGUtils.utils.dateRangeIntersects(column[c], b)) {
                                 found = true;
                                 break;
                             }
@@ -689,7 +679,7 @@
                             case "event-created":
                             case "event-deleted":
                                 console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
-                                if (this._manager.intersects(event.params, {
+                                if (CGUtils.utils.dateRangeIntersects(event.params, {
                                             from: this._viewFrom,
                                             to: this._viewTo
                                         })) {
@@ -1059,7 +1049,7 @@
                 },
                 _isEventOfDay:function(event, day){
                     //console.log(event.from + " - " + new Date(day.year, day.month, day.day, 23, 59 ,59, 999));
-                    return this._manager.intersects(event, day);
+                    return CGUtils.utils.dateRangeIntersects(event, day);
                 },
                 _getEventClass:function(event, day){
                     return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
