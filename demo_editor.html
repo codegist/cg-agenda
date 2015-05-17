@@ -42,7 +42,7 @@
             <span>to: {{event2.to}}</span>
             <span>notes: {{event2.notes | max(50)}}</span>
             <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result2}}</pre></span>
-            <cg-event-editor id="editor3" dataTagPrefix="demo" on-close="{{editor3Closed}}"></cg-event-editor>
+            <cg-event-editor id="editor3" on-close="{{editor3Closed}}"></cg-event-editor>
             <paper-button on-tap="{{showEditor3}}">OPEN</paper-button>
         </section>
         <section class="demo" layout vertical>
@@ -52,7 +52,7 @@
             <span>to: {{event4.to}}</span>
             <span>notes: {{event4.notes | max(50)}}</span>
             <span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result4}}</pre></span>
-            <cg-event-editor id="editor4" dataTagPrefix="demo" on-close="{{editor4Closed}}"></cg-event-editor>
+            <cg-event-editor id="editor4" on-close="{{editor4Closed}}"></cg-event-editor>
             <paper-button on-tap="{{showEditor4}}">OPEN</paper-button>
         </section>
     </div>

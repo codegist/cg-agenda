@@ -14,7 +14,7 @@
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors dataTagPrefix">
+<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors">
     <template>
         <style>
             :host {
@@ -87,13 +87,12 @@
                     <div class="page-wrapper" relative>
                         <div layout vertical>
                             <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                                <cg-input-tags cgName="{{cgName}}s/categories" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                <cg-input-tags cgName="{{cgName}}s/categories" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
                             </paper-input-decorator>
                             <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                                <cg-input-color cgName="{{cgName}}s/colors" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                <cg-input-color cgName="{{cgName}}s/colors" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                             </paper-input-decorator>
-                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
-                                                dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
+                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -145,7 +144,6 @@
             create:false,
             categories:null,
             colors:null,
-            _documentInputParams:null,
             _selectedPage:0,
             _inputs:null,
             _callerScope:null,
@@ -260,10 +258,8 @@
                         categories:this.event.categories?this.event.categories.slice():[],
                         documents:this.event.documents?this.event.documents.slice():[],
                     };
-                    this._documentInputParams = { event:this.event };
                 }else{
                     this._editCopy = undefined;
-                    this._documentInputParams = undefined;
                 }
             },
             openDialog:function(event, edit, closeCallbackOrCallerScope){
@@ -292,6 +288,7 @@
                 this.create = edit === false || event === undefined;
                 this.event = event || {};
                 this.heading = this.create ? this.addEvent : this.existingEvent;
+                this.$.documentsEditor.dataContext = {event : this.event};
                 this.eventChanged();
                 this._validate(function(){
                     this.$.dialog.open();
