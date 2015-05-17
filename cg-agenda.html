@@ -10,7 +10,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled autosize">
     <template>
         <style>
             :host {
@@ -153,6 +153,7 @@
                 </template>
             </div>
             <div class="agendadays noselect" layout horizontal id="agendadays" relative
+                 style="{{_getAgendaDaysStyle(_style.height)}}"
                  on-mousemove="{{_onMouseMove}}"
                  on-mouseover="{{_onDayOver}}"
                  on-dblclick="{{_onCalendarDblClick}}"
@@ -549,6 +550,7 @@
                 showHour:9,
                 dragMinuteStep:15,
                 defaultColor: {name:"Bold Blue", mask:"#5484ED"},
+                autosize:false,
                 colors:null,
                 highlightedFn:function(data){return true},
                 redrawOnApplicationEvents:null,
@@ -572,8 +574,9 @@
                 _monthNumFormat : Intl.DateTimeFormat(this.locale, {month:'2-digit'}),
                 _manager:null,
                 _editorSource:null,
+                _agendaObs:null,
+                _style:null,
                 created:function(){
-                    this.super();
                     this.super();
                     this.redrawOnApplicationEvents = [];
                     this.reloadOnApplicationEvents = [];
@@ -585,7 +588,45 @@
                 ready:function(){
                     this._manager = new CalendarManager(true);
                     this.addEventListener("event-drag-end", this._onEventDragEnded.bind(this));
-
+                },
+                domReady:function(){
+                    this.super();
+                    console.log("[cg-agenda] domReady");
+                    this.$.datepicker = this.globals.dateDialog || this.shadowRoot.appendChild(document.createElement('cg-date-picker-dialog'));
+                    this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEditor());
+                    this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
+                    this._drawBackground();
+                    this.dateChanged();
+                    this.$.agendadays.scrollTop = (this.hourHeight * this.showHour);
+                    console.log("[cg-agenda] Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                },
+                attached:function(){
+                    this.super();
+                    this._agendaObs = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if(mutation.type != "attributes") return;
+                            switch(mutation.attributeName) {
+                                case "style" :
+                                    this._refreshStyle();
+                                    break;
+                            }
+                        }.bind(this));
+                    }.bind(this));
+                    this._agendaObs.observe(this, {
+                        attributes: true,
+                        attributeFilter:["style"],
+                        attributeOldValue:true
+                    });
+                    this._refreshStyle();
+                },
+                detached:function(){
+                    this.super();
+                    this._agendaObs.disconnect();
+                },
+                _refreshStyle:function(){
+                    this._style = {
+                        height:parseInt(this.style.height)
+                    };
                 },
                 _dayNumDisplay:function(day) {
                     return this._dayNumFormat.format(day.date) + "/" + this._monthNumFormat.format(day.date);
@@ -599,17 +640,6 @@
                     }
                     var fromYear = from.getFullYear() != to.getFullYear() ? " " + from.getFullYear() : "";
                     return this._headerDateFormat.format(from) + fromYear + " - " + this._headerDateFormat.format(to) + " " + to.getFullYear();
-                },
-                domReady:function(){
-                    this.super();
-                    console.log("[cg-agenda] domReady");
-                    this.$.datepicker = this.globals.dateDialog || this.shadowRoot.appendChild(document.createElement('cg-date-picker-dialog'));
-                    this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEditor());
-                    this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
-                    this._drawBackground();
-                    this.dateChanged();
-                    this.$.agendadays.scrollTop = (this.hourHeight * this.showHour);
-                    console.log("[cg-agenda] Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
                 },
                 _createEditor:function(){
                     var editor = document.createElement("cg-event-editor");
@@ -1055,6 +1085,12 @@
                     return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
                            event.from.getDate() == day.day ? "eventstart" :
                            event.to.getDate() == day.day ? "eventend" : "eventpart";
+                },
+                _getAgendaDaysStyle:function(height){
+                    if(!this.autosize || !this.$ || !this.$.agendadays) return "";
+                    height = (height - this.$.agendadays.offsetTop);
+                    if(isNaN(height)) return "";
+                    return "height:" + height + "px";
                 },
                 _getEventStyle:function(event, day){
 //                    console.log("_getEventStyle event.redraw=" + event.redraw + " - day = " + JSON.stringify(day))
