@@ -7,7 +7,7 @@
 <link href="../cg-utils/cg-utils.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
 
-<polymer-element name="cg-event-list" extends="cg-base" attributes="label events nolabel showLink colors categories dataTagPrefix dataBaseParams" layout vertical>
+<polymer-element name="cg-event-list" extends="cg-base" cgName="events" attributes="label events nolabel showLink colors categories dataTagPrefix dataBaseParams refreshOnApplicationEvents" layout vertical>
     <template>
         <style>
             cg-event-list {
@@ -137,10 +137,12 @@
                 categories:null,
                 scrolling:true,
                 events:null,
+                refreshOnApplicationEvents:null,
                 _eventsView:null,
                 _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
                 created:function(){
                     this.super();
+                    this.refreshOnApplicationEvents = [];
                     this.events = [];
                 },
                 domReady:function(){
@@ -184,13 +186,13 @@
                         switch (type) {
                             case "event-updated":
                                 this.sortEventView();
-                                break;
+                                return;
                             case "event-created":
                                 this.events.push(event.params);
-                                break;
+                                return;
                             case "event-deleted":
                                 this.events.splice(this._getEventIndex(event.params._cgelId), 1);
-                                break;
+                                return;
                         }
                     }else{
                         switch(type){
@@ -199,8 +201,12 @@
                             case "event-deleted":
                                 console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
                                 this.doIfVisible(this.onRefreshData);
-                                break;
+                                return;
                         }
+                    }
+                    if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
+                        console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
+                        this.doIfVisible(this.onRefreshData);
                     }
                 },
                 contextChanged:function(){
@@ -208,7 +214,7 @@
                 },
                 onRefreshData:function(){
                     this.fireDataRequest({
-                        type:"event-list",
+                        type:"data",
                         success:function(response){
                             this.events = response.data;
                         }.bind(this),

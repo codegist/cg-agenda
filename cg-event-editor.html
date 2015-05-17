@@ -14,7 +14,7 @@
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-base/cg-base.html">
 
-<polymer-element name="cg-event-editor" extends="cg-base" attributes="event showLinks eventId categories colors dataTagPrefix">
+<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors dataTagPrefix">
     <template>
         <style>
             :host {
@@ -87,10 +87,10 @@
                     <div class="page-wrapper" relative>
                         <div layout vertical>
                             <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
-                                <cg-input-tags dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                <cg-input-tags cgName="{{cgName}}s/categories" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
                             </paper-input-decorator>
                             <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
-                                <cg-input-color dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
+                                <cg-input-color cgName="{{cgName}}s/colors" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                             </paper-input-decorator>
                             <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" dataTagPrefix="{{(dataTagPrefix ? dataTagPrefix + '-' : '') + 'event-editor'}}"
                                                 dataBaseParams="{{_documentInputParams}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
@@ -272,11 +272,11 @@
                 }else{
                     this._callerScope = closeCallbackOrCallerScope;
                 }
-                if(typeof event == "object"){
+                if(typeof event == "object" || !event){
                     this._doOpenDialog(event, edit);
                 }else{
                     this.fireDataRequest({
-                        type:"event-details",
+                        type:"data",
                         params:{
                             event:event
                         },

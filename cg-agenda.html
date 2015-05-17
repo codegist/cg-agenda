@@ -9,7 +9,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
+<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents showAddEvent createDisabled">
     <template>
         <style>
             :host {
@@ -636,7 +636,7 @@
                     this._providedEvents = true;
                     this._events = events;
                 },
-                _refreshEventsInView:function(){
+                reload:function(){
                     var range = {from:this._viewFrom, to:this._viewTo};
                     if(this._providedEvents) {
                         console.log("[cg-agenda] Agenda - Events provided, using them");
@@ -644,7 +644,7 @@
                     }else{
                         console.log("[cg-agenda] Agenda - Events not provided, firing data request");
                         this.fireDataRequest({
-                            type:"events-in-range",
+                            type:"data",
                             params:range,
                             success:function(response){
                                 this._setEvents(response.data);
@@ -693,7 +693,7 @@
                                             to: this._viewTo
                                         })) {
                                     console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
-                                    this.doIfVisible(this._refreshEventsInView);
+                                    this.doIfVisible(this.reload);
                                 } else {
                                     console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
                                 }
@@ -767,7 +767,7 @@
                     }
                     this._viewTo = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
                     this._weekDays = weekDays;
-                    this._refreshEventsInView();
+                    this.reload();
                 },
                 _onPreviousWeek:function(){
                     this._addWeek(-1);
@@ -982,12 +982,12 @@
                     if(this.isDataAware()) {
                         var toSave = Platform.mixin({}, e.detail.event, e.detail.newPosition);
                         this.fireDataRequest({
-                            type:"save",
+                            type:"event/save", typePrefix:false,
                             params:{event:toSave},
                             success:function(response){
                                 this._onEventDragEndedCommitted(e, response.data);
                             }.bind(this),
-                            failure:function(response){}.bind(this)
+                            failure:this.reload.bind(this)
                         });
                     }else{
                         this._onEventDragEndedCommitted(e);
