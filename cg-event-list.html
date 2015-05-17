@@ -200,13 +200,13 @@
                             case "event-created":
                             case "event-deleted":
                                 console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
-                                this.doIfVisible(this.contextChanged);
+                                this.contextChanged();
                                 return;
                         }
                     }
                     if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
                         console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
-                        this.doIfVisible(this.contextChanged);
+                        this.contextChanged();
                     }
                 },
                 contextChanged:function(){

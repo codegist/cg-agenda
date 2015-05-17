@@ -92,7 +92,7 @@
                             <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
                                 <cg-input-color cgName="{{cgName}}s/colors" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                             </paper-input-decorator>
-                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
+                            <cg-input-documents label="Documents" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor" ownedby="event"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>

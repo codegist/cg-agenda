@@ -692,7 +692,7 @@
                                             to: this._viewTo
                                         })) {
                                     console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
-                                    this.doIfVisible(this.reload);
+                                    this.reload();
                                 } else {
                                     console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
                                 }
