@@ -83,6 +83,15 @@
                 color:#757575;
                 padding-bottom:5px;
             }
+            :host .counts {
+                margin-top:10px;
+            }
+            :host .result-count {
+                color:#6A6A6A;
+                font-size:12px;
+                margin:0px 5px;
+                text-align: right;
+            }
 
         </style>
         <template if="{{!nolabel}}">
@@ -93,6 +102,9 @@
 
         <div id="events" layout vertical relative>
             <paper-shadow z="1" fit></paper-shadow>
+            <div layout horizontal end-justified class="counts">
+                <span class="result-count">{{events.length | _displayCount}}</span>
+            </div>
             <div id="listScroller" hidden?="{{events.length == 0}}" >
                 <core-list id="list" data="{{_eventsView}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
                     <template>
@@ -162,6 +174,9 @@
                 _displayTime:function(from){
                     if(!from) return;
                     return this._timeFormat.format(from);
+                },
+                _displayCount:function(total) {
+                    return CGUtils.displayCountFound("event", "events", total);
                 },
                 sortEventView:function(){
                     this._eventsView = this.events.slice().sort(function(a,b){

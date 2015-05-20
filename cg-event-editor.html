@@ -57,7 +57,7 @@
                     <paper-tab>More</paper-tab>
                 </paper-tabs>
                 <core-pages selected="{{_selectedPage}}">
-                    <div class="page-wrapper">
+                    <div class="page-wrapper" relative>
                         <div layout vertical>
                             <template if="{{showLinks.length > 0}}">
                                 <paper-input-decorator label="Links" floatingLabel class="event-links">
@@ -85,7 +85,7 @@
                             </paper-input-decorator>
                         </div>
                     </div>
-                    <div class="page-wrapper" relative>
+                    <div class="page-wrapper" >
                         <div layout vertical>
                             <paper-input-decorator label="Categories" floatingLabel error="{{_validationError}}" autoValidate>
                                 <cg-input-tags cgName="{{cgName}}s/categories" tags="{{categories}}" selected="{{_editCopy.categories}}"></cg-input-tags>
