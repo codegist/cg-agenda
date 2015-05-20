@@ -591,7 +591,6 @@
                 },
                 domReady:function(){
                     this.super();
-                    console.log("[cg-agenda] domReady");
                     this.$.datepicker = this.globals.dateDialog || this.shadowRoot.appendChild(document.createElement('cg-date-picker-dialog'));
                     this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEditor());
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
