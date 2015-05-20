@@ -15,7 +15,7 @@
 <link rel="import" href="../cg-base/cg-base.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
 
-<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors augmentEvent">
+<polymer-element name="cg-event-editor" cgName="event" extends="cg-base" attributes="event showLinks eventId categories colors documentCategories augmentEvent">
     <template>
         <style>
             :host {
@@ -93,7 +93,7 @@
                             <paper-input-decorator label="Color" floatingLabel error="{{_validationError}}" autoValidate>
                                 <cg-input-color cgName="{{cgName}}s/colors" required colors="{{colors}}" selected="{{_editCopy.color}}"></cg-input-color>
                             </paper-input-decorator>
-                            <cg-input-documents label="Documents" cgName="documents/event" documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
+                            <cg-input-documents label="Documents" cgName="documents/event" categories={{documentCategories}} documents="{{_editCopy.documents}}" autoUpload="true" autoSave="false" id="documentsEditor"></cg-input-documents>
                         </div>
                     </div>
                 </core-pages>
@@ -145,6 +145,7 @@
             create:false,
             categories:null,
             colors:null,
+            documentCategories:null,
             _selectedPage:0,
             _inputs:null,
             _callerScope:null,
@@ -220,15 +221,15 @@
                             type:"save",
                             params:{original:this.event, save:this._editCopy},
                             success:function(response){
+                                this.event = CGUtils.clone(true, this.event, response.data);
                                 this.$.documentsEditor.saveDocuments(function(responses){
-                                    this.event = CGUtils.clone(false, {}, this.event, response.data);
                                     this.closeDialog("OK");
                                 }.bind(this));
                             }.bind(this),
                             failure:function(response){}.bind(this)
                         });
                     }else{
-                        this.event = CGUtils.clone(true, {}, this.event, this._editCopy);
+                        this.event = CGUtils.clone(true, this.event, this._editCopy);
                         this.closeDialog("OK");
                     }
                 });
@@ -249,13 +250,12 @@
                         type:"delete",
                         params:{original:this.event},
                         success:function(response){
+                            this.event = CGUtils.clone(true, this.event, response.data);
                             if(params.deleteDocs) {
                                 this.$.documentsEditor.deleteAllDocuments(function(responses){
-                                    this.event = CGUtils.clone(false, {}, this.event, response.data);
                                     this.closeDialog("DELETE", params);
                                 }.bind(this));
                             }else{
-                                this.event = CGUtils.clone(false, {}, this.event, response.data);
                                 this.closeDialog("DELETE", params);
                             }
                         }.bind(this),
