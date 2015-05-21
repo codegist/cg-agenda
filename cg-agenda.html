@@ -10,7 +10,7 @@
 
 <script src="../jquery/dist/jquery.min.js"></script>
 
-<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled autosize">
+<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn colorFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled autosize">
     <template>
         <style>
             :host {
@@ -553,6 +553,7 @@
                 autosize:false,
                 colors:null,
                 highlightedFn:function(data){return true},
+                colorFn:function(data){return null},
                 redrawOnApplicationEvents:null,
                 reloadOnApplicationEvents:null,
                 _eventSizeCacheThreshold:50,
@@ -1115,13 +1116,15 @@
                     var top = range.from.getDate() == day ? this._getHeightForDate(range.from) : 0;
                     var height = this._getHeightForDate(range.to.getDate() == day ? range.to : new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59)) - top;
                     var opacity = this.highlightedFn(event) ? 1.0 : .2;
+                    var backgroundColor = !event || !event.color || !event.color.mask ? this.colorFn(event) : undefined;
+
                     return {
                         top:top,
                         height:height,
                         width:100,
                         left:0,
                         opacity:opacity,
-                        backgroundColor:event && event.color ? event.color.mask : this.defaultColor.mask,
+                        backgroundColor:event && event.color && event.color.mask ? event.color.mask : backgroundColor ? backgroundColor.mask : this.defaultColor.mask,
                         toStyleString:function(additional){
                             return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;background-color:" + this.backgroundColor + ";opacity:" + this.opacity;
                         }

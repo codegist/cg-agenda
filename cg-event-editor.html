@@ -174,11 +174,6 @@
                 this.$.to.addEventListener("change", this._validate.bind(this));
                 this.$.from.addEventListener("change", this._validate.bind(this));
             },
-            colorsChanged:function(){
-                if(this.colors && this.colors.length > 0) {
-                    this._eventTemplate.color = this.colors[0];
-                }
-            },
             detached:function(){
                 this.super();
                 this._inputs.forEach(function(input){
