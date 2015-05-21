@@ -3,6 +3,7 @@
 <link href="../core-icon/core-icon.html" rel="import">
 <link href="../core-list/core-list.html" rel="import">
 <link href="../cg-base/cg-base.html" rel="import">
+<link href="../cg-pagination/cg-pagination.html" rel="import">
 <link href="../cg-link/cg-link.html" rel="import">
 <link href="../cg-utils/cg-utils.html" rel="import">
 <link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
@@ -103,8 +104,12 @@
         <div id="events" layout vertical relative>
             <paper-shadow z="1" fit></paper-shadow>
             <div layout horizontal end-justified class="counts">
-                <span class="result-count">{{events.length | _displayCount}}</span>
+                <content select="[action]"></content>
+                <span class="result-count">{{events.total | _displayCount}}</span>
             </div>
+            <cg-pagination id="pagination" data="{{events}}" cgName="{{cgName}}"
+                           pageSize="{{pageSize}}"
+                           paginationPages="{{paginationPages}}"></cg-pagination>
             <div id="listScroller" hidden?="{{events.length == 0}}" >
                 <core-list id="list" data="{{_eventsView}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
                     <template>
@@ -146,6 +151,8 @@
                 nolabel:false,
                 label:"Events",
                 colors:null,
+                pageSize:5,
+                paginationPages:10,
                 categories:null,
                 scrolling:true,
                 events:null,
@@ -155,7 +162,6 @@
                 created:function(){
                     this.super();
                     this.refreshOnApplicationEvents = [];
-                    this.events = [];
                 },
                 domReady:function(){
                     this.super();
@@ -176,10 +182,10 @@
                     return this._timeFormat.format(from);
                 },
                 _displayCount:function(total) {
-                    return CGUtils.displayCountFound("event", "events", total);
+                    return CGUtils.displayCountFound("event","events", total);
                 },
                 sortEventView:function(){
-                    this._eventsView = this.events.slice().sort(function(a,b){
+                    this._eventsView = this.events.results.slice().sort(function(a,b){
                         var at = a.from.getTime();
                         var bt = b.from.getTime();
                         return at < bt ? 1 : at > bt ? -1 : 0;
@@ -187,7 +193,7 @@
                 },
                 eventsChanged:function(){
                     this._id = 1;
-                    this.events.forEach(function(e) {
+                    this.events.results.forEach(function(e) {
                         e._cgelId = this._id++;
                     }.bind(this));
                     this.sortEventView();
@@ -196,42 +202,31 @@
                     this.globals.eventEditor.openDialog();
                 },
                 onApplicationEvent:function(type, event){
-                    if(event.source == this) {
-                        console.log("[cg-event-list] onApplicationEvent(type:'"+type+"') source is known, updating data");
-                        switch (type) {
-                            case "event-updated":
-                                this.sortEventView();
-                                return;
-                            case "event-created":
-                                this.events.push(event.params);
-                                return;
-                            case "event-deleted":
-                                this.events.splice(this._getEventIndex(event.params._cgelId), 1);
-                                return;
-                        }
-                    }else{
-                        switch(type){
-                            case "event-updated":
-                            case "event-created":
-                            case "event-deleted":
-                                console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
-                                this.contextChanged();
-                                return;
-                        }
+                    switch(type){
+                        case "event-updated":
+                        case "event-created":
+                        case "event-deleted":
+                            console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
+                            this.reload();
+                            return;
                     }
                     if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
                         console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
-                        this.contextChanged();
+                        this.reload();
                     }
                 },
                 contextChanged:function(){
-                    this.fireDataRequest({
-                        type:"data",
-                        success:function(response){
-                            this.events = response.data;
-                        }.bind(this),
-                        failure:function(response){}.bind(this)
-                    });
+                    this.reload();
+//                    this.fireDataRequest({
+//                        type:"data",
+//                        success:function(response){
+//                            this.events = response.data;
+//                        }.bind(this),
+//                        failure:function(response){}.bind(this)
+//                    });
+                },
+                reload:function(){
+                    this.$.pagination.reload();
                 },
                 _onLabelClick:function(e){
                     this.openEditor(e.currentTarget.dataset.id);
@@ -240,8 +235,8 @@
                     this.$.eventEditor.openDialog(this._getEventByInternalId(eventId), undefined, this);
                 },
                 _getEventIndex:function(id) {
-                    for(var i = 0; i < this.events.length; i++){
-                        if(this.events[i]._cgelId == id) {
+                    for(var i = 0; i < this.events.results.length; i++){
+                        if(this.events.results[i]._cgelId == id) {
                             return i;
                         }
                     }
@@ -249,7 +244,7 @@
                 },
                 _getEventByInternalId:function(id) {
                     var index = this._getEventIndex(id);
-                    return index != -1 ? this.events[index] : null;
+                    return index != -1 ? this.events.results[index] : null;
                 }
             });
         })()
