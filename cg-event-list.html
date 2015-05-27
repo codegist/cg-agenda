@@ -120,7 +120,7 @@
                                 </div>
                                 <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
                                 <template if="{{model.links[showLink]}}">
-                                    <cg-link link="{{model.links[showLink]}}" source="{{self}}"></cg-link>
+                                    <cg-link link="{{model.links[showLink]}}" linkSource="{{model}}" source="{{self}}"></cg-link>
                                 </template>
                                 <template repeat="{{model.categories as category}}">
                                     <div class="event-category" relative>

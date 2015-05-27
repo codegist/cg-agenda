@@ -64,7 +64,7 @@
                                 <input value="link" hidden>
                                 <template repeat="{{showLinks as link}}">
                                     <template if="{{event.links[link]}}">
-                                        <cg-link link="{{event.links[link]}}" source="{{self}}"></cg-link>
+                                        <cg-link link="{{event.links[link]}}" linkSource="{{event}}" source="{{self}}"></cg-link>
                                     </template>
                                 </template>
                                 </paper-input-decorator>
