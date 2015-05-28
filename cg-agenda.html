@@ -1,16 +1,15 @@
 <link href="../polymer/polymer.html" rel="import">
-<link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../core-toolbar/core-toolbar.html">
-<link rel="import" href="../core-icon-button/core-icon-button.html">
-<link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
-<link rel="import" href="../cg-datetime-picker/cg-date-picker-dialog.html">
-<link rel="import" href="../cg-base/cg-base.html">
-<link rel="import" href="../cg-utils/cg-utils.html">
-<link rel="import" href="cg-event-editor.html">
+<link href="../paper-button/paper-button.html" rel="import">
+<link href="../core-toolbar/core-toolbar.html" rel="import">
+<link href="../core-icon-button/core-icon-button.html" rel="import">
+<link href="../font-awesome-polymer-icons/fa-icons.html" rel="import">
+<link href="../cg-datetime-picker/cg-date-picker-dialog.html" rel="import">
+<link href="../paper-fab/paper-fab.html" rel="import">
+<link href="../cg-base/cg-base.html" rel="import">
+<link href="../cg-utils/cg-utils.html" rel="import">
+<link href="cg-event-editor.html" rel="import">
 
-<script src="../jquery/dist/jquery.min.js"></script>
-
-<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn colorFn redrawOnApplicationEvents reloadOnApplicationEvents showAddEvent createDisabled autosize">
+<polymer-element name="cg-agenda" extends="cg-base" cgName="agenda" attributes="events showLink date startDayOfWeek hourHeight showHour dragMinuteStep colors highlightedFn colorFn redrawOnApplicationEvents reloadOnApplicationEvents autosize">
     <template>
         <style>
             :host {
@@ -137,12 +136,10 @@
             <core-toolbar id="header" class="header">
                 <core-icon-button class="action-button" id="previous" icon="fa:caret-left" on-tap="{{_onPreviousWeek}}"></core-icon-button>
                 <core-icon-button class="action-button" id="next" icon="fa:caret-right" on-tap="{{_onNextWeek}}"></core-icon-button>
-                <template if="{{showAddEvent}}">
-                    <core-icon-button class="action-button" id="create_icon_button" icon="create" on-tap="{{_onCreateEvent}}">Add event</core-icon-button>
-                </template>
                 <core-icon-button class="action-button" id="today_icon_button" icon="fa:calendar-o" on-tap="{{_onNowWeek}}">Today</core-icon-button>
                 <core-icon-button class="action-button" id="calendar_button" icon="fa:calendar" on-tap="{{_onSelectWeek}}">{{_calendarWeekDisplay(_viewFrom, _viewTo)}}</core-icon-button>
-                <!--<core-icon-button class="action-button" id="calendar_button" icon="fa:calendar" on-tap="{{redrawAll}}">REDRAW</core-icon-button>-->
+                <span flex></span>
+                <paper-fab icon="add" class="add-patient" on-tap="{{_onCreateEvent}}"></paper-fab>
             </core-toolbar>
             <div id="weekdays" class="weekdays noselect" layout horizontal>
                 <template repeat="{{_weekDays as day}}">
@@ -544,7 +541,6 @@
             Polymer("cg-agenda", {
                 date:new Date(),
                 showAddEvent:true,
-                createDisabled:false,
                 startDayOfWeek:1,
                 hourHeight:60,
                 showHour:9,
@@ -828,11 +824,7 @@
                             from:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver, 0, 0 ,0),
                             to:new Date(this._dayOver.year, this._dayOver.month, this._dayOver.day, this._hoursOver + 1, 0, 0 ,0)
                         };
-                        if(!this.createDisabled) {
-                            this.createEvent(event);
-                        }else{
-                            this.fireApplicationEvent("create-event-request", event);
-                        }
+                        this.createEvent(event);
                     }
                 },
                 openEvent:function(eventId){

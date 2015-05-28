@@ -61,12 +61,17 @@
                         <div layout vertical>
                             <template if="{{showLinks.length > 0}}">
                                 <paper-input-decorator label="Links" floatingLabel class="event-links">
-                                <input value="link" hidden>
-                                <template repeat="{{showLinks as link}}">
-                                    <template if="{{event.links[link]}}">
-                                        <cg-link link="{{event.links[link]}}" linkSource="{{event}}" source="{{self}}"></cg-link>
-                                    </template>
-                                </template>
+                                    <input value="link" hidden>
+                                    <div horizontal layout wrap>
+                                        <template repeat="{{showLinks as link}}">
+                                            <template if="{{_editCopy.links[link]}}">
+                                                <div horizontal layout>
+                                                    <cg-link link="{{_editCopy.links[link]}}" linkSource="{{_editCopy}}" source="{{self}}"></cg-link>
+                                                    <content select="[{{link}}]"></content>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </div>
                                 </paper-input-decorator>
                             </template>
                             <paper-input-decorator label="Label" floatingLabel error="{{_validationError}}" autoValidate>
@@ -151,6 +156,8 @@
             _callerScope:null,
             _editCopy:null,
             _validationError:"Invalid or required",
+            linkTemplates:null,
+            templateLinkDataObserver:null,
             _eventTemplate:{
                 label: null,
                 notes: null,
@@ -161,6 +168,11 @@
                     mask: null,
                 },
                 categories: [],
+            },
+            created:function(){
+                this.super();
+                this.linkTemplates = [];
+                this.templateLinkDataObserver = [];
             },
             domReady:function(){
                 this.super();
@@ -174,8 +186,19 @@
                 this.$.to.addEventListener("change", this._validate.bind(this));
                 this.$.from.addEventListener("change", this._validate.bind(this));
             },
+
+            attached: function() {
+                this.super();
+                this.linkTemplates = [].slice.call(this.querySelectorAll('template[link]'));
+                this.linkTemplates.forEach(function(template){
+                    if (!template.bindingDelegate) {
+                        template.bindingDelegate = this.element.syntax;
+                    }
+                }.bind(this));
+            },
             detached:function(){
                 this.super();
+                this.clearLinksDataObservers();
                 this._inputs.forEach(function(input){
                     input._validityObserver && input._validityObserver.close();
                 }.bind(this));
@@ -267,6 +290,34 @@
                     delete this.$.documentsEditor.dataContext.event;
                     this._editCopy = undefined;
                 }
+            },
+            clearLinksDataObservers : function() {
+                this.templateLinkDataObserver.forEach(function(o){
+                    o.close();
+                });
+                this.templateLinkDataObserver = [];
+            },
+            bindLinkTemplates: function() {
+                this.clearLinksDataObservers();
+                if(this._editCopy) {
+                    this.linkTemplates.forEach(function(template){
+                        var model = this.templateInstance ? Object.create(this.templateInstance.model) : {};
+                        model.model = {
+                            link:this._editCopy.links[template.getAttribute("type")],
+                            event:this._editCopy
+                        };
+                        var o = new PathObserver(model.model, "link");
+                        o.open(function(){
+                            this._editCopy.links[template.getAttribute("type")] = model.model.link;
+                        }.bind(this));
+                        this.templateLinkDataObserver.push(o);
+                        template.model = model;
+                        template.setAttribute('if', '{{true}}');
+                    }.bind(this));
+                }
+            },
+            _editCopyChanged:function(){
+                this.bindLinkTemplates();
             },
             augmentEvent:function(event, create){
                 return event;
