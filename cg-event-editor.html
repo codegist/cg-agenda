@@ -238,7 +238,7 @@
                             type:"save",
                             params:{original:this.event, save:this._editCopy},
                             success:function(response){
-                                this.event = CGUtils.clone(true, this.event, response.data);
+                                this.event = CG.Utils.clone(true, this.event, response.data);
                                 this.$.documentsEditor.saveDocuments(function(responses){
                                     this.closeDialog("OK");
                                 }.bind(this));
@@ -246,7 +246,7 @@
                             failure:function(response){}.bind(this)
                         });
                     }else{
-                        this.event = CGUtils.clone(true, this.event, this._editCopy);
+                        this.event = CG.Utils.clone(true, this.event, this._editCopy);
                         this.closeDialog("OK");
                     }
                 });
@@ -267,7 +267,7 @@
                         type:"delete",
                         params:{original:this.event},
                         success:function(response){
-                            this.event = CGUtils.clone(true, this.event, response.data);
+                            this.event = CG.Utils.clone(true, this.event, response.data);
                             if(params.deleteDocs) {
                                 this.$.documentsEditor.deleteAllDocuments(function(responses){
                                     this.closeDialog("DELETE", params);
@@ -285,7 +285,7 @@
             eventChanged:function(){
                 if(this.event) {
                     this.$.documentsEditor.dataContext = {event : this.event};
-                    this._editCopy = CGUtils.clone(true, {}, this._eventTemplate, this.event);
+                    this._editCopy = CG.Utils.clone(true, {}, this._eventTemplate, this.event);
                 }else{
                     delete this.$.documentsEditor.dataContext.event;
                     this._editCopy = undefined;

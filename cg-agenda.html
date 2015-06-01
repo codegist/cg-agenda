@@ -299,7 +299,7 @@
                 getEventsInView:function(events, view){
                     var inView = [];
                     events.forEach(function(e){
-                        if(CGUtils.utils.dateRangeIntersects(e, view)){
+                        if(CG.Utils.utils.dateRangeIntersects(e, view)){
                             inView.push(e);
                         }
                     }.bind(this));
@@ -332,8 +332,8 @@
                     this.cache.reset();
                 },
                 eventComparator:function(a,b){
-                    var res = CGUtils.comparators.dateRange(a,b);
-                    return res != 0 ? res : CGUtils.comparators.number(a._cgaId, b._cgaId);
+                    var res = CG.Utils.comparators.dateRange(a,b);
+                    return res != 0 ? res : CG.Utils.comparators.number(a._cgaId, b._cgaId);
                 },
                 primeCollisionGroupCache:function(events){
                     console.log("[cg-agenda] Priming cache");
@@ -407,7 +407,7 @@
                         var groups = 0;
                         for(var id in this.cache.collisionGroups.cache){
                             var group = this.cache.collisionGroups.cache[id];
-                            if(CGUtils.utils.dateRangeIntersects(event, group)) {
+                            if(CG.Utils.utils.dateRangeIntersects(event, group)) {
                                 suitableCachedGroups[id] = group;
                                 groups++;
                             }
@@ -462,7 +462,7 @@
                         e = events[c];
                         for(i = 0; i < groups.length; i++){
                             group = groups[i];
-                            if(CGUtils.utils.dateRangeIntersects(e, group)) {
+                            if(CG.Utils.utils.dateRangeIntersects(e, group)) {
                                 group.addEvent(e);
                                 found = true;
                                 break;
@@ -498,7 +498,7 @@
                         b = events[0];
                         found = false;
                         for(c = 0; c < column.length; c++){
-                            if(CGUtils.utils.dateRangeIntersects(column[c], b)) {
+                            if(CG.Utils.utils.dateRangeIntersects(column[c], b)) {
                                 found = true;
                                 break;
                             }
@@ -705,7 +705,7 @@
                             case "event-created":
                             case "event-deleted":
                                 console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
-                                if (CGUtils.utils.dateRangeIntersects(event.params, {
+                                if (CG.Utils.utils.dateRangeIntersects(event.params, {
                                             from: this._viewFrom,
                                             to: this._viewTo
                                         })) {
@@ -1071,7 +1071,7 @@
                 },
                 _isEventOfDay:function(event, day){
                     //console.log(event.from + " - " + new Date(day.year, day.month, day.day, 23, 59 ,59, 999));
-                    return CGUtils.utils.dateRangeIntersects(event, day);
+                    return CG.Utils.utils.dateRangeIntersects(event, day);
                 },
                 _getEventClass:function(event, day){
                     return event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :
