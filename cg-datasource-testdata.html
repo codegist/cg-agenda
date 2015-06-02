@@ -1,299 +1,2736 @@
 <link href="../polymer/polymer.html" rel="import">
-<link href="../cg-datasource/cg-datasource-base.html" rel="import">
+<link href="../cg-datasource/cg-datasource-base-behavior.html" rel="import">
+<link href="../cg-base/cg-base-behavior.html" rel="import">
+<link href="../cg-utils/cg-utils.html" rel="import">
 
-<polymer-element name="cg-datasource-testdata" extends="cg-datasource-base">
-    <script>
-        (function() {
-            console.log("##################################################");
-            console.log("cg-datasource-testdata INIT");
-            console.log("##################################################");
+<dom-module id="cg-datasource-testdata">
+</dom-module>
+<script>
 
-            var labels = ["nonspillable","marcel","physiotherapy","ironmonger","pistollike","undernutrition","papillomatous","enslaving"];
-            var notes = [
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam nunc augue, finibus malesuada orci quis, ornare bibendum nulla. Donec massa lorem, placerat at diam sit amet, vulputate sagittis lorem.",
-                "Sed id lacus vitae tortor convallis rhoncus a non ipsum. Proin semper augue justo, sit amet dictum erat porttitor vitae. Cras in ornare lacus, quis facilisis sem. Sed tempus magna et ligula imperdiet gravida.",
-                "Cras ut interdum diam, ut rutrum nunc. Donec augue ligula, ultricies ac purus ac, fringilla efficitur enim.",
-                "Vivamus efficitur fermentum diam, sed blandit tellus viverra sit amet. Nam ut suscipit urna. Maecenas et bibendum orci.",
-                "Curabitur ut mi vitae purus congue venenatis. Fusce eu enim libero. Quisque quis accumsan nibh, et pulvinar mauris. Phasellus sit amet metus at felis porta fermentum at id velit.",
-                "In hac habitasse platea dictumst. Vestibulum dictum tincidunt justo eu ornare. Suspendisse aliquet arcu sem, vitae sollicitudin metus ultrices sit amet.",
-                "Nulla vehicula at sapien quis ultricies. Etiam eu mauris gravida, laoreet erat ac, suscipit urna. Proin volutpat tempus magna, quis ornare velit convallis vel."
-            ];
-            var categories = [
-                "Root canal","Pulpotomy","Apicoectomy","Prosthodontics",
-                "Crowns","Veneers","Bridges","Implants","Dentures",
-                "Implant-supported prosthesis","Extraction","Fiberotomy"
-            ];
-
-            var colors = [
-                {name:"Bold Blue", mask:"#5484ED"},
-                {name:"Blue", mask:"#A4BDFC"},
-                {name:"Bold Green", mask:"#51B749"},
-                {name:"Yellow", mask:"#FBD75B"},
-                {name:"Red", mask:"#FF887C"},
-                {name:"Bold Red", mask:"#DC2127"},
-                {name:"Gray", mask:"#E1E1E1"}
-            ];
-
-            var documents = [{
-                "name": "c29bf435b98b.jpg",
-                "size": 359551,
-                "type": "image/jpeg",
-                "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum.",
-                "added":new Date("2015-01-18T09:00:00.000-0500"),
-                "link":23
-            }, {
-                "name": "docs.zip",
-                "size": 1607693765,
-                "type": "application/zip",
-                "description":"Sed tempus magna et ligula imperdiet gravida. Proin semper augue justo, sit amet dictum erat porttitor vitae.",
-                "added":new Date("2015-01-18T09:00:00.000-0500")
-            }, {
-                "name": "eclipse-java-luna-SR1-linux-gtk-x86_64.tar.gz",
-                "size": 160242552,
-                "type": "application/gzip",
-                "added":new Date("2015-02-01T09:00:00.000-0500"),
-                "link":56
-            }, {
-                "name": "jdk-8u25-linux-x64.gz",
-                "size": 160872482,
-                "type": "application/gzip",
-                "added":new Date("2015-02-18T09:00:00.000-0500")
-            }, {
-                "name": "salamander",
-                "size": 63,
-                "type": "",
-                "description":"Proin semper augue justo, sit amet dictum erat porttitor vitae.",
-                "added":new Date("2015-03-20T09:00:00.000-0500"),
-                "link":34
-            }, {
-                "name": "singlepath.svg",
-                "size": 47770,
-                "type": "image/svg+xml",
-                "description":"Sed id lacus vitae tortor convallis rhoncus a non ipsum.",
-                "added":new Date("2015-03-11T09:00:00.000-0500")
-            }, {
-                "name": "stock-vector-natural-grass-and-gr.jpg",
-                "size": 71119,
-                "type": "image/jpeg",
-                "description":"Sed tempus magna et ligula imperdiet gravida.",
-                "added":new Date("2015-03-14T09:00:00.000-0500"),
-                "link":56
-            }];
-
-
-            // TEST DATA
-            var id=0;
-            var groupedEvents = [
-                {
-                    from:new Date("2015-03-18T09:00:00.000-0500"),
-                    to:new Date("2015-03-18T12:30:00.000-0500")
+    var d4 = {
+        "success": true,
+        "status": 200,
+        "data": [{
+            "label": "ironmonger marcel papillomatous pistollike ",
+            "from": new Date("2015-05-25T15:00:00.000Z"),
+            "to": new Date("2015-05-25T15:45:00.000Z"),
+            "updatedAt": "2015-05-21T17:32:00.661Z",
+            "createdAt": "2015-05-21T15:14:45.636Z",
+            "categories": ["Pulpotomy", "Crowns", "Fiberotomy", "Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d79",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Segares Iris"
                 },
-                {
-                    from:new Date("2015-03-18T09:00:00.000-0500"),
-                    to:new Date("2015-03-18T10:00:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T10:00:00.000-0500"),
-                    to:new Date("2015-03-18T11:30:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T11:30:00.000-0500"),
-                    to:new Date("2015-03-18T12:30:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T09:30:00.000-0500"),
-                    to:new Date("2015-03-18T14:30:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T10:30:00.000-0500"),
-                    to:new Date("2015-03-18T12:30:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T11:00:00.000-0500"),
-                    to:new Date("2015-03-18T13:30:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T12:30:00.000-0500"),
-                    to:new Date("2015-03-18T14:00:00.000-0500")
-                },
-                {
-                    from:new Date("2015-03-18T14:00:00.000-0500"),
-                    to:new Date("2015-03-18T17:00:00.000-0500")
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66636",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
                 }
-            ];
-
-            var nonGrouped = [{
-                from:new Date("2015-03-18T14:00:00.000-0500"),
-                to:new Date("2015-03-18T15:00:00.000-0500")
-            }];
-
-            var multidayTemplate = [
-//            {
-//                from:new Date("2015-03-16T09:00:00.000-0500"),
-//                to:new Date("2015-03-19T15:00:00.000-0500")
-//            },
-                {
-                    from:new Date("2015-03-17T09:00:00.000-0500"),
-                    to:new Date("2015-03-19T20:00:00.000-0500")
-                }
-            ];
-            var rdm = function(min, max){
-                min = (min||0);
-                max = (max||0);
-                return min + parseInt(Math.random() * (max - min));
-            };
-            var rdmStr = function(words, length){
-                words = words.slice();
-                var str = "";
-                for(var i =0; i < length; i++) {
-                    var index = rdm(0, words.length)
-                    var word = words.splice(index, 1)[0];
-                    str += word + " ";
-                }
-                return str;
-            };
-            var rdmArr = function(words, min, max){
-                words = words.slice();
-                var arr = [];
-                var size = rdm(min || 0, max || words.length);
-                for(var i =0; i < size; i++) {
-                    var index = rdm(0, words.length)
-                    var word = words.splice(index, 1)[0];
-                    arr.push(word);
-                }
-                return arr;
-            };
-            function getShiftedDateFrom(date, days, hours){
-                date = new Date(date);
-                days && date.setDate(date.getDate() + days);
-                hours && date.setHours(date.getHours() + hours);
-                return date;
             }
-            function getShiftedGroupFrom(group, days, hours){
-                var shifted = [];
-                group.forEach(function(event){
-                    shifted.push({
-                        _id:1,
-                        label:rdmStr(labels, 4),
-                        notes:rdmStr(notes, 4),
-                        categories:rdmArr(categories),
-                        color:rdmArr(colors, 1, 1)[0],
-                        from:getShiftedDateFrom(event.from, days, hours),
-                        to:getShiftedDateFrom(event.to, days, hours),
-                    });
-                }.bind(this));
-                return shifted;
-            }
-            function generateEvents(template, n, days, hours){
-                var group = [];
-                var shift = template;
-                for(var i =0; i<n;i++){
-                    shift = getShiftedGroupFrom(shift, days, hours);
-                    group = group.concat(shift);
+        }, {
+            "label": "enslaving physiotherapy pistollike papillomatous ",
+            "from": new Date("2015-05-25T16:30:00.000Z"),
+            "to": new Date("2015-05-25T17:15:00.000Z"),
+            "updatedAt": "2015-05-21T11:53:15.147Z",
+            "createdAt": "2015-05-21T07:30:46.173Z",
+            "categories": ["Prosthodontics", "Root canal", "Fiberotomy"],
+            "color": {"name": "Bold Red", "mask": "#FF1700"},
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ce3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Villarroel Mireia"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66637",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
                 }
-                return group;
             }
-//            var groupedEvents = generateEvents(getShiftedGroupFrom(groupedEvents, 0), 1, 0, 0);
-            var bigGroupedGroup = generateEvents(getShiftedGroupFrom(groupedEvents, -3), 30, 0, 9);
-            var userEvents = generateEvents(getShiftedGroupFrom(groupedEvents, -3), 1, 0, 9);
-//            var bigNonGrouped = generateEvents(getShiftedGroupFrom(nonGrouped, -3), 200, 0, 1);
-//
-            var intersects =function(e1, e2){
-                var es1 = e1.from.getTime();
-                var ee1 = e1.to.getTime();
-                var es2 = e2.from.getTime();
-                var ee2 = e2.to.getTime();
-                return (es1 <= ee2 && es2 <= ee1 );
-            };
-            var getEventsInView = function(events, view){
-                var inView = [];
-                events.forEach(function(e){
-                    if(intersects(e, view)){
-                        inView.push(e);
+        }, {
+            "label": "pistollike marcel physiotherapy papillomatous ",
+            "from": new Date("2015-05-25T17:00:00.000Z"),
+            "to": new Date("2015-05-25T18:15:00.000Z"),
+            "cancelled": "2015-05-24T17:00:00.000Z",
+            "updatedAt": "2015-05-22T16:49:48.988Z",
+            "createdAt": "2015-05-22T13:49:00.261Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3d",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Torre Rosetta"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66638",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "marcel physiotherapy papillomatous ironmonger ",
+            "from": new Date("2015-05-25T19:00:00.000Z"),
+            "to": new Date("2015-05-25T19:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-24T05:45:36.263Z",
+            "createdAt": "2015-05-24T02:36:21.425Z",
+            "categories": ["Fiberotomy", "Dentures"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64dbd",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Aguilar Sheba"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c18"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c18",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
                     }
-                }.bind(this));
-                return inView;
-            };
-
-            var orderEvents = function(events, copy){
-                events = copy === false ? events : events.slice();
-                events.sort(this.eventComparator);
-                return events;
-            };
-
-            var eventComparator = function(a,b){
-                var aFrom = a.from.getTime();
-                var bFrom = b.from.getTime();
-                var aTo = a.to.getTime();
-                var bTo = b.to.getTime();
-                return  aFrom < bFrom ? -1 : aFrom > bFrom ? 1 : aTo < bTo ? 1 : aTo > bTo ? -1 : 0;
-            };
-
-            var TestData = {
-                events:bigGroupedGroup,
-                userEvents:userEvents,
-                userDocuments:documents.slice(),
-                colors:colors,
-                categories:categories
-            };
-
-            var returnData = function(data, callback) {
-                return callback({
-                    success:true,
-                    data:data,
-                });
-            };
-
-            Polymer({
-                getProvidersMap:function(){
-                    return {
-                        'demo-cg-agenda-events-in-range':this.getEventsInRange,
-                        'demo-cg-agenda-event-editor-color-list':this.getColors,
-                        'demo-cg-agenda-event-editor-tag-list':this.getCategories,
-                        'demo-cg-agenda-event-editor-document-list':this.getUserDocuments,
-
-                        'demo-event-editor-color-list':this.getColors,
-                        'demo-event-editor-tag-list':this.getCategories,
-                        'demo-event-editor-document-list':this.getUserDocuments,
-
-                        'event-editor-color-list':this.getColors,
-                        'event-editor-tag-list':this.getCategories,
-                        'event-editor-document-list':this.getUserDocuments,
-
-                        'event-list-event-editor-color-list':this.getColors,
-                        'event-list-event-editor-tag-list':this.getCategories,
-                        'event-list-event-editor-document-list':this.getUserDocuments,
-
-                        'demo-event-list':this.getUserEvents,
-                        'demo-event-list-event-editor-color-list':this.getColors,
-                        'demo-event-list-event-editor-tag-list':this.getCategories,
-                        'demo-event-list-event-editor-document-list':this.getUserDocuments
-                    };
-                },
-                getEventsInRange:function(callback, params){
-                    var range = {};
-                    console.log("### Datasource[TestData] getEventsInRange(params:"+JSON.stringify(params)+")");
-                    range.from = params.from.constructor == Date ? params.from : new Date(params.from);
-                    range.to = params.to.constructor == Date ? params.to : new Date(params.to);
-                    return returnData(orderEvents(getEventsInView(TestData.events, range), false), callback);
-                },
-                getUserDocuments:function(callback, params){
-                    console.log("### Datasource[TestData] getUserDocuments(params:"+JSON.stringify(params)+")");
-                    return returnData(params.event && (params.event.userId || params.event._id) ? TestData.userDocuments : [], callback);
-                },
-                getUserEvents:function(callback, params){
-                    console.log("### Datasource[TestData] getUserEvents(params:"+JSON.stringify(params)+")");
-                    return returnData(params.id  ? TestData.userEvents : [], callback);
-                },
-                getColors:function(callback, params){
-                    console.log("### Datasource[TestData] getColors(params:"+JSON.stringify(params)+")");
-                    return returnData(TestData.colors, callback);
-                },
-                getCategories:function(callback, params){
-                    console.log("### Datasource[TestData] getCategories(params:"+JSON.stringify(params)+")");
-                    return returnData(TestData.categories, callback);
                 }
+            }
+        }, {
+            "label": "marcel ironmonger enslaving papillomatous ",
+            "from": new Date("2015-05-25T21:00:00.000Z"),
+            "to": new Date("2015-05-25T22:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-22T12:34:30.971Z",
+            "createdAt": "2015-05-22T11:31:11.322Z",
+            "categories": ["Extraction", "Prosthodontics", "Dentures"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d9a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Tabah Florencio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c19"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c19",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike physiotherapy papillomatous nonspillable ",
+            "from": new Date("2015-05-25T22:30:00.000Z"),
+            "to": new Date("2015-05-25T23:45:00.000Z"),
+            "updatedAt": "2015-05-21T09:04:13.801Z",
+            "createdAt": "2015-05-21T05:51:04.498Z",
+            "categories": ["Extraction", "Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d45",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Teja Alicia"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6663b",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "papillomatous ironmonger enslaving pistollike ",
+            "from": new Date("2015-05-26T15:00:00.000Z"),
+            "to": new Date("2015-05-26T15:30:00.000Z"),
+            "updatedAt": "2015-05-23T22:37:30.792Z",
+            "createdAt": "2015-05-23T20:58:56.380Z",
+            "categories": ["Dentures", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c83",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Caicedo Alfredo"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6663c",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "marcel nonspillable enslaving physiotherapy ",
+            "from": new Date("2015-05-26T17:15:00.000Z"),
+            "to": new Date("2015-05-26T18:00:00.000Z"),
+            "updatedAt": "2015-05-23T11:00:10.418Z",
+            "createdAt": "2015-05-23T08:07:34.029Z",
+            "categories": ["Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64dc2",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Oviedo Merayo Zair"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6663d",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "physiotherapy ironmonger pistollike enslaving ",
+            "from": new Date("2015-05-26T19:45:00.000Z"),
+            "to": new Date("2015-05-26T20:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-23T09:53:24.437Z",
+            "createdAt": "2015-05-23T08:32:20.940Z",
+            "categories": ["Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da7",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Turcios Iris"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c1d"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c1d",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "physiotherapy ironmonger marcel nonspillable ",
+            "from": new Date("2015-05-26T21:30:00.000Z"),
+            "to": new Date("2015-05-26T22:45:00.000Z"),
+            "updatedAt": "2015-05-23T18:40:06.291Z",
+            "createdAt": "2015-05-23T14:21:34.137Z",
+            "categories": ["Fiberotomy", "Apicoectomy", "Bridges", "Implant-supported prosthesis"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64dbf",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Largaespada De Castro Ornella"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6663f",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "marcel papillomatous physiotherapy enslaving ",
+            "from": new Date("2015-05-27T15:15:00.000Z"),
+            "to": new Date("2015-05-27T16:30:00.000Z"),
+            "updatedAt": "2015-05-22T20:00:39.060Z",
+            "createdAt": "2015-05-22T17:18:32.354Z",
+            "categories": ["Crowns", "Fiberotomy", "Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d78",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Espeleta Alama Andrea"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66640",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "pistollike enslaving marcel ironmonger ",
+            "from": new Date("2015-05-27T16:45:00.000Z"),
+            "to": new Date("2015-05-27T18:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-24T22:49:34.899Z",
+            "createdAt": "2015-05-24T19:53:21.093Z",
+            "categories": ["Root canal"],
+            "color": {"name": "Bold Blue", "mask": "#1159F5"},
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64db5",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Morise Flora"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c20"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c20",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable enslaving ironmonger pistollike ",
+            "from": new Date("2015-05-27T18:00:00.000Z"),
+            "to": new Date("2015-05-27T18:30:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-25T12:03:29.958Z",
+            "createdAt": "2015-05-25T07:04:17.544Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d6b",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Fusco Verne"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66642",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "ironmonger nonspillable pistollike enslaving ",
+            "from": new Date("2015-05-27T19:00:00.000Z"),
+            "to": new Date("2015-05-27T20:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-25T04:37:45.165Z",
+            "createdAt": "2015-05-25T00:58:32.815Z",
+            "categories": ["Veneers", "Crowns"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c72",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Osa Fara"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c22"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c22",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "physiotherapy enslaving undernutrition marcel ",
+            "from": new Date("2015-05-27T21:45:00.000Z"),
+            "to": new Date("2015-05-27T22:15:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-24T07:38:10.927Z",
+            "createdAt": "2015-05-24T05:09:48.147Z",
+            "categories": ["Fiberotomy", "Extraction", "Crowns", "Veneers"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Castro Sieza Sheba"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66644",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "enslaving marcel ironmonger papillomatous ",
+            "from": new Date("2015-05-27T22:00:00.000Z"),
+            "to": new Date("2015-05-27T23:00:00.000Z"),
+            "updatedAt": "2015-05-23T09:58:50.538Z",
+            "createdAt": "2015-05-23T09:13:08.271Z",
+            "categories": ["Prosthodontics", "Extraction", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da9",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Franco De Faria Henry"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66645",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "nonspillable physiotherapy enslaving ironmonger ",
+            "from": new Date("2015-05-28T15:15:00.000Z"),
+            "to": new Date("2015-05-28T16:00:00.000Z"),
+            "updatedAt": "2015-05-25T20:13:34.343Z",
+            "createdAt": "2015-05-25T18:34:10.351Z",
+            "categories": ["Fiberotomy", "Extraction", "Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c79",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De López Portilla Zenaida"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66646",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "nonspillable pistollike ironmonger enslaving ",
+            "from": new Date("2015-05-28T16:00:00.000Z"),
+            "to": new Date("2015-05-28T16:30:00.000Z"),
+            "updatedAt": "2015-05-24T04:23:56.445Z",
+            "createdAt": "2015-05-24T01:59:53.640Z",
+            "categories": ["Implants", "Implant-supported prosthesis", "Veneers", "Fiberotomy", "Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d39",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Selva De Espeleta Halima"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66647",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "ironmonger pistollike physiotherapy enslaving ",
+            "from": new Date("2015-05-28T16:45:00.000Z"),
+            "to": new Date("2015-05-28T18:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-27T18:29:00.686Z",
+            "createdAt": "2015-05-27T14:44:57.491Z",
+            "categories": ["Bridges", "Apicoectomy", "Prosthodontics", "Implant-supported prosthesis", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ce8",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Cosiol Faraón"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c29"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c29",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger papillomatous pistollike physiotherapy ",
+            "from": new Date("2015-05-28T17:45:00.000Z"),
+            "to": new Date("2015-05-28T18:30:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-26T10:21:20.189Z",
+            "createdAt": "2015-05-26T08:01:49.709Z",
+            "categories": ["Implant-supported prosthesis", "Prosthodontics", "Implants", "Crowns", "Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d4e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Testolin De Las Casas Ytzel"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66648",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "marcel undernutrition pistollike physiotherapy ",
+            "from": new Date("2015-05-28T19:00:00.000Z"),
+            "to": new Date("2015-05-28T20:00:00.000Z"),
+            "updatedAt": "2015-05-24T18:42:17.278Z",
+            "createdAt": "2015-05-24T15:31:57.542Z",
+            "categories": ["Implant-supported prosthesis", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64db1",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Bentancourt Olivia"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66649",
+                    "state": "paid",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | paid"
+                }
+            }
+        }, {
+            "label": "nonspillable marcel papillomatous enslaving ",
+            "from": new Date("2015-05-28T22:45:00.000Z"),
+            "to": new Date("2015-05-28T23:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-27T22:39:08.550Z",
+            "createdAt": "2015-05-27T20:17:08.128Z",
+            "categories": ["Root canal", "Implants", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64dba",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Faria Tabari"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2a"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2a",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous physiotherapy ironmonger marcel ",
+            "from": new Date("2015-05-29T15:15:00.000Z"),
+            "to": new Date("2015-05-29T16:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-27T11:55:33.814Z",
+            "createdAt": "2015-05-27T07:17:06.824Z",
+            "categories": ["Veneers", "Prosthodontics", "Crowns", "Implants", "Apicoectomy"],
+            "color": {"name": "Bold Red", "mask": "#FF1700"},
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cc0",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Delatolla Del Barco Griffin"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2b"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2b",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "physiotherapy pistollike marcel nonspillable ",
+            "from": new Date("2015-05-29T17:00:00.000Z"),
+            "to": new Date("2015-05-29T18:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-26T16:32:46.958Z",
+            "createdAt": "2015-05-26T13:17:38.848Z",
+            "categories": [],
+            "color": {"name": "Yellow", "mask": "#F6FF00"},
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ca1",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Dellanoce Piedad"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2c"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2c",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike enslaving physiotherapy marcel ",
+            "from": new Date("2015-05-29T17:45:00.000Z"),
+            "to": new Date("2015-05-29T18:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-25T08:34:02.707Z",
+            "createdAt": "2015-05-25T06:39:34.137Z",
+            "categories": ["Implants", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c95",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Cardoso Savallos Lizbeth"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2d"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2d",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving ironmonger papillomatous undernutrition ",
+            "from": new Date("2015-05-29T20:00:00.000Z"),
+            "to": new Date("2015-05-29T21:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-26T13:03:55.276Z",
+            "createdAt": "2015-05-26T10:19:39.420Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c77",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Delatolla Ibi"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2e"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2e",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable marcel pistollike papillomatous ",
+            "from": new Date("2015-05-29T21:45:00.000Z"),
+            "to": new Date("2015-05-29T22:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-28T13:35:13.910Z",
+            "createdAt": "2015-05-28T08:36:36.860Z",
+            "categories": ["Extraction", "Implant-supported prosthesis", "Root canal", "Veneers", "Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d21",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Jorge Iván"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c2f"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c2f",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable physiotherapy ironmonger marcel ",
+            "from": new Date("2015-06-01T17:45:00.000Z"),
+            "to": new Date("2015-06-01T18:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-28T08:44:43.350Z",
+            "createdAt": "2015-05-28T07:09:09.873Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d8a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Miralles Alfredo"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66652",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "undernutrition enslaving nonspillable pistollike ",
+            "from": new Date("2015-06-01T18:30:00.000Z"),
+            "to": new Date("2015-06-01T19:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-31T03:06:23.659Z",
+            "createdAt": "2015-05-30T23:53:59.790Z",
+            "categories": ["Veneers", "Apicoectomy"],
+            "color": {"name": "Bold Green", "mask": "#098000"},
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cd8",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Aguilar De Franco Sheba"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66653",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "physiotherapy papillomatous undernutrition pistollike ",
+            "from": new Date("2015-06-01T19:30:00.000Z"),
+            "to": new Date("2015-06-01T20:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-29T19:14:05.415Z",
+            "createdAt": "2015-05-29T18:12:35.395Z",
+            "categories": ["Root canal"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c9d",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Lima De La Garza Andrea"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c33"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c33",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving nonspillable papillomatous physiotherapy ",
+            "from": new Date("2015-06-01T21:00:00.000Z"),
+            "to": new Date("2015-06-01T22:00:00.000Z"),
+            "cancelled": "2015-05-28T21:00:00.000Z",
+            "invoiceId": null,
+            "updatedAt": "2015-05-28T11:50:35.396Z",
+            "createdAt": "2015-05-28T10:23:04.281Z",
+            "categories": ["Prosthodontics", "Root canal", "Crowns", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Simón Deina"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c34"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c34",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger marcel physiotherapy nonspillable ",
+            "from": new Date("2015-06-01T21:45:00.000Z"),
+            "to": new Date("2015-06-01T22:45:00.000Z"),
+            "cancelled": "2015-05-25T21:45:00.000Z",
+            "invoiced": "draft",
+            "updatedAt": "2015-05-29T05:46:24.427Z",
+            "createdAt": "2015-05-29T02:31:43.305Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da7",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Turcios Iris"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66656",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }]
+    };
+    var d5 = {
+        "success": true,
+        "status": 200,
+        "data": [{
+            "label": "nonspillable physiotherapy ironmonger marcel ",
+            "from": new Date("2015-06-04T17:45:00.000Z"),
+            "to": new Date("2015-06-05T18:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-28T08:44:43.350Z",
+            "createdAt": "2015-05-28T07:09:09.873Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d8a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Miralles Alfredo"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66652",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        },
+            {
+            "label": "undernutrition enslaving nonspillable pistollike ",
+            "from": new Date("2015-06-01T18:30:00.000Z"),
+            "to": new Date("2015-06-01T19:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-05-31T03:06:23.659Z",
+            "createdAt": "2015-05-30T23:53:59.790Z",
+            "categories": ["Veneers", "Apicoectomy"],
+            "color": {"name": "Bold Green", "mask": "#098000"},
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cd8",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Aguilar De Franco Sheba"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66653",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "physiotherapy papillomatous undernutrition pistollike ",
+            "from": new Date("2015-06-01T19:30:00.000Z"),
+            "to": new Date("2015-06-01T20:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-29T19:14:05.415Z",
+            "createdAt": "2015-05-29T18:12:35.395Z",
+            "categories": ["Root canal"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c9d",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Lima De La Garza Andrea"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c33"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c33",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+            {
+            "label": "enslaving nonspillable papillomatous physiotherapy ",
+            "from": new Date("2015-06-01T21:00:00.000Z"),
+            "to": new Date("2015-06-01T22:00:00.000Z"),
+            "cancelled": "2015-05-28T21:00:00.000Z",
+            "invoiceId": null,
+            "updatedAt": "2015-05-28T11:50:35.396Z",
+            "createdAt": "2015-05-28T10:23:04.281Z",
+            "categories": ["Prosthodontics", "Root canal", "Crowns", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Simón Deina"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c34"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c34",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+            {
+            "label": "ironmonger marcel physiotherapy nonspillable ",
+            "from": new Date("2015-06-01T21:45:00.000Z"),
+            "to": new Date("2015-06-01T22:45:00.000Z"),
+            "cancelled": "2015-05-25T21:45:00.000Z",
+            "invoiced": "draft",
+            "updatedAt": "2015-05-29T05:46:24.427Z",
+            "createdAt": "2015-05-29T02:31:43.305Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da7",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Turcios Iris"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66656",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "ironmonger papillomatous nonspillable pistollike ",
+            "from": new Date("2015-06-02T16:30:00.000Z"),
+            "to": new Date("2015-06-02T17:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-01T10:26:00.762Z",
+            "createdAt": "2015-06-01T10:20:46.104Z",
+            "categories": ["Fiberotomy", "Crowns"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c8e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Rocha Quevedo Gianfranco"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c37"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c37",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable ironmonger marcel papillomatous ",
+            "from": new Date("2015-06-02T18:45:00.000Z"),
+            "to": new Date("2015-06-02T20:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-01T22:19:21.979Z",
+            "createdAt": "2015-06-01T17:25:36.757Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d9a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Tabah Florencio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c38"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c38",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "label": "pistollike nonspillable physiotherapy marcel ",
+            "from": new Date("2015-06-02T21:15:00.000Z"),
+            "to": new Date("2015-06-02T22:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T04:15:56.023Z",
+            "createdAt": "2015-05-31T02:09:02.283Z",
+            "categories": ["Veneers"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d39",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Selva De Espeleta Halima"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c39"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c39",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "physiotherapy enslaving papillomatous pistollike ",
+            "from": new Date("2015-06-02T22:45:00.000Z"),
+            "to": new Date("2015-06-03T00:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-30T23:20:02.618Z",
+            "createdAt": "2015-05-30T19:31:09.422Z",
+            "categories": ["Apicoectomy", "Fiberotomy", "Dentures", "Root canal"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d98",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Mata Vartanian Mercurio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c3a"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c3a",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable enslaving undernutrition physiotherapy ",
+            "from": new Date("2015-06-03T15:30:00.000Z"),
+            "to": new Date("2015-06-03T16:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-01T02:28:10.247Z",
+            "createdAt": "2015-05-31T22:03:39.689Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64dae",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Regaño Tristán"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c3b"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c3b",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable pistollike marcel enslaving ",
+            "from": new Date("2015-06-03T17:45:00.000Z"),
+            "to": new Date("2015-06-03T18:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T01:18:24.897Z",
+            "createdAt": "2015-05-30T22:20:36.056Z",
+            "categories": ["Implant-supported prosthesis", "Veneers", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cbc",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Busco Florencio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c3c"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c3c",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition ironmonger papillomatous pistollike ",
+            "from": new Date("2015-06-03T19:30:00.000Z"),
+            "to": new Date("2015-06-03T20:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T17:59:07.855Z",
+            "createdAt": "2015-05-31T15:13:08.287Z",
+            "categories": ["Implant-supported prosthesis", "Crowns", "Prosthodontics"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d5f",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Las Casas Elida"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c3d"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c3d",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger marcel pistollike nonspillable ",
+            "from": new Date("2015-06-03T22:30:00.000Z"),
+            "to": new Date("2015-06-03T23:30:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-02T15:43:54.061Z",
+            "createdAt": "2015-06-02T12:43:29.794Z",
+            "categories": ["Crowns", "Veneers", "Extraction", "Dentures", "Prosthodontics"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d0e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Paz Gracián"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6665f",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "undernutrition marcel pistollike papillomatous ",
+            "from": new Date("2015-06-04T15:15:00.000Z"),
+            "to": new Date("2015-06-04T16:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T08:42:40.862Z",
+            "createdAt": "2015-05-31T05:33:20.169Z",
+            "categories": ["Fiberotomy", "Veneers"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da0",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Aguilar Del Valle Brandon"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c3f"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c3f",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving papillomatous undernutrition pistollike ",
+            "from": new Date("2015-06-04T16:15:00.000Z"),
+            "to": new Date("2015-06-04T17:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-30T14:12:53.516Z",
+            "createdAt": "2015-05-30T13:30:23.196Z",
+            "categories": ["Implant-supported prosthesis", "Implants", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da5",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Teijeiro Oliverio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c30"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c30",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving marcel ironmonger undernutrition ",
+            "from": new Date("2015-06-04T17:00:00.000Z"),
+            "to": new Date("2015-06-04T17:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T06:51:27.730Z",
+            "createdAt": "2015-05-31T03:39:52.377Z",
+            "categories": ["Apicoectomy", "Implants", "Fiberotomy", "Dentures", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d8b",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Vidal Tabah Camelia"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c40"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c40",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous ironmonger marcel nonspillable ",
+            "from": new Date("2015-06-04T17:15:00.000Z"),
+            "to": new Date("2015-06-04T18:30:00.000Z"),
+            "cancelled": "2015-05-31T15:00:00.000Z",
+            "invoiceId": null,
+            "updatedAt": "2015-05-31T23:55:26.592Z",
+            "createdAt": "2015-05-31T19:17:28.779Z",
+            "categories": ["Root canal", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c72",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Osa Fara"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c36"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c36",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger pistollike enslaving physiotherapy ",
+            "from": new Date("2015-06-04T19:00:00.000Z"),
+            "to": new Date("2015-06-04T20:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-02T13:15:02.077Z",
+            "createdAt": "2015-06-02T08:29:14.568Z",
+            "categories": ["Root canal"],
+            "color": {"name": "Yellow", "mask": "#F6FF00"},
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d4e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Testolin De Las Casas Ytzel"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c41"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c41",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving physiotherapy nonspillable ironmonger ",
+            "from": new Date("2015-06-04T21:30:00.000Z"),
+            "to": new Date("2015-06-04T22:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-03T16:14:46.446Z",
+            "createdAt": "2015-06-03T15:07:48.042Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d67",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Carvajal Mariarosaria"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c42"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c42",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous marcel ironmonger enslaving ",
+            "from": new Date("2015-06-04T22:30:00.000Z"),
+            "to": new Date("2015-06-04T23:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-01T19:45:16.037Z",
+            "createdAt": "2015-06-01T19:31:16.779Z",
+            "categories": ["Prosthodontics", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cab",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Moris Prado Abel"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c43"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c43",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike marcel enslaving papillomatous ",
+            "from": new Date("2015-06-05T15:15:00.000Z"),
+            "to": new Date("2015-06-05T16:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-03T00:31:09.817Z",
+            "createdAt": "2015-06-02T21:26:35.169Z",
+            "categories": ["Pulpotomy", "Crowns", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d42",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Henríquez Henry"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c44"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c44",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "marcel nonspillable pistollike papillomatous ",
+            "from": new Date("2015-06-05T18:15:00.000Z"),
+            "to": new Date("2015-06-05T18:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-01T16:58:48.423Z",
+            "createdAt": "2015-06-01T16:04:58.560Z",
+            "categories": ["Fiberotomy", "Pulpotomy", "Extraction", "Veneers", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d26",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Castro Yerik"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66666",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "papillomatous physiotherapy marcel ironmonger ",
+            "from": new Date("2015-06-05T19:00:00.000Z"),
+            "to": new Date("2015-06-05T19:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T00:08:01.643Z",
+            "createdAt": "2015-06-03T23:29:22.188Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c79",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De López Portilla Zenaida"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c46"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c46",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike physiotherapy undernutrition papillomatous ",
+            "from": new Date("2015-06-05T20:45:00.000Z"),
+            "to": new Date("2015-06-05T22:00:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-02T20:03:41.221Z",
+            "createdAt": "2015-06-02T18:55:53.711Z",
+            "categories": ["Dentures", "Prosthodontics", "Crowns", "Root canal"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ca2",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Prado Isaías"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66668",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "ironmonger papillomatous pistollike physiotherapy ",
+            "from": new Date("2015-06-05T22:15:00.000Z"),
+            "to": new Date("2015-06-05T23:30:00.000Z"),
+            "cancelled": "2015-05-29T22:15:00.000Z",
+            "invoiced": "draft",
+            "updatedAt": "2015-06-02T12:57:43.007Z",
+            "createdAt": "2015-06-02T12:46:07.526Z",
+            "categories": ["Fiberotomy", "Implant-supported prosthesis", "Prosthodontics", "Root canal", "Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d7c",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Jara Vizcayno Daniel"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66669",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "undernutrition papillomatous physiotherapy nonspillable ",
+            "from": new Date("2015-06-08T15:00:00.000Z"),
+            "to": new Date("2015-06-08T16:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T21:55:30.767Z",
+            "createdAt": "2015-06-04T18:50:39.818Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ce3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Villarroel Mireia"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c49"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c49",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition papillomatous physiotherapy ironmonger ",
+            "from": new Date("2015-06-08T16:45:00.000Z"),
+            "to": new Date("2015-06-08T17:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T14:28:51.184Z",
+            "createdAt": "2015-06-04T09:49:11.235Z",
+            "categories": ["Root canal", "Pulpotomy", "Veneers", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da1",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Cisne Román"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4a"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4a",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike undernutrition papillomatous enslaving ",
+            "from": new Date("2015-06-08T18:45:00.000Z"),
+            "to": new Date("2015-06-08T19:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T04:06:15.792Z",
+            "createdAt": "2015-06-05T23:38:58.789Z",
+            "categories": ["Root canal", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d78",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Espeleta Alama Andrea"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4b"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4b",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous ironmonger undernutrition marcel ",
+            "from": new Date("2015-06-08T19:45:00.000Z"),
+            "to": new Date("2015-06-08T20:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T13:47:33.422Z",
+            "createdAt": "2015-06-04T12:59:07.089Z",
+            "categories": ["Fiberotomy", "Veneers", "Implant-supported prosthesis"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cd3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Aguilar Alcira"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4c"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4c",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger enslaving nonspillable papillomatous ",
+            "from": new Date("2015-06-08T21:00:00.000Z"),
+            "to": new Date("2015-06-08T22:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T19:20:59.072Z",
+            "createdAt": "2015-06-06T17:48:05.501Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d73",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Vargas Iael"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4d"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4d",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+    };
+    var d6 = {
+        "success": true,
+        "status": 200,
+        "data": [{
+            "label": "undernutrition papillomatous physiotherapy nonspillable ",
+            "from": new Date("2015-06-08T15:00:00.000Z"),
+            "to": new Date("2015-06-08T16:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T21:55:30.767Z",
+            "createdAt": "2015-06-04T18:50:39.818Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ce3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Villarroel Mireia"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c49"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c49",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition papillomatous physiotherapy ironmonger ",
+            "from": new Date("2015-06-08T16:45:00.000Z"),
+            "to": new Date("2015-06-08T17:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T14:28:51.184Z",
+            "createdAt": "2015-06-04T09:49:11.235Z",
+            "categories": ["Root canal", "Pulpotomy", "Veneers", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da1",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Cisne Román"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4a"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4a",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike undernutrition papillomatous enslaving ",
+            "from": new Date("2015-06-08T18:45:00.000Z"),
+            "to": new Date("2015-06-08T19:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T04:06:15.792Z",
+            "createdAt": "2015-06-05T23:38:58.789Z",
+            "categories": ["Root canal", "Bridges"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d78",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Espeleta Alama Andrea"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4b"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4b",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous ironmonger undernutrition marcel ",
+            "from": new Date("2015-06-08T19:45:00.000Z"),
+            "to": new Date("2015-06-08T20:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-04T13:47:33.422Z",
+            "createdAt": "2015-06-04T12:59:07.089Z",
+            "categories": ["Fiberotomy", "Veneers", "Implant-supported prosthesis"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cd3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Aguilar Alcira"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4c"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4c",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "ironmonger enslaving nonspillable papillomatous ",
+            "from": new Date("2015-06-08T21:00:00.000Z"),
+            "to": new Date("2015-06-08T22:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T19:20:59.072Z",
+            "createdAt": "2015-06-06T17:48:05.501Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d73",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Vargas Iael"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4d"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4d",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition papillomatous nonspillable enslaving ",
+            "from": new Date("2015-06-09T15:00:00.000Z"),
+            "to": new Date("2015-06-09T16:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T12:42:51.335Z",
+            "createdAt": "2015-06-06T12:02:41.204Z",
+            "categories": ["Pulpotomy", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d7e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Azucena De Céspedes Faraón"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c4e"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c4e",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition papillomatous pistollike ironmonger ",
+            "from": new Date("2015-06-09T16:15:00.000Z"),
+            "to": new Date("2015-06-09T17:15:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-05T08:56:38.003Z",
+            "createdAt": "2015-06-05T05:05:20.494Z",
+            "categories": ["Extraction", "Veneers", "Apicoectomy", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64ca6",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Las Casas De Jesús Lucila"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66670",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "marcel undernutrition ironmonger enslaving ",
+            "from": new Date("2015-06-09T18:00:00.000Z"),
+            "to": new Date("2015-06-09T18:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-08T05:05:31.191Z",
+            "createdAt": "2015-06-08T01:26:05.833Z",
+            "categories": ["Prosthodontics", "Dentures"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d6d",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La O Tessa"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c50"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c50",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous enslaving pistollike undernutrition ",
+            "from": new Date("2015-06-09T20:30:00.000Z"),
+            "to": new Date("2015-06-09T21:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-08T23:52:32.630Z",
+            "createdAt": "2015-06-08T19:44:01.921Z",
+            "categories": ["Dentures", "Apicoectomy", "Implant-supported prosthesis"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d91",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "D’Avola Ingrid"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c51"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c51",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "marcel papillomatous physiotherapy nonspillable ",
+            "from": new Date("2015-06-09T21:15:00.000Z"),
+            "to": new Date("2015-06-09T21:45:00.000Z"),
+            "cancelled": "2015-06-02T21:15:00.000Z",
+            "invoiced": "draft",
+            "updatedAt": "2015-06-07T06:20:48.925Z",
+            "createdAt": "2015-06-07T05:22:11.619Z",
+            "categories": ["Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3c",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Torre De La Jara Daniel"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66673",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "enslaving nonspillable undernutrition ironmonger ",
+            "from": new Date("2015-06-09T21:45:00.000Z"),
+            "to": new Date("2015-06-09T23:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T14:15:02.064Z",
+            "createdAt": "2015-06-06T11:47:11.672Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d92",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Juana Anisa"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c53"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c53",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving ironmonger pistollike undernutrition ",
+            "from": new Date("2015-06-10T15:30:00.000Z"),
+            "to": new Date("2015-06-10T16:45:00.000Z"),
+            "cancelled": "2015-06-07T15:30:00.000Z",
+            "invoiced": "draft",
+            "updatedAt": "2015-06-07T04:38:12.275Z",
+            "createdAt": "2015-06-07T01:33:08.415Z",
+            "categories": ["Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d39",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Selva De Espeleta Halima"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66675",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "marcel nonspillable ironmonger pistollike ",
+            "from": new Date("2015-06-10T17:45:00.000Z"),
+            "to": new Date("2015-06-10T18:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-07T05:22:54.836Z",
+            "createdAt": "2015-06-07T03:10:59.935Z",
+            "categories": ["Fiberotomy", "Dentures", "Pulpotomy", "Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64cf8",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Talavera Guillarte Gracián"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c55"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c55",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike physiotherapy papillomatous marcel ",
+            "from": new Date("2015-06-10T18:45:00.000Z"),
+            "to": new Date("2015-06-10T19:45:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-06T23:53:32.526Z",
+            "createdAt": "2015-06-06T21:42:59.178Z",
+            "categories": ["Crowns", "Implants"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d31",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Aguilve De Espeleta Fortunato"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb66677",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "physiotherapy papillomatous nonspillable ironmonger ",
+            "from": new Date("2015-06-10T19:45:00.000Z"),
+            "to": new Date("2015-06-10T20:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-07T11:38:08.851Z",
+            "createdAt": "2015-06-07T11:13:29.322Z",
+            "categories": ["Pulpotomy", "Bridges", "Root canal"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da3",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Campabadall De La Rosa Brunilda"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c57"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c57",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "nonspillable ironmonger enslaving marcel ",
+            "from": new Date("2015-06-10T22:00:00.000Z"),
+            "to": new Date("2015-06-10T22:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-06T22:00:49.835Z",
+            "createdAt": "2015-06-06T20:31:59.981Z",
+            "categories": ["Dentures", "Implant-supported prosthesis", "Pulpotomy", "Fiberotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d9b",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Recinos De Oña Lei"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c58"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c58",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous ironmonger undernutrition marcel ",
+            "from": new Date("2015-06-11T15:15:00.000Z"),
+            "to": new Date("2015-06-11T16:30:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-10T09:04:27.669Z",
+            "createdAt": "2015-06-10T08:15:00.278Z",
+            "categories": ["Implant-supported prosthesis", "Implants", "Veneers"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c72",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Osa Fara"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6667a",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "enslaving papillomatous nonspillable physiotherapy ",
+            "from": new Date("2015-06-11T18:00:00.000Z"),
+            "to": new Date("2015-06-11T19:15:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-08T12:14:50.244Z",
+            "createdAt": "2015-06-08T11:32:38.283Z",
+            "categories": ["Crowns", "Pulpotomy", "Fiberotomy", "Extraction"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64d3e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De Castro Sieza Sheba"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6667b",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "nonspillable enslaving undernutrition ironmonger ",
+            "from": new Date("2015-06-11T19:30:00.000Z"),
+            "to": new Date("2015-06-11T20:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-10T19:30:11.509Z",
+            "createdAt": "2015-06-10T16:07:40.969Z",
+            "categories": ["Dentures"],
+            "links": {
+                "user": {
+                    "id": "5567eacee22163d20fb64c79",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De López Portilla Zenaida"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c5b"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c5b",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "pistollike enslaving undernutrition ironmonger ",
+            "from": new Date("2015-06-11T20:30:00.000Z"),
+            "to": new Date("2015-06-11T21:00:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-08T00:33:55.434Z",
+            "createdAt": "2015-06-08T00:11:20.913Z",
+            "categories": ["Extraction", "Bridges", "Implant-supported prosthesis"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d4e",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Testolin De Las Casas Ytzel"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c5c"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c5c",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving undernutrition pistollike nonspillable ",
+            "from": new Date("2015-06-11T22:00:00.000Z"),
+            "to": new Date("2015-06-11T23:00:00.000Z"),
+            "invoiced": "draft",
+            "updatedAt": "2015-06-09T02:57:41.941Z",
+            "createdAt": "2015-06-09T01:19:53.820Z",
+            "categories": ["Dentures", "Apicoectomy", "Root canal", "Veneers", "Pulpotomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d7f",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "De La Teja Nidia"
+                },
+                "invoice": {
+                    "id": "5567eacfe22163d20fb6667e",
+                    "state": "draft",
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "invoice | draft"
+                }
+            }
+        }, {
+            "label": "nonspillable ironmonger enslaving papillomatous ",
+            "from": new Date("2015-06-12T15:30:00.000Z"),
+            "to": new Date("2015-06-12T16:15:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-07T19:36:06.260Z",
+            "createdAt": "2015-06-07T16:56:20.006Z",
+            "categories": ["Prosthodontics"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d9a",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Tabah Florencio"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c5e"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c5e",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "papillomatous marcel nonspillable physiotherapy ",
+            "from": new Date("2015-06-12T16:30:00.000Z"),
+            "to": new Date("2015-06-12T17:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-09T03:43:03.321Z",
+            "createdAt": "2015-06-09T03:33:37.239Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d82",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Del Barrio Constanza"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c5f"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c5f",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "enslaving nonspillable pistollike physiotherapy ",
+            "from": new Date("2015-06-12T18:45:00.000Z"),
+            "to": new Date("2015-06-12T19:30:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-11T00:28:27.452Z",
+            "createdAt": "2015-06-11T00:10:10.027Z",
+            "categories": ["Apicoectomy"],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64d6c",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Vera Ciotola Ezer"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c60"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c60",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            "label": "undernutrition physiotherapy papillomatous marcel ",
+            "from": new Date("2015-06-12T21:00:00.000Z"),
+            "to": new Date("2015-06-12T21:45:00.000Z"),
+            "invoiceId": null,
+            "updatedAt": "2015-06-10T18:44:39.650Z",
+            "createdAt": "2015-06-10T18:07:59.152Z",
+            "categories": [],
+            "links": {
+                "user": {
+                    "id": "5567eacfe22163d20fb64da7",
+                    "type": "user",
+                    "desc": "Patient",
+                    "display": "Turcios Iris"
+                },
+                "invoice": {
+                    "create": true,
+                    "type": "invoice",
+                    "desc": "Invoice",
+                    "display": "create invoice",
+                    "context": {"type": "event", "id": "5567eacee22163d20fb64c61"},
+                    "newInvoice": {
+                        "type": "invoice",
+                        "source": "event",
+                        "links": {
+                            "event": {
+                                "id": "5567eacee22163d20fb64c61",
+                                "type": "event",
+                                "desc": "Event",
+                                "display": "event"
+                            }
+                        }
+                    }
+                }
+            }
+        }]
+    };
+
+    var db = [d4, d5, d6];
+    var index = 0;
+    Polymer({
+        is:'cg-datasource-testdata',
+        properties:{
+            providersMap:{
+                type:Function,
+                value:function(){
+                    return {
+                        'agenda/data':this.events,
+                        'event/save':this.save
+                    };
+                }
+            }
+        },
+        behaviors:[CG.DataSourceBaseBehavior],
+        ready:function(){
+            this.globals.dataAware = true;
+        },
+        events:function(options){
+            console.log("### Datasource[TestData] getColors(params:"+JSON.stringify(options.params)+")");
+
+            var data = CG.Utils.clone(true, {}, db[index]);
+            var dayDiff = Math.ceil((data.data[0].from.getTime()-options.params.from.getTime())/(1000*60*60*24));
+
+            data.data.forEach(function(e){
+                e.from = new Date(e.from.getTime() - (dayDiff * (1000*60*60*24)))
+                e.to = new Date(e.to.getTime() - (dayDiff * (1000*60*60*24)))
             });
-        })();
-    </script>
-</polymer-element>
+            console.log("using dataset " + (index) + " " + data.data[0].from + " - " + data.data[0].to);
+
+            index = (index + 1) % db.length;
+            return options.success(data);
+        },
+        save:function(options){
+            console.log("### Datasource[TestData] getColors(params:"+JSON.stringify(options.params)+")");
+            return options.success({success:true, data:options.params.event});
+        }
+    });
+</script>
+
