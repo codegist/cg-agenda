@@ -2713,7 +2713,7 @@
             this.globals.dataAware = true;
         },
         events:function(options){
-            console.log("### Datasource[TestData] getColors(params:"+JSON.stringify(options.params)+")");
+            console.log("### Datasource[TestData] events(params:"+JSON.stringify(options.params)+")");
 
             var data = CG.Utils.clone(true, {}, db[index]);
             var dayDiff = Math.ceil((data.data[0].from.getTime()-options.params.from.getTime())/(1000*60*60*24));
@@ -2728,7 +2728,7 @@
             return options.success(data);
         },
         save:function(options){
-            console.log("### Datasource[TestData] getColors(params:"+JSON.stringify(options.params)+")");
+            console.log("### Datasource[TestData] save(params:"+JSON.stringify(options.params)+")");
             return options.success({success:true, data:options.params.event});
         }
     });
