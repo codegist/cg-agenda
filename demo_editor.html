@@ -61,7 +61,8 @@
     window.addEventListener('WebComponentsReady', function() {
         var sandbox = document.getElementById('sandbox');
         sandbox.showEditor1 = function(){
-            sandbox.$.editor1.openDialog();
+            sandbox.$.editor1.openDialog("some id");
+//            sandbox.$.editor1.openDialog();
         }
     });
 </script>

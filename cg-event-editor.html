@@ -65,19 +65,18 @@
                         <paper-tab>More</paper-tab>
                     </paper-tabs>
                     <iron-pages selected="{{_selectedPage}}">
-                        <!--<div id="page_0" class="page-wrapper">-->
                         <div class$="[[ifEqualsTo(_selectedPage, 0, 'relative page-wrapper', 'page-wrapper')]]">
                             <div class="layout vertical">
-                                <div hidden$="[[!hasLength(showLinks.length)]]">
-                                    <paper-input-container class="event-links">
+                                <div hidden$="[[!hasLength(_editCopy.linksArray.length)]]">
+                                    <paper-input-container class="event-links" always-float-label>
                                         <label>Links</label>
-                                        <input >
+                                        <input hidden>
                                         <div class="horizontal layout wrap">
-                                            <template is="dom-repeat" items="[[links(showLink, _editCopy.links)]]" as="link">
+                                            <template is="dom-repeat" items="[[_editCopy.linksArray]]" as="link">
                                                 <div class="horizontal layout">
                                                     <cg-link link="[[link]]" linkSource="[[_editCopy]]" source="[[self]]"></cg-link>
-                                                    <content select="[[[link]]]"></content>
                                                 </div>
+                                                <content select="[link]"></content>
                                             </template>
                                         </div>
                                     </paper-input-container>
@@ -105,7 +104,6 @@
                                 </paper-input-container>
                             </div>
                         </div>
-                        <!--<div id="page_1" class="page-wrapper">-->
                         <div class$="[[ifEqualsTo(_selectedPage, 1, 'relative page-wrapper', 'page-wrapper')]]">
                             <div class="layout vertical">
                                 <paper-input-container auto-validate attr-for-value="selected">
@@ -170,7 +168,6 @@
                 observer:'eventChanged'
             },
             heading:String,
-            showLinks:Array,
             categories:Array,
             colors:Array,
             documentCategories:Array,
@@ -241,8 +238,8 @@
 //                input._validityObserver && input._validityObserver.close();
 //            }.bind(this));
         },
-        links:function(showLink, links){
-            if(!showLink) return [];
+        links:function(links){
+            if(!links) return [];
             var linksArray = [];
             for(var key in links){
                 linksArray.push(links[key]);
@@ -325,7 +322,9 @@
         eventChanged:function(){
             if(this.event) {
                 this.$.documentsEditor.dataContext = {event : this.event};
-                this._editCopy = CG.Utils.Objects.clone(true, {}, this._eventTemplate, this.event);
+                var editCopy = CG.Utils.Objects.clone(true, {}, this._eventTemplate, this.event);
+                editCopy.linksArray = this.links(editCopy.links);
+                this._editCopy = editCopy;
             }else{
                 this.$.documentsEditor.dataContext && delete this.$.documentsEditor.dataContext.event;
                 this._editCopy = undefined;
