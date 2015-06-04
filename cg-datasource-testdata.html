@@ -2694,6 +2694,10 @@
         "updatedAt": new Date("2014-04-02T09:00:00.363Z"),
         "createdAt": new Date("2014-04-02T06:05:37.971Z"),
         "categories": ["Fiberotomy", "Implant-supported prosthesis"],
+        "color":{
+            "name": "Bold Green",
+            "mask": "#098000",
+        },
         "links": {
             "user": {
                 "id": "5567eacee22163d20fb64d0e",
@@ -2768,10 +2772,11 @@
                 type:Function,
                 value:function(){
                     return {
-                        'tags/data':this.eventCategories,
-                        'colors/data':this.eventColors,
+                        'events/categories/data':this.eventCategories,
+                        'events/colors/data':this.eventColors,
                         'agenda/data':this.events,
                         'event/save':this.eventSave,
+                        'event/delete':this.delete,
                         'event/data':this.getEvent,
                         'documents/event/data': this.documents,
                         'document/save': this.documentSave,

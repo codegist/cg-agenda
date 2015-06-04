@@ -59,7 +59,7 @@
         <div class="editor-wrapper">
             <paper-dialog id="dialog" modal>
                 <h2>[[heading]]</h2>
-                <div>
+                <div on-input="_validate">
                     <paper-tabs selected="{{_selectedPage}}" noink no-slide>
                         <paper-tab>General</paper-tab>
                         <paper-tab>More</paper-tab>
@@ -110,35 +110,35 @@
                             <div class="layout vertical">
                                 <paper-input-container auto-validate attr-for-value="selected">
                                     <label>Categories</label>
-                                    <cg-input-tags class="paper-input-input" cg-name="[[concat(cgName, 's/categories')]]" tags="[[categories]]" selected="{{_editCopy.categories}}"></cg-input-tags>
+                                    <cg-input-tags class="paper-input-input" cg-name="events/categories" tags="[[categories]]" selected="{{_editCopy.categories}}"></cg-input-tags>
                                 </paper-input-container>
                                 <paper-input-container auto-validate always-float-label attr-for-value="selected">
                                     <label>Color</label>
-                                    <cg-input-color class="paper-input-input" cg-name="[[concat(cgName, 's/colors')]]" required colors="[[colors]]" selected="{{_editCopy.color}}"></cg-input-color>
+                                    <cg-input-color class="paper-input-input" cg-name="events/colors" colors="[[colors]]" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-container>
                                 <cg-input-documents label="Documents" cg-name="documents/event" categories="[[documentCategories]]" documents="{{_editCopy.documents}}"
-                                                    auto-upload="true" auto-save="false" id="documentsEditor"></cg-input-documents>
+                                                    auto-upload id="documentsEditor"></cg-input-documents>
                             </div>
                         </div>
                     </iron-pages>
                 </div>
                 <div class="buttons">
-                    <paper-button dialog-confirm class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus>
-                        <iron-icon dialog-confirm icon="[[ifTrue(isValid, 'check', 'fa:exclamation-triangle')]]"></iron-icon>
+                    <paper-button class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus>
+                        <iron-icon icon="[[ifTrue(isValid, 'check', 'fa:exclamation-triangle')]]"></iron-icon>
                         <span hidden$="[[create]]">ok</span>
                         <span hidden$="[[!create]]">add</span>
                     </paper-button>
-                    <paper-button dialog-dismiss class="custom" on-tap="cancel">
-                        <iron-icon dialog-dismiss icon="clear"></iron-icon>
+                    <paper-button class="custom" on-tap="cancel">
+                        <iron-icon icon="clear"></iron-icon>
                         cancel
                     </paper-button>
-                    <paper-button dialog-dismiss class="custom" on-tap="confirmDelete" hidden$="[[create]]">
-                        <iron-icon dialog-dismiss icon="clear"></iron-icon>
+                    <paper-button class="custom" on-tap="confirmDelete" hidden$="[[create]]">
+                        <iron-icon icon="clear"></iron-icon>
                         delete
                     </paper-button>
                 </div>
             </paper-dialog>
-            <paper-dialog heading="Delete event?" modal id="confirmdelete">
+            <paper-dialog heading="Delete event?" with-backdrop="true" id="confirmdelete">
                 <h2>Delete event?</h2>
                 <div>
                     <p>Are you sure you want to delete the event "<span>[[_editCopy.label]]</span>"?</p>
@@ -195,7 +195,6 @@
                 type:String,
                 value:"event"
             },
-            _inputs:Array,
             _callerScope:Object,
             _editCopy:Object,
             templateLinkDataObserver:{
@@ -228,19 +227,6 @@
             }
         },
         behaviors:[CG.BaseBehavior],
-        ready:function(){
-//            this.globals.datetimeDialog = this.globals.datetimeDialog || Polymer.dom(this.root).appendChild(document.createElement('cg-datetime-picker-dialog'));
-//            this._inputs = Array.prototype.slice.call(Polymer.dom(this.root).querySelectorAll("paper-input-container"));
-//            this._inputs.forEach(function(input){
-//                 listen to change in validity state
-//                input._validityObserver = new PathObserver(input, "isInvalid");
-//                input._validityObserver.open(this._validate.bind(this));
-//            }.bind(this));
-            // for dates that depends from each others, validate on change as well
-//            this.$.to.addEventListener("change", this._validate.bind(this));
-//            this.$.from.addEventListener("change", this._validate.bind(this));
-        },
-
         attached: function() {
 //            this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
 //            this.linkTemplates.forEach(function(template){
@@ -265,31 +251,24 @@
         },
         _validate:function(callback){
             this.async(function(){
-//                var valid = this._doValidate();
-                typeof callback === "function" && callback.call(this, true);
-//                typeof callback === "function" && callback.call(this, valid);
+                var valid = this._doValidate();
+//                typeof callback === "function" && callback.call(this, true);
+                typeof callback === "function" && callback.call(this, valid);
             });
         },
         _doValidate:function(){
-//            if(!this._editCopy) {
-//                return;
-//            }
-//            var valid = true;
-//            this._inputs.forEach(function(e){
-//                e.inputAction();
-//                if(e.isInvalid) {
-//                    valid = false;
-//                }
-//            }, this);
-//            if(this._editCopy.from && this._editCopy.to) {
-//                var start = this._editCopy.from.getTime();
-//                var end = this._editCopy.to.getTime();
-//                if(start >= end) {
-//                    valid = false;
-//                    this.$.to.isInvalid = true;
-//                }
-//            }
-//            return this.isValid = valid;
+            if(!this._editCopy) {
+                return;
+            }
+            var valid = this.inputsAllValid();
+            if(this._editCopy.from && this._editCopy.to && this._editCopy.from.getTime() >= this._editCopy.to.getTime()) {
+                valid = false;
+                this.$.to.invalid = true;
+            }
+            return this.isValid = valid;
+        },
+        inputsAllValid:function(){
+            return Polymer.dom(this.root).querySelectorAll('paper-input-container').filter(function(e){return (e.invalid);}).length == 0;
         },
         ok:function(){
             this._validate(function(valid){
@@ -407,7 +386,7 @@
         _doOpenDialog:function(event,edit){
             this._selectedPage = 0;
             this.create = edit === false || event === undefined;
-            this.event = this.augmentEvent ? this.augmentEvent(event, this.create) : {};
+            this.event = this.augmentEvent ? this.augmentEvent(event || {}, this.create) : {};
             this.heading = this.create ? this.addEvent : this.existingEvent;
             this._validate(function(){
                 this.$.dialog.open();
@@ -431,7 +410,7 @@
                     }
                     break;
             }
-            delete this.$.documentsEditor.dataContext.event;
+            this.$.documentsEditor.dataContext && delete this.$.documentsEditor.dataContext.event;
             this.$.dialog.close();
             this.fire("close", {
                 event: this.event,
