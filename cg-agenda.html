@@ -218,7 +218,7 @@
                                 </div>
                             </div>
                         </template>
-                        <div class="dd-overlay" id$="[[computeDDOverlayId(day)]]"></div>
+                        <div class="dd-overlay" id$="[[concat('dd-overlay-', day.day)]]"></div>
                     </div>
                 </template>
             </div>
@@ -337,7 +337,7 @@
             getEventsInView:function(events, view){
                 var inView = [];
                 events.forEach(function(e){
-                    if(CG.Utils.utils.dateRangeIntersects(e, view)){
+                    if(CG.Utils.Ranges.dateRangeIntersects(e, view)){
                         inView.push(e);
                     }
                 }.bind(this));
@@ -366,8 +366,8 @@
                 this.cache.reset();
             },
             eventComparator:function(a,b){
-                var res = CG.Utils.comparators.dateRange(a,b);
-                return res != 0 ? res : CG.Utils.comparators.number(a._cgaId, b._cgaId);
+                var res = CG.Utils.Comparators.dateRange(a,b);
+                return res != 0 ? res : CG.Utils.Comparators.number(a._cgaId, b._cgaId);
             },
             primeCollisionGroupCache:function(events){
                 console.log("[cg-agenda] Priming cache");
@@ -441,7 +441,7 @@
                     var groups = 0;
                     for(var id in this.cache.collisionGroups.cache){
                         var group = this.cache.collisionGroups.cache[id];
-                        if(CG.Utils.utils.dateRangeIntersects(event, group)) {
+                        if(CG.Utils.Ranges.dateRangeIntersects(event, group)) {
                             suitableCachedGroups[id] = group;
                             groups++;
                         }
@@ -500,7 +500,7 @@
                     e = events[c];
                     for(i = 0; i < groups.length; i++){
                         group = groups[i];
-                        if(CG.Utils.utils.dateRangeIntersects(e, group)) {
+                        if(CG.Utils.Ranges.dateRangeIntersects(e, group)) {
                             group.addEvent(e);
                             found = true;
                             break;
@@ -536,7 +536,7 @@
                     b = events[0];
                     found = false;
                     for(c = 0; c < column.length; c++){
-                        if(CG.Utils.utils.dateRangeIntersects(column[c], b)) {
+                        if(CG.Utils.Ranges.dateRangeIntersects(column[c], b)) {
                             found = true;
                             break;
                         }
@@ -708,6 +708,7 @@
                 "event-drag-end":"_onEventDragEnded"
             },
             behaviors:[CG.BaseBehavior],
+            _isEventOfDay:CG.Utils.Ranges.dateRangeIntersects,
             ready:function(){
 //                this.addEventListener("event-drag-end", this._onEventDragEnded.bind(this));
                 this.$.datepicker = this.globals.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
@@ -730,9 +731,6 @@
             },
             computeAgendaDayStyle:function(hourHeight){
                 return "height:" + (hourHeight * 24) + "px;";
-            },
-            computeDDOverlayId:function(day){
-                return "dd-overlay-" + day.day;
             },
             attached:function(){
                 this._agendaObs = new MutationObserver(function(mutations) {
@@ -843,7 +841,7 @@
                         case "event-created":
                         case "event-deleted":
                             console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
-                            if (CG.Utils.utils.dateRangeIntersects(event.params, {
+                            if (CG.Utils.Ranges.dateRangeIntersects(event.params, {
                                         from: this._viewFrom,
                                         to: this._viewTo
                                     })) {
@@ -1143,7 +1141,7 @@
             },
             _onEventDragEnded:function(e){
                 if(this.isDataAware()) {
-                    var toSave = CG.Utils.clone(false, {}, e.detail.event, e.detail.newPosition);
+                    var toSave = CG.Utils.Objects.clone(false, {}, e.detail.event, e.detail.newPosition);
                     this.fireDataRequest({
                         type:"event/save", typePrefix:false,
                         params:{event:toSave},
@@ -1166,7 +1164,8 @@
             },
             _redrawEvent:function(event){
                 var ev = this._getEventById(event._cgaId);
-                ev.event = CG.Utils.clone(false, {}, event);
+                ev.event = CG.Utils.Objects.clone(false, {}, event);
+//                this.notifyPath("_eventsInView." + ev.index, ev.event);
                 this.splice("_eventsInView", ev.index, 1, ev.event);
                 return ev.event;
             },
@@ -1243,10 +1242,6 @@
                     index:index,
 
                 };
-            },
-            _isEventOfDay:function(event, day){
-                //console.log(event.from + " - " + new Date(day.year, day.month, day.day, 23, 59 ,59, 999));
-                return CG.Utils.utils.dateRangeIntersects(event, day);
             },
             _getEventClass:function(event, day){
                 var klass =  event.from.getDate() == day.day && event.to.getDate() == day.day ? "eventfull" :

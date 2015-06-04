@@ -174,14 +174,14 @@
                 },
                 _displayDuration:function(from, to){
                     if(!from || !to) return;
-                    return CG.Utils.formatDuration(to.getTime() - from.getTime());
+                    return CG.Utils.Formats.duration(to.getTime() - from.getTime());
                 },
                 _displayTime:function(from){
                     if(!from) return;
                     return this._timeFormat.format(from);
                 },
                 _displayCount:function(total) {
-                    return CG.Utils.displayCountFound("event","events", total);
+                    return CG.Utils.Displays.countFound("event","events", total);
                 },
                 sortEventView:function(){
                     this._eventsView = this.events.results.slice().sort(function(a,b){

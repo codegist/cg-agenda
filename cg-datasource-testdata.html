@@ -7,10 +7,8 @@
 </dom-module>
 <script>
 
-    var d4 = {
-        "success": true,
-        "status": 200,
-        "data": [{
+    var d4 = [
+        {
             "label": "ironmonger marcel papillomatous pistollike ",
             "from": new Date("2015-05-25T15:00:00.000Z"),
             "to": new Date("2015-05-25T15:45:00.000Z"),
@@ -910,12 +908,10 @@
                     "display": "invoice | draft"
                 }
             }
-        }]
-    };
-    var d5 = {
-        "success": true,
-        "status": 200,
-        "data": [{
+        }
+    ];
+    var d5 = [
+        {
             "label": "nonspillable physiotherapy ironmonger marcel ",
             "from": new Date("2015-06-04T17:45:00.000Z"),
             "to": new Date("2015-06-05T18:45:00.000Z"),
@@ -1892,12 +1888,9 @@
                 }
             }
         }
-    ]
-    };
-    var d6 = {
-        "success": true,
-        "status": 200,
-        "data": [{
+    ];
+    var d6 = [
+        {
             "label": "undernutrition papillomatous physiotherapy nonspillable ",
             "from": new Date("2015-06-08T15:00:00.000Z"),
             "to": new Date("2015-06-08T16:00:00.000Z"),
@@ -2690,8 +2683,81 @@
                     }
                 }
             }
-        }]
+        }
+    ];
+
+    var evt = {
+        "label": "physiotherapy undernutrition pistollike papillomatous ",
+        "notes": "Vivamus efficitur fermentum diam, sed blandit tellus viverra sit amet. Nam ut suscipit urna. Maecenas et bibendum orci. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam nunc augue, finibus malesuada orci quis, ornare bibendum nulla. Donec massa lorem, placerat at diam sit amet, vulputate sagittis lorem. Cras ut interdum diam, ut rutrum nunc. Donec augue ligula, ultricies ac purus ac, fringilla efficitur enim. Curabitur ut mi vitae purus congue venenatis. Fusce eu enim libero. Quisque quis accumsan nibh, et pulvinar mauris. Phasellus sit amet metus at felis porta fermentum at id velit. ",
+        "from": new Date("2014-04-04T15:15:00.000Z"),
+        "to": new Date("2014-04-04T16:30:00.000Z"),
+        "updatedAt": new Date("2014-04-02T09:00:00.363Z"),
+        "createdAt": new Date("2014-04-02T06:05:37.971Z"),
+        "categories": ["Fiberotomy", "Implant-supported prosthesis"],
+        "links": {
+            "user": {
+                "id": "5567eacee22163d20fb64d0e",
+                "type": "user",
+                "desc": "Patient",
+                "display": "De La Paz Gracián"
+            },
+            "invoice": {
+                "id": "5567eacfe22163d20fb660ae",
+                "state": "paid",
+                "type": "invoice",
+                "desc": "Invoice",
+                "display": "invoice | paid"
+            }
+        }
     };
+    var documents = [
+        {
+            "name": "stock-vector-natural-grass-and-ground-seamless-borders-set-of-vector-cartoon-illustrations-of-grass-field-71024461.jpg",
+            "size": 160872482,
+            "type": "application/word",
+            "description": "Sed id lacus vitae tortor convallis rhoncus a non ipsum.",
+            "updatedAt": new Date("2012-09-28T20:37:22.931Z"),
+            "createdAt": new Date("2012-02-21T22:16:06.236Z"),
+            "added": new Date("2005-07-28T15:26:00.000Z"),
+            "categories": ["Panoramic x-rays", "Tomograms", "X-ray", "Panoramic films"]
+        }, {
+            "name": "singlepath.svg",
+            "size": 160242552,
+            "type": "image/jpeg",
+            "description": "Sed tempus magna et ligula imperdiet gravida.",
+            "updatedAt": new Date("2013-10-24T23:53:03.173Z"),
+            "createdAt": new Date("2012-02-22T00:03:24.490Z"),
+            "added": new Date("2001-11-06T18:47:00.000Z"),
+            "categories": ["Periapical view"]
+        }, {
+            "name": "eclipse-java-luna-SR1-linux-gtk-x86_64.tar.gz",
+            "size": 63,
+            "type": "plain/text",
+            "description": "Sed tempus magna et ligula imperdiet gravida.",
+            "updatedAt": new Date("2012-10-25T09:50:31.111Z"),
+            "createdAt": new Date("2012-02-22T00:51:01.898Z"),
+            "added": new Date("2011-11-03T21:37:00.000Z"),
+            "categories": ["Bitewing view", "Periapical view", "Extraoral x-rays", "Cephalometric projections", "X-ray", "Full mouth series", "Radiography", "Panoramic x-rays"]
+        }
+    ];
+    var categories = ["Apicoectomy", "Bridges", "Crowns", "Dentures", "Extraction", "Fiberotomy", "Implant-supported prosthesis", "Implants", "Prosthodontics", "Pulpotomy", "Root canal", "Veneers"];
+    var colors = [{
+        "name": "Bold Blue",
+        "mask": "#1159F5",
+    }, {
+        "name": "Bold Green",
+        "mask": "#098000",
+    }, {
+        "name": "Bold Red",
+        "mask": "#FF1700",
+    }, {
+        "name": "Gray",
+        "mask": "#858585",
+    }, {
+        "name": "Yellow",
+        "mask": "#F6FF00",
+    }];
+    var docCategories = ["Bill", "Bitewing view", "Cephalometric projections", "Cone Beam CT", "Dental computed tomography (CT)", "Digital imaging", "Extraoral x-rays", "Full mouth series", "Intraoral x-rays", "MRI imaging", "Occlusal view", "Orthopantomogram", "Panoramic films", "Panoramic x-rays", "Periapical view", "Radiography", "Tomograms", "X-ray"];
 
     var db = [d4, d5, d6];
     var index = 0;
@@ -2702,8 +2768,15 @@
                 type:Function,
                 value:function(){
                     return {
+                        'tags/data':this.eventCategories,
+                        'colors/data':this.eventColors,
                         'agenda/data':this.events,
-                        'event/save':this.save
+                        'event/save':this.eventSave,
+                        'event/data':this.getEvent,
+                        'documents/event/data': this.documents,
+                        'document/save': this.documentSave,
+                        'document/delete': this.delete,
+                        'documents/categories/data': this.categories
                     };
                 }
             }
@@ -2715,21 +2788,79 @@
         events:function(options){
             console.log("### Datasource[TestData] events(params:"+JSON.stringify(options.params)+")");
 
-            var data = CG.Utils.clone(true, {}, db[index]);
-            var dayDiff = Math.ceil((data.data[0].from.getTime()-options.params.from.getTime())/(1000*60*60*24));
+            var data = CG.Utils.Objects.clone(true, [], db[index]);
+            var dayDiff = Math.ceil((data[0].from.getTime()-options.params.from.getTime())/(1000*60*60*24));
 
-            data.data.forEach(function(e){
+            data.forEach(function(e){
                 e.from = new Date(e.from.getTime() - (dayDiff * (1000*60*60*24)))
                 e.to = new Date(e.to.getTime() - (dayDiff * (1000*60*60*24)))
             });
-            console.log("using dataset " + (index) + " " + data.data[0].from + " - " + data.data[0].to);
+            console.log("using dataset " + (index) + " " + data[0].from + " - " + data[0].to);
 
             index = (index + 1) % db.length;
-            return options.success(data);
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":data
+            });
         },
-        save:function(options){
-            console.log("### Datasource[TestData] save(params:"+JSON.stringify(options.params)+")");
+        getEvent:function(options){
+            console.log("### Datasource[TestData] getEvent(params:"+JSON.stringify(options.params)+")");
+            return options.success({success:true, data:evt});
+        },
+        eventSave:function(options){
+            console.log("### Datasource[TestData] eventSave(params:"+JSON.stringify(options.params)+")");
             return options.success({success:true, data:options.params.event});
+        },
+        documents: function (options) {
+            console.log("### Datasource[TestData] documents(params:" + JSON.stringify(options.params) + ")");
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":documents
+            });
+        },
+        categories: function (options) {
+            console.log("### Datasource[TestData] categories(params:" + JSON.stringify(options.params) + ")");
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":docCategories
+            });
+        },
+        eventCategories: function (options) {
+            console.log("### Datasource[TestData] eventCategories(params:" + JSON.stringify(options.params) + ")");
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":categories
+            });
+        },
+        eventColors: function (options) {
+            console.log("### Datasource[TestData] eventColors(params:" + JSON.stringify(options.params) + ")");
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":colors
+            });
+        },
+        documentSave: function (options) {
+            console.log("### Datasource[TestData] documentSave(params:" + JSON.stringify(options.params) + ")");
+            delete options.params.document.handle;
+            delete options.params.document._dirty;
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":options.params.document
+            });
+        },
+        "delete": function (options) {
+            console.log("### Datasource[TestData] delete(params:" + JSON.stringify(options.params) + ")");
+            return options.success({
+                "success": true,
+                "status": 200,
+                "data":options.params.document
+            });
         }
     });
 </script>
