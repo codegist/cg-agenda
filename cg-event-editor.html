@@ -27,6 +27,10 @@
 
 <dom-module is="cg-event-editor">
     <style>
+        .editor-wrapper {
+            @apply(--paper-font-body1);
+        }
+
         .editor-wrapper .colored {
             color: #4285f4;
         }
@@ -59,9 +63,9 @@
     </style>
     <template>
         <div class="editor-wrapper">
-            <paper-dialog id="dialog" modal entry-animation_="fade-in-animation" exit-animation_="fade-out-animation">
-                <h2>[[heading]]</h2>
-                <div on-input="_validate">
+            <paper-dialog id="dialog" modal>
+                <h2 class="dialog-heading">[[heading]]</h2>
+                <div on-input="_validate" class="dialog-body">
                     <paper-tabs selected="{{_selectedPage}}" noink no-slide>
                         <paper-tab>General</paper-tab>
                         <paper-tab>More</paper-tab>
@@ -182,7 +186,6 @@
                 type:String,
                 value:"Add event"
             },
-//            closeSelector: '',
             isValid:{
                 type:Boolean,
                 value:false
@@ -233,7 +236,6 @@
         _validate:function(callback){
             this.async(function(){
                 var valid = this._doValidate();
-//                typeof callback === "function" && callback.call(this, true);
                 typeof callback === "function" && callback.call(this, valid);
             });
         },
