@@ -121,11 +121,6 @@
                     </iron-pages>
                 </div>
                 <div class="buttons">
-                    <paper-button class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus>
-                        <iron-icon icon="[[ifTrue(isValid, 'check', 'fa:exclamation-triangle')]]"></iron-icon>
-                        <span hidden$="[[create]]">ok</span>
-                        <span hidden$="[[!create]]">add</span>
-                    </paper-button>
                     <paper-button class="custom" on-tap="cancel">
                         <iron-icon icon="clear"></iron-icon>
                         cancel
@@ -133,6 +128,11 @@
                     <paper-button class="custom" on-tap="confirmDelete" hidden$="[[create]]">
                         <iron-icon icon="clear"></iron-icon>
                         delete
+                    </paper-button>
+                    <paper-button class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus>
+                        <iron-icon icon="[[ifTrue(isValid, 'check', 'fa:exclamation-triangle')]]"></iron-icon>
+                        <span hidden$="[[create]]">ok</span>
+                        <span hidden$="[[!create]]">add</span>
                     </paper-button>
                 </div>
             </paper-dialog>

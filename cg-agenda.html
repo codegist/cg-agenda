@@ -9,7 +9,6 @@
 <link rel="import" href="../paper-fab/paper-fab.html">
 <link rel="import" href="../cg-base/cg-base-behavior.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
-<!--<link rel="import" href="cg-event-editor.html">-->
 
 <dom-module id="cg-agenda">
     <style>
@@ -714,7 +713,12 @@
                 this.$.datepicker = this.globals.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
                     this.$.datepicker = Polymer.dom(this.root).appendChild(document.createElement('cg-date-picker-dialog'));
                 });
-//                this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEditor());
+                this.$.eventEditor = this.globals.eventEditor || this.importHref("./cg-event-editor.html", function(){
+                    this.$.eventEditor = Polymer.dom(this.root).appendChild(this.create("cg-event-editor", {
+                        categories:this.categories,
+                        colors:this.colors,
+                    }));
+                });
                 this.doWhenConditionIsMet(function(){
                     this._drawBackground();
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
@@ -772,13 +776,6 @@
                 }
                 var fromYear = from.getFullYear() != to.getFullYear() ? " " + from.getFullYear() : "";
                 return this._headerDateFormat.format(from) + fromYear + " - " + this._headerDateFormat.format(to) + " " + to.getFullYear();
-            },
-            _createEditor:function(){
-//                var editor = document.createElement("cg-event-editor");
-//                editor.setAttribute("categories", "{{categories}}");
-//                editor.setAttribute("colors", "{{colors}}");
-//                editor.setAttribute("showMetaData", "{{showMetaData}}");
-//                return editor;
             },
             redrawAll:function(){
                 this._eventsInView.forEach(function(e){

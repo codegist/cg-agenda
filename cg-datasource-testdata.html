@@ -2815,7 +2815,7 @@
         },
         eventSave:function(options){
             console.log("### Datasource[TestData] eventSave(params:"+JSON.stringify(options.params)+")");
-            return options.success({success:true, data:options.params.event});
+            return options.success({success:true, data:options.params.save});
         },
         documents: function (options) {
             console.log("### Datasource[TestData] documents(params:" + JSON.stringify(options.params) + ")");
