@@ -102,7 +102,7 @@
                                 </div>
                                 <paper-input-container>
                                     <label>Notes</label>
-                                    <textarea is="iron-input" bind-value="{{_editCopy.notes}}" id="notes">{{_editCopy.notes}}</textarea>
+                                    <textarea is="iron-input" id="notes">{{_editCopy.notes}}</textarea>
                                 </paper-input-container>
                             </div>
                         </div>
@@ -216,6 +216,7 @@
         },
         behaviors:[CG.BaseBehavior],
         attached: function() {
+            this._inputs = Polymer.dom(this.root).querySelectorAll('paper-input-container');
             this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
         },
         detached:function(){
@@ -237,6 +238,7 @@
             });
         },
         _doValidate:function(){
+            console.log("validate")
             if(!this._editCopy) {
                 return;
             }
@@ -248,7 +250,12 @@
             return this.isValid = valid;
         },
         inputsAllValid:function(){
-            return Polymer.dom(this.root).querySelectorAll('paper-input-container').filter(function(e){return (e.invalid);}).length == 0;
+            for(var i = 0; i < this._inputs.length; i++){
+                if(this._inputs[i].invalid) {
+                    return false;
+                }
+            }
+            return true;
         },
         ok:function(){
             this._validate(function(valid){
