@@ -338,7 +338,7 @@
                             link:this._editCopy.links[template.getAttribute("of")],
                             event:this._editCopy
                         };
-                        var o = new PathObserver(model.model, "link");
+                        var o = new PathObserver(model.model, "link"); //todo remove that, replace with normal databinding change notification system
                         o.open(function(){
                             this._editCopy.links[template.getAttribute("of")] = model.model.link;
                         }.bind(this));
