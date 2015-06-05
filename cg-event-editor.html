@@ -23,6 +23,7 @@
 <link rel="import" href="../cg-input-documents/cg-input-documents.html">
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
+<link rel="import" href="../neon-animation/neon-animations.html">
 
 <dom-module is="cg-event-editor">
     <style>
@@ -43,6 +44,7 @@
         }
         .editor-wrapper #dialog {
             max-width:450px;
+            overflow:visible;
         }
         .editor-wrapper #dialog /deep/ #scroller {
             overflow:visible;
@@ -57,7 +59,7 @@
     </style>
     <template>
         <div class="editor-wrapper">
-            <paper-dialog id="dialog" modal>
+            <paper-dialog id="dialog" modal entry-animation_="fade-in-animation" exit-animation_="fade-out-animation">
                 <h2>[[heading]]</h2>
                 <div on-input="_validate">
                     <paper-tabs selected="{{_selectedPage}}" noink no-slide>
@@ -100,7 +102,7 @@
                                 </div>
                                 <paper-input-container>
                                     <label>Notes</label>
-                                    <textarea bind-value="{{_editCopy.notes}}" id="notes"></textarea>
+                                    <textarea is="iron-input" bind-value="{{_editCopy.notes}}" id="notes">{{_editCopy.notes}}</textarea>
                                 </paper-input-container>
                             </div>
                         </div>
@@ -211,21 +213,6 @@
                 type:String,
                 value:"Invalid or required"
             },
-            _eventTemplate:{
-                type:Object,
-                value:{
-                    label: null,
-                    notes: null,
-                    from: null,
-                    to: null,
-                    color: {
-                        name: null,
-                        mask: null,
-                    },
-                    categories: [],
-                },
-                readOnly:true
-            }
         },
         behaviors:[CG.BaseBehavior],
         attached: function() {
@@ -318,7 +305,7 @@
         eventChanged:function(){
             if(this.event) {
                 this.$.documentsEditor.dataContext = {event : this.event};
-                var editCopy = CG.Utils.Objects.clone(true, {}, this._eventTemplate, this.event);
+                var editCopy = CG.Utils.Objects.clone(true, {}, this.event);
                 editCopy.linksArray = this.links(editCopy.links);
                 this._editCopy = editCopy;
             }else{
