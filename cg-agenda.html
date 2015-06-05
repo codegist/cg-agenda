@@ -175,6 +175,7 @@
     </style>
     <template>
         <div id="agenda">
+            <div id="dialogsWrapper"></div>
             <paper-toolbar id="header" class="header">
                 <paper-icon-button class="action-button" id="previous" icon="fa:caret-left" on-tap="_onPreviousWeek"></paper-icon-button>
                 <paper-icon-button class="action-button" id="next" icon="fa:caret-right" on-tap="_onNextWeek"></paper-icon-button>
@@ -711,10 +712,10 @@
             ready:function(){
 //                this.addEventListener("event-drag-end", this._onEventDragEnded.bind(this));
                 this.$.datepicker = this.globals.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
-                    this.$.datepicker = Polymer.dom(this.root).appendChild(document.createElement('cg-date-picker-dialog'));
+                    this.$.datepicker = Polymer.dom(this.$.dialogsWrapper).appendChild(document.createElement('cg-date-picker-dialog'));
                 });
                 this.$.eventEditor = this.globals.eventEditor || this.importHref("./cg-event-editor.html", function(){
-                    this.$.eventEditor = Polymer.dom(this.root).appendChild(this.create("cg-event-editor", {
+                    this.$.eventEditor = Polymer.dom(this.$.dialogsWrapper).appendChild(this.create("cg-event-editor", {
                         categories:this.categories,
                         colors:this.colors,
                     }));
