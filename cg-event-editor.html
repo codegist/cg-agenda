@@ -72,11 +72,11 @@
                                         <label>Links</label>
                                         <input hidden>
                                         <div class="horizontal layout wrap">
-                                            <template is="dom-repeat" items="[[_editCopy.linksArray]]" as="link">
+                                            <template is="dom-repeat" items="[[_editCopy.linksArray]]" as="link" id="sdsd">
                                                 <div class="horizontal layout">
                                                     <cg-link link="[[link]]" linkSource="[[_editCopy]]" source="[[self]]"></cg-link>
+                                                    <div class="content-container" linktype$="[[link.type]]"></div>
                                                 </div>
-                                                <content select="[link]"></content>
                                             </template>
                                         </div>
                                     </paper-input-container>
@@ -155,6 +155,7 @@
                     no
                 </paper-button>
             </paper-dialog>
+            <content select="template[link]"></content>
         </div>
     </template>
 </dom-module>
@@ -193,7 +194,10 @@
                 value:"event"
             },
             _callerScope:Object,
-            _editCopy:Object,
+            _editCopy:{
+                type:Object,
+                observer:'_editCopyChanged'
+            },
             templateLinkDataObserver:{
                 type:Array,
                 value:[]
@@ -225,18 +229,10 @@
         },
         behaviors:[CG.BaseBehavior],
         attached: function() {
-//            this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
-//            this.linkTemplates.forEach(function(template){
-//                if (!template.bindingDelegate) {
-//                    template.bindingDelegate = this.element.syntax;
-//                }
-//            }.bind(this));
+            this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
         },
         detached:function(){
-//            this.clearLinksDataObservers();
-//            this._inputs.forEach(function(input){
-//                input._validityObserver && input._validityObserver.close();
-//            }.bind(this));
+            this.clearLinksDataObservers();
         },
         links:function(links){
             if(!links) return [];
@@ -330,34 +326,37 @@
                 this._editCopy = undefined;
             }
         },
-//        clearLinksDataObservers : function() {
-//            this.templateLinkDataObserver.forEach(function(o){
-//                o.close();
-//            });
-//            this.templateLinkDataObserver = [];
-//        },
-//        bindLinkTemplates: function() {
-//            this.clearLinksDataObservers();
-//            if(this._editCopy) {
-//                this.linkTemplates.forEach(function(template){
-//                    var model = this.templateInstance ? Object.create(this.templateInstance.model) : {};
-//                    model.model = {
-//                        link:this._editCopy.links[template.getAttribute("type")],
-//                        event:this._editCopy
-//                    };
-//                    var o = new PathObserver(model.model, "link");
-//                    o.open(function(){
-//                        this._editCopy.links[template.getAttribute("type")] = model.model.link;
-//                    }.bind(this));
-//                    this.templateLinkDataObserver.push(o);
-//                    template.model = model;
-//                    template.setAttribute('if', '{{true}}');
-//                }.bind(this));
-//            }
-//        },
-//        _editCopyChanged:function(){
-//            this.bindLinkTemplates();
-//        },
+        clearLinksDataObservers : function() {
+            this.templateLinkDataObserver.forEach(function(o){
+                o.close();
+            });
+            this.templateLinkDataObserver = [];
+        },
+        bindLinkTemplates: function() {
+            this.clearLinksDataObservers();
+            if(this._editCopy) {
+                this.doWhenConditionIsMet(function(){ // todo kind of dodgy isn't ?
+                    this.linkTemplates.forEach(function(template){
+                        var model = {
+                            link:this._editCopy.links[template.getAttribute("of")],
+                            event:this._editCopy
+                        };
+                        var o = new PathObserver(model.model, "link");
+                        o.open(function(){
+                            this._editCopy.links[template.getAttribute("of")] = model.model.link;
+                        }.bind(this));
+                        this.templateLinkDataObserver.push(o);
+                        template._parentProps = {};
+                        Polymer.dom(this.root).querySelector("[linktype=" + model.link.type + "]").appendChild(template.stamp(model).root);
+                    }.bind(this));
+                }, function(){
+                    return Polymer.dom(this.root).querySelector("[linktype]") != undefined
+                })
+            }
+        },
+        _editCopyChanged:function(){
+            this.bindLinkTemplates();
+        },
         augmentEvent:function(event, create){
             return event;
         },

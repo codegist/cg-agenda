@@ -21,7 +21,11 @@
             <!--<span>to: {{event1.to}}</span>-->
             <!--<span>notes: {{event1.notes | max(50)}}</span>-->
             <!--<span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result1}}</pre></span>-->
-            <cg-event-editor show-metadata="user" id="editor1" categories="{{categories}}" colors="{{colors}}"></cg-event-editor>
+            <cg-event-editor show-metadata="user" id="editor1" categories="{{categories}}" colors="{{colors}}">
+                <template is="dom-template" link of="user">
+                    <span>[[link.display]]</span>
+                </template>
+            </cg-event-editor>
             <paper-button on-tap="showEditor1">OPEN</paper-button>
         <!--</section>-->
         <!--<section class="demo" layout vertical>-->
