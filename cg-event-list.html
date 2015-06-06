@@ -1,251 +1,239 @@
-<link href="../polymer/polymer.html" rel="import">
-<link href="../paper-shadow/paper-shadow.html" rel="import">
-<link href="../core-icon/core-icon.html" rel="import">
-<link href="../core-list/core-list.html" rel="import">
-<link href="../cg-base/cg-base.html" rel="import">
-<link href="../cg-pagination/cg-pagination.html" rel="import">
-<link href="../cg-link/cg-link.html" rel="import">
-<link href="../cg-utils/cg-utils.html" rel="import">
-<link href="../font-awesome-polymer-icons/fa-icons.html" rel="import" >
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
+<link rel="import" href="../iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../cg-base/cg-base-behavior.html">
+<link rel="import" href="../cg-pagination/cg-pagination.html">
+<link rel="import" href="../cg-link/cg-link.html">
+<link rel="import" href="../cg-utils/cg-utils.html">
+<link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 
-<polymer-element name="cg-event-list" extends="cg-base" cgName="events" attributes="label events nolabel showLink colors categories refreshOnApplicationEvents" layout vertical>
-    <template>
-        <style>
-            cg-event-list {
-                width:100%;
-                font-family: sans-serif;
-            }
-            #listScroller {
-                height:250px;
-                overflow:auto;
-            }
-            .event-type,
-            .event-duration {
-                width:16px!important;
-                height:16px!important;
-                color:#454545;
-            }
-            .event-time {
-                color:#454545;
-                font-size:12px;
-            }
+<dom-module is="cg-event-list">
+<style>
+    :host {
+        @apply(--paper-font-body1);
+        width:100%;
+    }
+    .list-wrapper #listScroller {
+        min-height:250px;
+        z-index: 0;
+    }
+    .list-wrapper .event-type,
+    .list-wrapper .event-duration {
+        width:16px;
+        height:16px;
+        color:#454545;
+    }
+    .list-wrapper .event-time {
+        color:#454545;
+        font-size:12px;
+    }
 
-            .event-type,
-            .event-label,
-            .event-time,
-            .event-duration,
-            .event-payment,
-            .event-category {
-                margin-right:10px;
-                margin-bottom:6px;
-            }
+    .list-wrapper .event-type,
+    .list-wrapper .event-label,
+    .list-wrapper .event-time,
+    .list-wrapper .event-duration,
+    .list-wrapper .event-category {
+        margin-right:10px;
+        margin-bottom:6px;
+    }
+    .list-wrapper .event-category {
+        color: #454545;
+    }
 
-            .event-payment,
-            .event-category{
-                font-size: 12px;
-                padding: 4px;
-                display: inline-block;
-            }
+    .list-wrapper .event-category paper-material {
+    @apply(--paper-font-caption);
+        border-radius:5px;
+        line-height: 14px!important;
+        padding: 4px;
+    }
 
-            .event-payment {
-                font-weight: bold;
-                cursor:pointer;
-                color: #6965FF;
-            }
-            .event-category {
-                color: #454545;
-            }
+    .list-wrapper .add-event {
+        color: #4285f4;
+    }
+    .list-wrapper .add-event span {
+        margin:5px;
+    }
 
-            .event-payment paper-shadow,
-            .event-category paper-shadow {
-                border-radius:5px;
-            }
+    .list-wrapper .event {
+        padding:10px;
+    }
+    .list-wrapper .event:hover {
+        background-color:#dddddd;
+    }
+    .list-wrapper .event .event-label:hover {
+        text-decoration: underline;
+        cursor:pointer;
+    }
+    .list-wrapper .label {
+        font-size: 0.75em;
+        color:#757575;
+        padding-bottom:5px;
+    }
+    .list-wrapper  .counts {
+        margin-top:10px;
+    }
+    .list-wrapper  .result-count {
+        color:#6A6A6A;
+        font-size:12px;
+        margin:0px 5px;
+        text-align: right;
+    }
 
-            .add-event {
-                color: #4285f4;
-            }
-            .add-event span {
-                margin:5px;
-            }
-
-            .event {
-                padding:10px;
-            }
-            .event:hover {
-                background-color:#dddddd;
-            }
-            .event .event-label:hover {
-                text-decoration: underline;
-                cursor:pointer;
-            }
-            .label {
-                font-size: 0.75em;
-                color:#757575;
-                padding-bottom:5px;
-            }
-            :host .counts {
-                margin-top:10px;
-            }
-            :host .result-count {
-                color:#6A6A6A;
-                font-size:12px;
-                margin:0px 5px;
-                text-align: right;
-            }
-
-        </style>
-        <template if="{{!nolabel}}">
-            <div class="label">
-                {{label}}
-            </div>
-        </template>
-
-        <div id="events" layout vertical relative>
-            <paper-shadow z="1" fit></paper-shadow>
-            <div layout horizontal end-justified class="counts">
+</style>
+<template>
+    <div class="layout vertical list-wrapper">
+        <div hidden$="[[nolabel]]" class="label">[[label]]</div>
+        <div id="dialogWrapper"></div>
+        <div id="events" class="layout vertical relative">
+            <paper-material elevation="1" class="fit"></paper-material>
+            <div class="layout horizontal end-justified counts">
                 <content select="[action]"></content>
-                <span class="result-count">{{events.total | _displayCount}}</span>
+                <span class="result-count">[[_displayCount(events.total)}}</span>
             </div>
-            <cg-pagination id="pagination" data="{{events}}" cgName="{{cgName}}"
-                           pageSize="{{pageSize}}"
-                           paginationPages="{{paginationPages}}"></cg-pagination>
-            <div id="listScroller" hidden?="{{events.length == 0}}" >
-                <core-list id="list" data="{{_eventsView}}" selectionEnabled="true" height="80" flex multi layout scrollTarget="{{$.listScroller}}">
-                    <template>
-                        <div class="event" layout horizontal>
-                            <div flex layout horizontal wrap>
-                                <div>
-                                    <core-icon class="event-type" icon="fa:calendar-o"></core-icon>
-                                    <span class="event-time">{{_displayTime(model.from)}} ({{_displayDuration(model.from, model.to)}})</span>
+            <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]"
+                           page-size="[[pageSize]]"
+                           pagination-pages="[[paginationPages]]"></cg-pagination>
+            <div id="listScroller" hidden$="[[hasLength(events.length]]">
+                <template is="dom-repeat" id="list" items="[[events.results]]" class="flex multi layout" sort="sortEvent">
+                    <div class="event layout horizontal">
+                        <div class="flex layout horizontal wrap">
+                            <div class="layout horizontal">
+                                <iron-icon class="event-type" icon="fa:calendar-o"></iron-icon>
+                                <div class="event-time">
+                                    <span>[[_displayTime(item.from)]]</span>
+                                    <span>&nbsp;</span>
+                                    <span>(</span>
+                                    <span>[[_displayDuration(item.from, item.to)]]</span>
+                                    <span>)</span>
                                 </div>
-                                <span class="event-label" on-tap="{{_onLabelClick}}" data-id="{{model._cgelId}}">{{model.label}}</span>
-                                <template if="{{model.links[showLink]}}">
-                                    <cg-link link="{{model.links[showLink]}}" linkSource="{{model}}" source="{{self}}"></cg-link>
-                                </template>
-                                <template repeat="{{model.categories as category}}">
-                                    <div class="event-category" relative>
-                                        <paper-shadow z="1" fit></paper-shadow>
-                                        {{category}}
-                                    </div>
-                                </template>
                             </div>
+                            <span class="event-label" on-tap="_onLabelClick">[[item.label]]</span>
+                            <cg-link hidden$="[[!hasProp(item.links, showLink)]]" link="[[map(item.links, showLink)]]" linkSource="[[item]]" source="[[self]]"></cg-link>
+                            <template is="dom-repeat" items="[[item.categories]]" as="category">
+                                <div class="event-category relative">
+                                    <paper-material elevation="1"><span>[[category]]</span></paper-material>
+                                </div>
+                            </template>
                         </div>
-                    </template>
-                </core-list>
+                    </div>
+                </template>
             </div>
             <div>
-                <paper-button id="addbutton" class="add-event" on-tap="{{_onAddClick}}">
-                    <core-icon icon="fa:calendar-o"></core-icon>
-                        <span>
-                            Add Event
-                        </span>
+                <paper-button id="addbutton" class="add-event" on-tap="_onAddClick">
+                    <iron-icon icon="fa:calendar-o"></iron-icon>
+                    <span>Add Event</span>
                 </paper-button>
             </div>
         </div>
-    </template>
-    <script>
-        (function(){
-            Polymer("cg-event-list", {
-                _id:1,
-                nolabel:false,
-                label:"Events",
-                colors:null,
-                pageSize:5,
-                paginationPages:10,
-                categories:null,
-                scrolling:true,
-                events:null,
-                refreshOnApplicationEvents:null,
-                _eventsView:null,
-                _timeFormat : Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'}),
-                created:function(){
-                    this.super();
-                    this.refreshOnApplicationEvents = [];
-                },
-                domReady:function(){
-                    this.super();
-                    this.$.eventEditor = this.globals.eventEditor || this.shadowRoot.appendChild(this._createEventEditor());
-                },
-                _createEventEditor:function(){
-                    var editor = document.createElement("cg-event-editor");
-                    editor.setAttribute("colors", "{{colors}}");
-                    editor.setAttribute("categories", "{{categories}}");
-                    return editor;
-                },
-                _displayDuration:function(from, to){
-                    if(!from || !to) return;
-                    return CG.Utils.Formats.duration(to.getTime() - from.getTime());
-                },
-                _displayTime:function(from){
-                    if(!from) return;
-                    return this._timeFormat.format(from);
-                },
-                _displayCount:function(total) {
-                    return CG.Utils.Displays.countFound("event","events", total);
-                },
-                sortEventView:function(){
-                    this._eventsView = this.events.results.slice().sort(function(a,b){
-                        var at = a.from.getTime();
-                        var bt = b.from.getTime();
-                        return at < bt ? 1 : at > bt ? -1 : 0;
-                    })
-                },
-                eventsChanged:function(){
-                    this._id = 1;
-                    this.events.results.forEach(function(e) {
-                        e._cgelId = this._id++;
-                    }.bind(this));
-                    this.sortEventView();
-                },
-                _onAddClick:function(e){
-                    this.globals.eventEditor.openDialog();
-                },
-                onApplicationEvent:function(type, event){
-                    switch(type){
-                        case "event-updated":
-                        case "event-created":
-                        case "event-deleted":
-                            console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
-                            this.reload();
-                            return;
-                    }
-                    if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
-                        console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
-                        this.reload();
-                    }
-                },
-                contextChanged:function(){
-                    this.reload();
-//                    this.fireDataRequest({
-//                        type:"data",
-//                        success:function(response){
-//                            this.events = response.data;
-//                        }.bind(this),
-//                        failure:function(response){}.bind(this)
-//                    });
-                },
-                reload:function(){
-                    this.$.pagination.reload();
-                },
-                _onLabelClick:function(e){
-                    this.openEditor(e.currentTarget.dataset.id);
-                },
-                openEditor:function(eventId){
-                    this.$.eventEditor.openDialog(this._getEventByInternalId(eventId), undefined, this);
-                },
-                _getEventIndex:function(id) {
-                    for(var i = 0; i < this.events.results.length; i++){
-                        if(this.events.results[i]._cgelId == id) {
-                            return i;
-                        }
-                    }
-                    return -1;
-                },
-                _getEventByInternalId:function(id) {
-                    var index = this._getEventIndex(id);
-                    return index != -1 ? this.events.results[index] : null;
+    </div>
+</template>
+</dom-module>
+<script>
+    Polymer({
+        is:"cg-event-list",
+        properties:{
+            cgName:{
+                type:String,
+                value:"events"
+            },
+            colors:Array,
+            categories:Array,
+            nolabel:{
+                type:Boolean,
+                value:false
+            },
+            label:{
+                type:String,
+                value:"Events"
+            },
+            showLink:{
+                type:String,
+                value:null,
+            },
+            pageSize:{
+                type:Number,
+                value:5
+            },
+            paginationPages:{
+                type:Number,
+                value:10
+            },
+            scrolling:{
+                type:Boolean,
+                value:true
+            },
+            locale:{
+                type:String,
+                value:window.navigator.userLanguage || window.navigator.language
+            },
+            events:Object,
+            refreshOnApplicationEvents:{
+                type:Array,
+                value:[]
+            },
+            _id:{
+                type:Number,
+                value:1
+            },
+            _timeFormat : {
+                type:Intl.DateTimeFormat,
+                value:function(){
+                    return Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', 'minute':'2-digit'})
                 }
+            }
+        },
+        behaviors:[CG.BaseBehavior],
+        ready:function(){
+            this.$.eventEditor = this.globals.eventEditor || this.importHref("./cg-event-editor.html", function(){
+                this.$.eventEditor = Polymer.dom(this.$.dialogWrapper).appendChild(this.create("cg-event-editor", {
+                    categories:this.categories,
+                    colors:this.colors,
+                }));
             });
-        })()
-    </script>
-</polymer-element>
+        },
+        _displayDuration:function(from, to){
+            if(!from || !to) return;
+            return CG.Utils.Formats.duration(to.getTime() - from.getTime());
+        },
+        _displayTime:function(from){
+            if(!from) return;
+            return this._timeFormat.format(from);
+        },
+        _displayCount:function(total) {
+            return CG.Utils.Displays.countFound("event","events", total);
+        },
+        sortEvent:function(a,b){
+            var at = a.from.getTime();
+            var bt = b.from.getTime();
+            return at < bt ? 1 : at > bt ? -1 : 0;
+        },
+        _onAddClick:function(e){
+            this.$.eventEditor.openDialog();
+        },
+        onApplicationEvent:function(type, event){
+            switch(type){
+                case "event-updated":
+                case "event-created":
+                case "event-deleted":
+                    console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
+                    this.reload();
+                    return;
+            }
+            if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
+                console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
+                this.reload();
+            }
+        },
+        contextChanged:function(){
+            this.reload();
+        },
+        reload:function(){
+            this.$.pagination.reload();
+        },
+        _onLabelClick:function(e){
+            this.$.eventEditor.openDialog(e.model.item, undefined, this);
+        },
+    });
+</script>

@@ -621,6 +621,10 @@
                     type:Boolean,
                     value:false
                 },
+                locale:{
+                    type:String,
+                    value:window.navigator.userLanguage || window.navigator.language
+                },
                 highlightedFn:{
                     type:Function,
                     value:function(){return function(data){return true}}
@@ -671,23 +675,33 @@
                 },
                 _timeFormat : {
                     type:Intl.DateTimeFormat,
-                    value:Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false})
+                    value:function(){
+                        return Intl.DateTimeFormat(this.locale, {hour:'2-digit', minute:'2-digit', hour12:false})
+                    }
                 },
                 _headerDateFormat : {
                     type:Intl.DateTimeFormat,
-                    value:Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'long'})
+                    value:function(){
+                        return Intl.DateTimeFormat(this.locale, {day:'2-digit', month:'long'})
+                    }
                 },
                 _dayNameFormat : {
                     type:Intl.DateTimeFormat,
-                    value:Intl.DateTimeFormat(this.locale, {weekday:'long'})
+                    value:function(){
+                        return Intl.DateTimeFormat(this.locale, {weekday:'long'})
+                    }
                 },
                 _dayNumFormat : {
                     type:Intl.DateTimeFormat,
-                    value:Intl.DateTimeFormat(this.locale, {day:'2-digit'})
+                    value:function(){
+                        return Intl.DateTimeFormat(this.locale, {day:'2-digit'})
+                    }
                 },
                 _monthNumFormat : {
                     type:Intl.DateTimeFormat,
-                    value:Intl.DateTimeFormat(this.locale, {month:'2-digit'})
+                    value:function(){
+                        return Intl.DateTimeFormat(this.locale, {month:'2-digit'})
+                    }
                 },
                 date:{
                     type:Date,

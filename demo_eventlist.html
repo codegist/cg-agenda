@@ -3,103 +3,56 @@
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>cg-datetime-input Demo</title>
+    <script src="../webcomponentsjs/webcomponents-lite.js"></script>
     <link rel="import" href="cg-datasource-testdata.html">
     <link rel="import" href="cg-event-list.html">
-    <style>
-        .demo {
-            margin-bottom:60px;
-            min-height: 300px;
-        }
-        .demo-item {
-            padding: 2px;
-            min-height: 300px;
-        }
-    </style>
 </head>
 
 
 <body unresolved fullbleed layout vertical center center-justified>
 
-<template id="sandbox" is="auto-binding">
+<template is="dom-bind" id="sandbox">
     <cg-datasource-testdata></cg-datasource-testdata>
-    <div layout horizontal wrap>
-        <section layout vertical left>
-            <h2>With data</h2>
-            <section>
-                <div vertical layout class="party-info-form">
-                    <cg-event-list events="{{events}}" label="Event List"></cg-event-list>
-                </div>
-            </section>
-        </section>
-        <section layout vertical left>
-            <h2>Without data</h2>
-            <section>
-                <div vertical layout class="party-info-form">
-                    <cg-event-list label="Event List"></cg-event-list>
-                </div>
-            </section>
-        </section>
-        <section layout vertical left>
-            <h2>With datasource</h2>
-            <section>
-                <div vertical layout class="party-info-form">
-                    <cg-event-list label="Event List"></cg-event-list>
-                </div>
-            </section>
-        </section>
-        <section layout vertical left>
-            <h2>With datasource no data</h2>
-            <section>
-                <div vertical layout class="party-info-form">
-                    <cg-event-list label="Event List"></cg-event-list>
-                </div>
-            </section>
-        </section>
-    </div>
+    <cg-event-list label="Event List" show-link="invoice"></cg-event-list>
+    <!--<div layout horizontal wrap>-->
+        <!--<section layout vertical left>-->
+            <!--<h2>With data</h2>-->
+            <!--<section>-->
+                <!--<div vertical layout class="party-info-form">-->
+                    <!--<cg-event-list events="{{events}}" label="Event List"></cg-event-list>-->
+                <!--</div>-->
+            <!--</section>-->
+        <!--</section>-->
+        <!--<section layout vertical left>-->
+            <!--<h2>Without data</h2>-->
+            <!--<section>-->
+                <!--<div vertical layout class="party-info-form">-->
+                    <!--<cg-event-list label="Event List"></cg-event-list>-->
+                <!--</div>-->
+            <!--</section>-->
+        <!--</section>-->
+        <!--<section layout vertical left>-->
+            <!--<h2>With datasource</h2>-->
+            <!--<section>-->
+                <!--<div vertical layout class="party-info-form">-->
+                    <!--<cg-event-list label="Event List"></cg-event-list>-->
+                <!--</div>-->
+            <!--</section>-->
+        <!--</section>-->
+        <!--<section layout vertical left>-->
+            <!--<h2>With datasource no data</h2>-->
+            <!--<section>-->
+                <!--<div vertical layout class="party-info-form">-->
+                    <!--<cg-event-list label="Event List"></cg-event-list>-->
+                <!--</div>-->
+            <!--</section>-->
+        <!--</section>-->
+    <!--</div>-->
 </template>
 
 <script>
-    window.addEventListener('template-bound', function(){
-        var sandbox = document.getElementById('sandbox');
-        sandbox.user = {id:1};
-        sandbox.userNoData = {};
-        sandbox.events = [
-            {
-                from:new Date("2015-03-18T09:00:00.000-0500"),
-                to:new Date("2015-03-18T12:30:00.000-0500"),
-                label:"some label",
-                categories:["cat1","cat3","cat2","cat1","cat3","cat2","cat1","cat3","cat2"],
-                color:{name:"Bold Blue", mask:"#5484ED"}
-            },
-            {
-                from:new Date("2015-03-18T09:00:00.000-0500"),
-                to:new Date("2015-03-18T10:00:00.000-0500"),
-                label:"some label",
-                categories:["cat1","cat3","cat2"],
-                color:{name:"Bold Blue", mask:"#5484ED"}
-            },
-            {
-                from:new Date("2015-03-18T10:00:00.000-0500"),
-                to:new Date("2015-03-18T11:30:00.000-0500"),
-                label:"some label",
-                categories:["cat1","cat3","cat2"],
-                color:{name:"Bold Blue", mask:"#5484ED"}
-            },
-            {
-                from:new Date("2015-03-18T11:30:00.000-0500"),
-                to:new Date("2015-03-18T12:30:00.000-0500"),
-                label:"some label",
-                categories:["cat1","cat3","cat2"],
-                color:{name:"Bold Blue", mask:"#5484ED"}
-            },
-            {
-                from:new Date("2015-03-18T09:30:00.000-0500"),
-                to:new Date("2015-03-20T14:32:00.000-0500"),
-                label:"some label",
-                categories:["cat1","cat3","cat2"],
-                color:{name:"Bold Blue", mask:"#5484ED"}
-            }
-        ];
+    window.addEventListener('WebComponentsReady', function() {
+//        var sandbox = document.getElementById('sandbox');
     });
 </script>
 
