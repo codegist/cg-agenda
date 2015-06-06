@@ -69,7 +69,7 @@
                     <iron-pages selected="{{_selectedPage}}">
                         <div class$="[[ifEqualsTo(_selectedPage, 0, 'relative page-wrapper', 'page-wrapper')]]">
                             <div class="layout vertical">
-                                <div hidden$="[[!hasLength(_editCopy.linksArray.length)]]">
+                                <div hidden$="[[!isGreaterThan(_editCopy.linksArray.length, 0)]]">
                                     <paper-input-container class="event-links" always-float-label>
                                         <label>Links</label>
                                         <input hidden>
@@ -236,7 +236,6 @@
             });
         },
         _doValidate:function(){
-            console.log("validate")
             if(!this._editCopy) {
                 return;
             }

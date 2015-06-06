@@ -84,7 +84,7 @@
 </style>
 <template>
     <div class="layout vertical list-wrapper">
-        <div hidden$="[[nolabel]]" class="label">[[label]]</div>
+        <div hidden$="[[nolabel]]" class="label">[[add(label]]</div>
         <div id="dialogWrapper"></div>
         <div id="events" class="layout vertical relative">
             <paper-material elevation="1" class="fit"></paper-material>
@@ -93,9 +93,9 @@
                 <span class="result-count">[[_displayCount(events.total)}}</span>
             </div>
             <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]"
-                           page-size="[[pageSize]]"
+                               page-size="[[pageSize]]" selected-page="[[selectedPage]]"
                            pagination-pages="[[paginationPages]]"></cg-pagination>
-            <div id="listScroller" hidden$="[[hasLength(events.length]]">
+            <div id="listScroller" hidden$="[[!isGreaterThan(events.results.length, 0)]]">
                 <template is="dom-repeat" id="list" items="[[events.results]]" class="flex multi layout" sort="sortEvent">
                     <div class="event layout horizontal">
                         <div class="flex layout horizontal wrap">
@@ -160,6 +160,10 @@
                 type:Number,
                 value:10
             },
+            selectedPage:{
+                type:Number,
+                value:1
+            },
             scrolling:{
                 type:Boolean,
                 value:true
@@ -168,7 +172,13 @@
                 type:String,
                 value:window.navigator.userLanguage || window.navigator.language
             },
-            events:Object,
+            events:{
+                type:Object,
+                value:{
+                    results:[],
+                    total:0
+                }
+            },
             refreshOnApplicationEvents:{
                 type:Array,
                 value:[]
