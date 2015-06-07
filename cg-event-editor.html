@@ -165,6 +165,9 @@
     Polymer({
         is:"cg-event-editor",
         properties:{
+            listensTo:{
+                value:[]
+            },
             event:{
                 type:Object,
                 notify:true,

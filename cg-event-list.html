@@ -92,9 +92,7 @@
                 <content select="[action]"></content>
                 <span class="result-count">[[_displayCount(events.total)}}</span>
             </div>
-            <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]"
-                               page-size="[[pageSize]]" selected-page="[[selectedPage]]"
-                           pagination-pages="[[paginationPages]]"></cg-pagination>
+            <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]" page-size="[[pageSize]]" pagination-pages="[[paginationPages]]"></cg-pagination>
             <div id="listScroller" hidden$="[[!isGreaterThan(events.results.length, 0)]]">
                 <template is="dom-repeat" id="list" items="[[events.results]]" class="flex multi layout" sort="sortEvent">
                     <div class="event layout horizontal">
@@ -110,7 +108,7 @@
                                 </div>
                             </div>
                             <span class="event-label" on-tap="_onLabelClick">[[item.label]]</span>
-                            <cg-link hidden$="[[!hasProp(item.links, showLink)]]" link="[[map(item.links, showLink)]]" linkSource="[[item]]" source="[[self]]"></cg-link>
+                            <cg-link hidden$="[[!hasProp(item, 'links', showLink)]]" link="[[prop(item, 'links', showLink)]]" linkSource="[[item]]" source="[[self]]"></cg-link>
                             <template is="dom-repeat" items="[[item.categories]]" as="category">
                                 <div class="event-category relative">
                                     <paper-material elevation="1"><span>[[category]]</span></paper-material>
@@ -160,10 +158,6 @@
                 type:Number,
                 value:10
             },
-            selectedPage:{
-                type:Number,
-                value:1
-            },
             scrolling:{
                 type:Boolean,
                 value:true
@@ -202,6 +196,7 @@
                     colors:this.colors,
                 }));
             });
+            this.$.pagination.reload();
         },
         _displayDuration:function(from, to){
             if(!from || !to) return;
