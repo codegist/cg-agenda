@@ -116,7 +116,7 @@
                                     <label>Color</label>
                                     <cg-input-color class="paper-input-input" cg-name="events/colors" colors="[[colors]]" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-container>
-                                <cg-input-documents label="Documents" cg-name="documents/event" categories="[[documentCategories]]" 
+                                <cg-input-documents label="Documents" cg-name="documents/event" categories="[[documentCategories]]"
                                                     auto-upload id="documentsEditor"></cg-input-documents>
                             </div>
                         </div>
@@ -216,9 +216,6 @@
         attached: function() {
             this._inputs = Polymer.dom(this.root).querySelectorAll('paper-input-container');
             this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
-        },
-        detached:function(){
-            this.clearLinksDataObservers();
         },
         links:function(links){
             if(!links) return [];
