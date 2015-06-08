@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, user-scalable=no">
-    <title>cg-datetime-input Demo</title>
     <script src="../webcomponentsjs/webcomponents-lite.js"></script>
     <link rel="import" href="cg-datasource-testdata.html">
     <link rel="import" href="cg-event-editor.html">
@@ -22,9 +21,9 @@
             <!--<span>notes: {{event1.notes | max(50)}}</span>-->
             <!--<span>RESULT: <pre style="height:80px;width:400px;overflow:auto">{{result1}}</pre></span>-->
             <cg-event-editor show-metadata="user" id="editor1" categories="{{categories}}" colors="{{colors}}">
-                <template is="dom-template" link of="user">
-                    <span>[[link.display]]</span>
-                </template>
+                <!--<template is="dom-template" link of="user">-->
+                    <!--<span>[[link.display]]</span>-->
+                <!--</template>-->
             </cg-event-editor>
             <paper-button on-tap="showEditor1">OPEN</paper-button>
         <!--</section>-->
@@ -67,7 +66,7 @@
         sandbox.showEditor1 = function(){
             sandbox.$.editor1.openDialog("some id");
 //            sandbox.$.editor1.openDialog();
-        }
+        };
     });
 </script>
 

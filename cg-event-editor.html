@@ -116,7 +116,7 @@
                                     <label>Color</label>
                                     <cg-input-color class="paper-input-input" cg-name="events/colors" colors="[[colors]]" selected="{{_editCopy.color}}"></cg-input-color>
                                 </paper-input-container>
-                                <cg-input-documents label="Documents" cg-name="documents/event" categories="[[documentCategories]]" documents="{{_editCopy.documents}}"
+                                <cg-input-documents label="Documents" cg-name="documents/event" categories="[[documentCategories]]" 
                                                     auto-upload id="documentsEditor"></cg-input-documents>
                             </div>
                         </div>
@@ -201,10 +201,6 @@
             _editCopy:{
                 type:Object,
                 observer:'_editCopyChanged'
-            },
-            templateLinkDataObserver:{
-                type:Array,
-                value:[]
             },
             linkTemplates:{
                 type:Array,
@@ -321,28 +317,30 @@
                 this._editCopy = undefined;
             }
         },
-        clearLinksDataObservers : function() {
-            this.templateLinkDataObserver.forEach(function(o){
-                o.close();
-            });
-            this.templateLinkDataObserver = [];
-        },
         bindLinkTemplates: function() {
-            this.clearLinksDataObservers();
             if(this._editCopy) {
                 this.doWhenConditionIsMet(function(){ // todo kind of dodgy isn't ?
                     this.linkTemplates.forEach(function(template){
-                        var model = {
-                            link:this._editCopy.links[template.getAttribute("of")],
-                            event:this._editCopy
-                        };
-                        var o = new PathObserver(model.model, "link"); //todo remove that, replace with normal databinding change notification system
-                        o.open(function(){
-                            this._editCopy.links[template.getAttribute("of")] = model.model.link;
-                        }.bind(this));
-                        this.templateLinkDataObserver.push(o);
-                        template._parentProps = {};
-                        Polymer.dom(this.root).querySelector("[linktype=" + model.link.type + "]").appendChild(template.stamp(model).root);
+                        var type = template.getAttribute("of");
+                        var link = this._editCopy.links[type];
+                        var event = this._editCopy;
+                        if(!template.__cgInstance) {
+                            var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
+                            template._parentProps = {};
+                            var tmpInstance = template.stamp({
+                                link:link,
+                                event:event,
+                            });
+                            parent.appendChild(tmpInstance.root);
+                            parent.addEventListener("input", function (e) {
+                                this._editCopy.links[type] = e.detail;
+                                this.set("_editCopy.linksArray", this.links(this._editCopy.links))
+                            }.bind(this));
+                            template.__cgInstance = tmpInstance;
+                        }else{
+                            template.__cgInstance.event = event;
+                            template.__cgInstance.link = link;
+                        }
                     }.bind(this));
                 }, function(){
                     return Polymer.dom(this.root).querySelector("[linktype]") != undefined

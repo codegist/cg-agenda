@@ -6,7 +6,6 @@
 <dom-module id="cg-datasource-testdata">
 </dom-module>
 <script>
-
     var d4 = [
         {
             "label": "ironmonger marcel papillomatous pistollike ",
@@ -3112,7 +3111,7 @@
                         'documents/event/data': this.documents,
                         'document/save': this.documentSave,
                         'document/delete': this.delete,
-                        'documents/categories/data': this.categories
+                        'documents/categories/data': this.categories,
                     };
                 }
             }
@@ -3142,7 +3141,7 @@
         },
         getEvent:function(options){
             console.log("### Datasource[TestData] getEvent(params:"+JSON.stringify(options.params)+")");
-            return options.success({success:true, data:evt});
+            return options.success({success:true, data:CG.Utils.Objects.deepClone(evt)});
         },
         eventSave:function(options){
             console.log("### Datasource[TestData] eventSave(params:"+JSON.stringify(options.params)+")");
