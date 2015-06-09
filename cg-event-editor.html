@@ -131,7 +131,7 @@
                         <iron-icon icon="clear"></iron-icon>
                         delete
                     </paper-button>
-                    <paper-button class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus>
+                    <paper-button class$="[[ifTrue(isValid, 'colored custom valid', 'colored custom invalid')]]" on-tap="ok" id="okButton" autofocus disabled$="[[!isValid]]">
                         <iron-icon icon="[[ifTrue(isValid, 'check', 'fa:exclamation-triangle')]]"></iron-icon>
                         <span hidden$="[[create]]">ok</span>
                         <span hidden$="[[!create]]">add</span>
@@ -251,25 +251,22 @@
             return true;
         },
         ok:function(){
-            this._validate(function(valid){
-                if(!valid) return;
-                if(this.isDataAware()){
-                    this.fireDataRequest({
-                        type:"save",
-                        params:{original:this.event, save:this._editCopy},
-                        success:function(response){
-                            this.event = CG.Utils.Objects.clone(true, this.event, response.data);
-                            this.$.documentsEditor.saveDocuments(function(responses){
-                                this.closeDialog("OK");
-                            }.bind(this));
-                        }.bind(this),
-                        failure:function(response){}.bind(this)
-                    });
-                }else{
-                    this.event = CG.Utils.Objects.clone(true, this.event, this._editCopy);
-                    this.closeDialog("OK");
-                }
-            });
+            if(this.isDataAware()){
+                this.fireDataRequest({
+                    type:"save",
+                    params:{original:this.event, save:this._editCopy},
+                    success:function(response){
+                        this.event = CG.Utils.Objects.clone(true, this.event, response.data);
+                        this.$.documentsEditor.saveDocuments(function(responses){
+                            this.closeDialog("OK");
+                        }.bind(this));
+                    }.bind(this),
+                    failure:function(response){}.bind(this)
+                });
+            }else{
+                this.event = CG.Utils.Objects.clone(true, this.event, this._editCopy);
+                this.closeDialog("OK");
+            }
         },
         close:function(){
             this.cancel();
