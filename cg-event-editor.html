@@ -305,7 +305,7 @@
         eventChanged:function(){
             if(this.event) {
                 this.$.documentsEditor.dataContext = {event : this.event};
-                var editCopy = CG.Utils.Objects.clone(true, {}, this.event);
+                var editCopy = CG.Utils.Objects.deepClone(this.event);
                 editCopy.categories = editCopy.categories || [];
                 editCopy.linksArray = this.links(editCopy.links);
                 this._editCopy = editCopy;
