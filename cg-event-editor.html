@@ -197,6 +197,14 @@
                 type:String,
                 value:"event"
             },
+            augmentEvent:{
+                type:Function,
+                value:function(){
+                    return function(event, create){
+                        return event;
+                    };
+                }
+            },
             _callerScope:Object,
             _editCopy:{
                 type:Object,
@@ -343,9 +351,6 @@
         },
         _editCopyChanged:function(){
             this.bindLinkTemplates();
-        },
-        augmentEvent:function(event, create){
-            return event;
         },
         openDialog:function(event, edit, closeCallbackOrCallerScope){
             if(typeof closeCallbackOrCallerScope == "function") {
