@@ -56,6 +56,9 @@
         .editor-wrapper .event-links ::content .unfocused-line {
             background-color: transparent;
         }
+        .editor-wrapper [page].iron-selected {
+            @apply(--layout-relative);
+        }
     </style>
     <template>
         <div class="editor-wrapper">
@@ -67,7 +70,7 @@
                         <paper-tab>More</paper-tab>
                     </paper-tabs>
                     <iron-pages selected="{{_selectedPage}}">
-                        <div class$="[[ifEqualsTo(_selectedPage, 0, 'relative page-wrapper', 'page-wrapper')]]">
+                        <div class="page-wrapper" page>
                             <div class="layout vertical">
                                 <div hidden$="[[!isGreaterThan(_editCopy.linksArray.length, 0)]]">
                                     <paper-input-container class="event-links" always-float-label>
@@ -106,7 +109,7 @@
                                 </paper-input-container>
                             </div>
                         </div>
-                        <div class$="[[ifEqualsTo(_selectedPage, 1, 'relative page-wrapper', 'page-wrapper')]]">
+                        <div class="page-wrapper" page>
                             <div class="layout vertical">
                                 <paper-input-container auto-validate attr-for-value="selected">
                                     <label>Categories</label>
