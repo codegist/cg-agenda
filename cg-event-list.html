@@ -3,7 +3,9 @@
 <link rel="import" href="../iron-flex-layout/classes/iron-flex-layout.html">
 <link rel="import" href="../paper-material/paper-material.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../cg-base/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-context-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-event-behavior.html">
 <link rel="import" href="../cg-pagination/cg-pagination.html">
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
@@ -189,9 +191,9 @@
                 }
             }
         },
-        behaviors:[CG.BaseBehavior],
+        behaviors:[CG.BaseBehavior, CG.ApplicationEventBehavior, CG.ApplicationContextBehavior],
         ready:function(){
-            this.$.eventEditor = this.globals.eventEditor || this.importHref("./cg-event-editor.html", function(){
+            this.$.eventEditor = this.context.eventEditor || this.importHref("./cg-event-editor.html", function(){
                 this.$.eventEditor = Polymer.dom(this.$.dialogWrapper).appendChild(this.create("cg-event-editor", {
                     categories:this.categories,
                     colors:this.colors,
@@ -223,17 +225,17 @@
                 case "event-updated":
                 case "event-created":
                 case "event-deleted":
-                    console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
+                    console.log(this.toString(), "onApplicationEvent(type:'" + type + "') source is unknown, trigger data refresh");
                     this.reload();
                     return;
             }
             if(this.refreshOnApplicationEvents && this.refreshOnApplicationEvents.indexOf(type) != -1) {
-                console.log("[cg-event-list] onApplicationEvent(type:'" + type + "') received, trigger data refresh");
+                console.log(this.toString(), "onApplicationEvent(type:'" + type + "') received, trigger data refresh");
                 this.reload();
             }
         },
-        contextChanged:function(){
-            this.reload();
+        onContextChanged:function(){
+            this.reload();// todo inject conditions to reload on contextChangedPath
         },
         reload:function(){
             this.$.pagination.reload();

@@ -5,7 +5,7 @@
 <link rel="import" href="../cg-base/cg-required-validator.html">
 <link rel="import" href="../cg-base/cg-validatable-behavior.html">
 <link rel="import" href="../paper-material/paper-material.html">
-<link rel="import" href="../cg-base/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-base-behavior.html">
 
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
@@ -168,9 +168,6 @@
     Polymer({
         is:"cg-event-editor",
         properties:{
-            listensTo:{
-                value:[]
-            },
             event:{
                 type:Object,
                 notify:true,
@@ -223,7 +220,7 @@
                 value:"Invalid or required"
             },
         },
-        behaviors:[CG.BaseBehavior],
+        behaviors:[CG.BaseBehavior, CG.ApplicationDataSourceAwareBehavior],
         attached: function() {
             this._inputs = Polymer.dom(this.root).querySelectorAll('paper-input-container');
             this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));

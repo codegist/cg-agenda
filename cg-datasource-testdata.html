@@ -1,7 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../cg-datasource/cg-datasource-base-behavior.html">
-<link rel="import" href="../cg-base/cg-base-behavior.html">
-<link rel="import" href="../cg-utils/cg-utils.html">
 
 <dom-module id="cg-datasource-testdata">
 </dom-module>
@@ -2744,7 +2742,8 @@
         }
     ];
     var categories = ["Apicoectomy", "Bridges", "Crowns", "Dentures", "Extraction", "Fiberotomy", "Implant-supported prosthesis", "Implants", "Prosthodontics", "Pulpotomy", "Root canal", "Veneers"];
-    var colors = [{
+    var colors = [
+        {
         "name": "Bold Blue",
         "mask": "#1159F5",
     }, {
@@ -3089,7 +3088,7 @@
                 }
             }]
         }
-    }
+    };
 
 
     var db = [d4, d5, d6];
@@ -3117,9 +3116,6 @@
             }
         },
         behaviors:[CG.DataSourceBaseBehavior],
-        ready:function(){
-            this.globals.dataAware = true;
-        },
         events:function(options){
             console.log("### Datasource[TestData] events(params:"+JSON.stringify(options.params)+")");
 
@@ -3133,11 +3129,15 @@
             console.log("using dataset " + (index) + " " + data[0].from + " - " + data[0].to);
 
             index = (index + 1) % db.length;
-            return options.success({
-                "success": true,
-                "status": 200,
-                "data":data
-            });
+            this.async(function(){
+                options.success({
+                    "success": true,
+                    "status": 200,
+                    "data":data
+                });
+                this.done = true;
+            }, this.done ? 200000 : 10);
+
         },
         getEvent:function(options){
             console.log("### Datasource[TestData] getEvent(params:"+JSON.stringify(options.params)+")");

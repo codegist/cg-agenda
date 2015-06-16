@@ -7,7 +7,10 @@
 <link rel="import" href="../paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
-<link rel="import" href="../cg-base/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-event-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-datasource-aware-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-context-behavior.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
 
 <dom-module id="cg-agenda">
@@ -370,7 +373,7 @@
                 return res != 0 ? res : CG.Utils.Comparators.number(a._cgaId, b._cgaId);
             },
             primeCollisionGroupCache:function(events){
-                console.log("[cg-agenda] Priming cache");
+                console.log(this.toString(), "Priming cache");
                 this.cache.collisionGroups.flush();
                 var groups = this.getCollisionGroup(events);
                 for(var i = 0; i < groups.length; i++){
@@ -379,7 +382,7 @@
                     group.setIds(id);
                     this.cache.collisionGroups.cache[id] = group;
                 }
-                console.log("[cg-agenda] Priming cache done [size " + this.cache.collisionGroups.size() + ", event count:" + events.length + "]");
+                console.log(this.toString(), "Priming cache done [size " + this.cache.collisionGroups.size() + ", event count:" + events.length + "]");
             },
             invalidateCollisionGroupCache:function(event){
                 //console.log("Event " + event._cgaId + " needs to be removed from cache.");
@@ -717,13 +720,13 @@
                 track: '_onEventDrag',
                 "event-drag-end":"_onEventDragEnded"
             },
-            behaviors:[CG.BaseBehavior],
+            behaviors:[CG.BaseBehavior, CG.ApplicationEventBehavior, CG.ApplicationDataSourceAwareBehavior, CG.ApplicationContextBehavior],
             _isEventOfDay:CG.Utils.Ranges.dateRangeIntersects,
             ready:function(){
-                this.$.datepicker = this.globals.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
+                this.$.datepicker = this.context.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
                     this.$.datepicker = Polymer.dom(this.$.dialogsWrapper).appendChild(this.create('cg-date-picker-dialog'));
                 });
-                this.$.eventEditor = this.globals.eventEditor || this.importHref("./cg-event-editor.html", function(){
+                this.$.eventEditor = this.context.eventEditor || this.importHref("./cg-event-editor.html", function(){
                     this.$.eventEditor = Polymer.dom(this.$.dialogsWrapper).appendChild(this.create("cg-event-editor", {
                         categories:this.categories,
                         colors:this.colors,
@@ -734,7 +737,7 @@
                     this.$.weekdays.style.marginRight = (this.$.agendadays.offsetWidth - this.$.agendadays.clientWidth) + "px";
                     this.$.agendadays.scrollTop = (this.hourHeight * this.showHour);
                 }, function(){return this.$.agendadays.offsetWidth != 0});
-                console.log("[cg-agenda] Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
+                console.log(this.toString(), "Agenda init [from:" + this._viewFrom + ", to:" + this._viewTo + "]");
             },
             computeAgendaDayStyle:function(hourHeight){
                 return "height:" + (hourHeight * 24) + "px;";
@@ -792,10 +795,10 @@
             reload:function(){
                 var range = {from:this._viewFrom, to:this._viewTo};
                 if(this._providedEvents) {
-                    console.log("[cg-agenda] Agenda - Events provided, using them");
+                    console.log(this.toString(), "Agenda - Events provided, using them");
                     this._setEvents(this._manager.getEventsInView(this.events, range));
                 }else{
-                    console.log("[cg-agenda] Agenda - Events not provided, firing data request");
+                    console.log(this.toString(), "Agenda - Events not provided, firing data request");
                     this.fireDataRequest({
                         type:"data",
                         params:range,
@@ -808,11 +811,11 @@
             },
             onApplicationEvent:function(type, event){
                 if(event.source == this) {
-                    console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is self, ignoring");
+                    console.log(this.toString(), "onApplicationEvent(type:'"+type+"') source is self, ignoring");
                     return;
                 }
                 if(event.source == this._editorSource) {
-                    console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is known, updating data");
+                    console.log(this.toString(), "onApplicationEvent(type:'"+type+"') source is known, updating data");
                     switch(type) {
                         case "event-updated":
                         case "event-created":
@@ -840,15 +843,15 @@
                         case "event-updated":
                         case "event-created":
                         case "event-deleted":
-                            console.log("[cg-agenda] onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
+                            console.log(this.toString(), "onApplicationEvent(type:'"+type+"') source is unknown, trigger data refresh");
                             if (CG.Utils.Ranges.dateRangeIntersects(event.params, {
                                         from: this._viewFrom,
                                         to: this._viewTo
                                     })) {
-                                console.log("[cg-agenda] received event update. Event is in view. Refreshing datas");
+                                console.log(this.toString(), "received event update. Event is in view. Refreshing datas");
                                 this.reload();
                             } else {
-                                console.log("[cg-agenda] received event update. Event is not in view. Ignoring");
+                                console.log(this.toString(), "received event update. Event is not in view. Ignoring");
                             }
                             break;
                     }
@@ -870,10 +873,10 @@
             _eventsChanged:function(){
                 var eventsInView = this._events.slice();
                 if(eventsInView.length < this._eventSizeCacheThreshold) {
-                    console.log("[cg-agenda] Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
+                    console.log(this.toString(), "Event in view size (" + eventsInView.length + ") within cache threshold ("+ this._eventSizeCacheThreshold+"). Cache disabled. ");
                     this._manager.cache.collisionGroups.disable();
                 }else{
-                    console.log("[cg-agenda] Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
+                    console.log(this.toString(), "Event in view size (" + eventsInView.length + ") exceed cache threshold ("+ this._eventSizeCacheThreshold+"). Cache enabled. ");
                     this._manager.cache.collisionGroups.enable();
                     this._manager.primeCollisionGroupCache(eventsInView);
                 }
