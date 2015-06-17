@@ -799,6 +799,10 @@
                     this._setEvents(this._manager.getEventsInView(this.events, range));
                 }else{
                     console.log(this.toString(), "Agenda - Events not provided, firing data request");
+                    // TODO for re-render because template is not re-run on day-change and ends up with messed up rendering
+                    Array.prototype.slice.call(Polymer.dom(this.root).querySelectorAll("template[is='cg-repeat']")).forEach(function(e){
+                        e.render();
+                    });
                     this.fireDataRequest({
                         type:"data",
                         params:range,
