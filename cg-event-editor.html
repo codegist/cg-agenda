@@ -331,14 +331,13 @@
                             }.bind(this));
                         }
 
-                        var model = {};
-                        this.mixin(model, this.get("_config", this.linksScope) || this._config);
+                        var model = this.mixin({}, this.get("_config", this.linksScope) || this._config);
                         model.link = link;
                         model.event = event;
 
-                        var tmpInstance = template.stamp(model);
-                        template.__cgInstance = tmpInstance;
-                        parent.appendChild(tmpInstance.root);
+                        template.__cgInstance = template.stamp(model);
+                        parent.innerHTML = "";
+                        Polymer.dom(parent).appendChild(template.__cgInstance.root)
                     }.bind(this));
                 }, function(){
                     return Polymer.dom(this.root).querySelector("[linktype]") != undefined
