@@ -8,7 +8,7 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
 <link rel="import" href="../cg-behaviors/cg-base-behavior.html">
-<link rel="import" href="../cg-behaviors/cg-application-event-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-event-listener-behavior.html">
 <link rel="import" href="../cg-behaviors/cg-application-datasource-aware-behavior.html">
 <link rel="import" href="../cg-behaviors/cg-application-context-behavior.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
@@ -624,15 +624,18 @@
                     type:String,
                     value:window.navigator.userLanguage || window.navigator.language
                 },
-                highlightedFn:{
+                styleFn:{
                     type:Function,
-                    value:function(){return function(data){return true}}
+                    value:function(){return function(event){return {};}}
                 },
-                colorFn:{
+                createEventAugmentFn:{
                     type:Function,
-                    value:function(){return function(data){return null}}
+                    value:function(){
+                        return function(event){
+                            return event;
+                        };
+                    }
                 },
-
                 _manager:{
                     type:CalendarManager,
                     value:new CalendarManager(true)
@@ -720,7 +723,7 @@
                 track: '_onEventDrag',
                 "event-drag-end":"_onEventDragEnded"
             },
-            behaviors:[CG.BaseBehavior, CG.ApplicationEventBehavior, CG.ApplicationDataSourceAwareBehavior, CG.ApplicationContextBehavior],
+            behaviors:[CG.BaseBehavior, CG.ApplicationEventListenerBehavior, CG.ApplicationDataSourceAwareBehavior, CG.ApplicationContextBehavior],
             _isEventOfDay:CG.Utils.Ranges.dateRangeIntersects,
             ready:function(){
                 this.$.datepicker = this.context.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
@@ -867,8 +870,8 @@
                     this.reload();
                 }
             },
-            contextChanged:function(){
-                //this.redrawAll(); TODO
+            onContextChanged:function(){
+                this.redrawAll();
             },
             _setEvents:function(events){
                 this._manager.orderEvents(events, false);
@@ -979,6 +982,7 @@
                 this.$.eventEditor.openDialog(event, undefined, this._editorSource);
             },
             createEvent:function(event){
+                event = this.createEventAugmentFn(event);
                 this.$.eventEditor.openDialog(event || {}, false, this._editorSource);
             },
             _onEventDragStart:function(e){
@@ -1272,20 +1276,19 @@
             _getEventBoxFor:function(range, day, event){
                 var top = range.from.getDate() == day ? this._getHeightForDate(range.from) : 0;
                 var height = this._getHeightForDate(range.to.getDate() == day ? range.to : new Date(range.to.getFullYear(), range.to.getMonth(), range.to.getDate(), 23, 59)) - top;
-                var opacity = this.highlightedFn(event) ? 1.0 : .2;
-                var backgroundColor = !event || !event.color || !event.color.mask ? this.colorFn(event) : undefined;
-
-                return {
+                var styles = {
                     top:top,
                     height:height,
                     width:100,
                     left:0,
-                    opacity:opacity,
-                    backgroundColor:event && event.color && event.color.mask ? event.color.mask : backgroundColor ? backgroundColor.mask : this.defaultColor.mask,
+                    opacity:1.0,
+                    backgroundColor:this.defaultColor.mask,
                     toStyleString:function(additional){
                         return "top:" + this.top + "px;height:" + this.height + "px;width:" + this.width + "%;left:" + this.left + "%;background-color:" + this.backgroundColor + ";opacity:" + this.opacity;
                     }
                 };
+                this.mixin(styles, this.styleFn(event) || {});
+                return styles;
             },
             _getHeightForDate:function(date){
                 return ((date.getHours() + (date.getMinutes() / 60.0)) * this.hourHeight);

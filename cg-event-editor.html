@@ -77,9 +77,9 @@
                                         <label>Links</label>
                                         <input hidden>
                                         <div class="horizontal layout wrap">
-                                            <template is="dom-repeat" items="[[_editCopy.linksArray]]" as="link" id="sdsd">
+                                            <template is="dom-repeat" items="[[_editCopy.linksArray]]" as="link">
                                                 <div class="horizontal layout">
-                                                    <cg-link link="[[link]]" linkSource="[[_editCopy]]" source="[[self]]"></cg-link>
+                                                    <cg-link link="[[link]]" link-source="[[_editCopy]]" source="[[self]]"></cg-link>
                                                     <div class="content-container" linktype$="[[link.type]]"></div>
                                                 </div>
                                             </template>
@@ -197,14 +197,6 @@
                 type:String,
                 value:"event"
             },
-            augmentEvent:{
-                type:Function,
-                value:function(){
-                    return function(event, create){
-                        return event;
-                    };
-                }
-            },
             _callerScope:Object,
             _editCopy:{
                 type:Object,
@@ -214,6 +206,7 @@
                 type:Array,
                 value:[]
             },
+            linksScope:Object,
             _selectedPage:Number,
             _validationError:{
                 type:String,
@@ -323,26 +316,29 @@
             if(this._editCopy) {
                 this.doWhenConditionIsMet(function(){ // todo kind of dodgy isn't ?
                     this.linkTemplates.forEach(function(template){
+                        // TODO a bit dodgy.
+                        // TODO find a way to dynamically create dom-template rather than relying on user to use is="dom-template"
                         var type = template.getAttribute("of");
                         var link = this._editCopy.links[type];
                         var event = this._editCopy;
+                        var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
+
                         if(!template.__cgInstance) {
-                            var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
                             template._parentProps = {};
-                            var tmpInstance = template.stamp({
-                                link:link,
-                                event:event,
-                            });
-                            parent.appendChild(tmpInstance.root);
                             parent.addEventListener("input", function (e) {
                                 this._editCopy.links[type] = e.detail;
                                 this.set("_editCopy.linksArray", this.links(this._editCopy.links))
                             }.bind(this));
-                            template.__cgInstance = tmpInstance;
-                        }else{
-                            template.__cgInstance.event = event;
-                            template.__cgInstance.link = link;
                         }
+
+                        var model = {};
+                        this.mixin(model, this.get("_config", this.linksScope) || this._config);
+                        model.link = link;
+                        model.event = event;
+
+                        var tmpInstance = template.stamp(model);
+                        template.__cgInstance = tmpInstance;
+                        parent.appendChild(tmpInstance.root);
                     }.bind(this));
                 }, function(){
                     return Polymer.dom(this.root).querySelector("[linktype]") != undefined
@@ -376,7 +372,7 @@
         _doOpenDialog:function(event,edit){
             this._selectedPage = 0;
             this.create = edit === false || event === undefined;
-            this.event = this.augmentEvent ? this.augmentEvent(event || {}, this.create) : {};
+            this.event = event;
             this.heading = this.create ? this.addEvent : this.existingEvent;
             this._validate(function(){
                 this.$.dialog.open();

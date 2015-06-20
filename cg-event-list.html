@@ -5,7 +5,7 @@
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../cg-behaviors/cg-base-behavior.html">
 <link rel="import" href="../cg-behaviors/cg-application-context-behavior.html">
-<link rel="import" href="../cg-behaviors/cg-application-event-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-event-listener-behavior.html">
 <link rel="import" href="../cg-pagination/cg-pagination.html">
 <link rel="import" href="../cg-link/cg-link.html">
 <link rel="import" href="../cg-utils/cg-utils.html">
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                             <span class="event-label" on-tap="_onLabelClick">[[item.label]]</span>
-                            <cg-link hidden$="[[!hasProp(item, 'links', showLink)]]" link="[[prop(item, 'links', showLink)]]" linkSource="[[item]]" source="[[self]]"></cg-link>
+                            <cg-link hidden$="[[!hasProp(item, 'links', showLink)]]" link="[[prop(item, 'links', showLink)]]" link-source="[[item]]" source="[[self]]"></cg-link>
                             <template is="dom-repeat" items="[[item.categories]]" as="category">
                                 <div class="event-category relative">
                                     <paper-material elevation="1"><span>[[category]]</span></paper-material>
@@ -191,7 +191,7 @@
                 }
             }
         },
-        behaviors:[CG.BaseBehavior, CG.ApplicationEventBehavior, CG.ApplicationContextBehavior],
+        behaviors:[CG.BaseBehavior, CG.ApplicationEventListenerBehavior, CG.ApplicationContextBehavior],
         ready:function(){
             this.$.eventEditor = this.context.eventEditor || this.importHref("./cg-event-editor.html", function(){
                 this.$.eventEditor = Polymer.dom(this.$.dialogWrapper).appendChild(this.create("cg-event-editor", {
