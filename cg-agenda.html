@@ -185,7 +185,7 @@
                 <paper-button class="action-button" id="today_icon_button" on-tap="_onNowWeek"><iron-icon icon="fa:calendar-o"></iron-icon>Today</paper-button>
                 <paper-button class="action-button" id="calendar_button" on-tap="_onSelectWeek"><iron-icon icon="fa:calendar"></iron-icon><span>[[_calendarWeekDisplay(_viewFrom, _viewTo)]]</span></paper-button>
                 <span class="divider"></span>
-                <paper-fab icon="add" class="add-patient" on-tap="redrawAll"></paper-fab>
+                <paper-fab icon="add" class="add-patient" on-tap="_onCreateEvent"></paper-fab>
             </paper-toolbar>
             <div id="weekdays" class="weekdays noselect">
                 <template is="dom-repeat" items="[[_weekDays]]" as="day">
@@ -343,7 +343,7 @@
                     if(CG.Utils.Ranges.dateRangeIntersects(e, view)){
                         inView.push(e);
                     }
-                }.bind(this));
+                }, this);
                 return inView;
             },
             minutediff:function(range) {
@@ -358,7 +358,7 @@
                 reset === true && this.idGen.reset();
                 events.forEach(function(e){
                     this.setId(e);
-                }.bind(this));
+                }, this);
                 return events;
             },
             setId:function(event) {
@@ -754,7 +754,7 @@
                                 this._refreshStyle();
                                 break;
                         }
-                    }.bind(this));
+                    }, this);
                 }.bind(this));
                 this._agendaObs.observe(this, {
                     attributes: true,
@@ -789,7 +789,7 @@
             redrawAll:function(){
                 this._eventsInView.forEach(function(e){
                     this._redrawEvent(e);
-                }.bind(this));
+                }, this);
             },
             set events(events){
                 this._providedEvents = true;
@@ -803,7 +803,7 @@
                 }else{
                     console.log(this.toString(), "Agenda - Events not provided, firing data request");
                     // TODO for re-render because template is not re-run on day-change and ends up with messed up rendering
-                    Array.prototype.slice.call(Polymer.dom(this.root).querySelectorAll("template[is='cg-repeat']")).forEach(function(e){
+                    CG.Utils.Objects.toArray(Polymer.dom(this.root).querySelectorAll("template[is='cg-repeat']")).forEach(function(e){
                         e.render();
                     });
                     this.fireDataRequest({
@@ -844,9 +844,6 @@
                     }
                 }else{
                     switch(type){
-                        case "agenda-create-event":
-                            this.createEvent(event.params);
-                            break;
                         case "event-updated":
                         case "event-created":
                         case "event-deleted":
@@ -893,7 +890,7 @@
                         event:e,
                         index:index
                     };
-                }.bind(this));
+                }, this);
 
                 this._eventsInView = eventsInView;
                 this._eventsMap = eventsMap;
@@ -982,7 +979,7 @@
                 this.$.eventEditor.openDialog(event, undefined, this._editorSource);
             },
             createEvent:function(event){
-                event = this.createEventAugmentFn(event);
+                event = this.createEventAugmentFn(event || {});
                 this.$.eventEditor.openDialog(event || {}, false, this._editorSource);
             },
             _onEventDragStart:function(e){
@@ -999,7 +996,7 @@
                 var eventId = eventElement.dataset.id;
                 var event = this._getEventById(eventId).event;
                 event._dragging = true;
-                var eventElements = Array.prototype.slice.call(this.$.agendadays.querySelectorAll(".event[data-id='" + eventId + "']"));
+                var eventElements = CG.Utils.Objects.toArray(this.$.agendadays.querySelectorAll(".event[data-id='" + eventId + "']"));
                 var eventElementsPerDay = {};
                 for(var i = 0; i < this._weekDays.length; i++){
                     eventElementsPerDay[this._weekDays[i].day] = {
@@ -1017,7 +1014,7 @@
                     eventElementsPerDay[day].originalEl = eventElement;
                     eventElementsPerDay[day].cloneEl = clone;
                     eventElementsPerDay[day].dayDDOverlayEl.appendChild(clone);
-                }.bind(this));
+                }, this);
 
                 var that = this;
                 this._initialDragInfos = {
@@ -1191,8 +1188,8 @@
                         group.events.forEach(function (event) {
                             //console.log("Trigger redraw for old group event: " + event._cgaId + " of group " + group.from + " - " + group.to);
                             this._redrawEvent(event);
-                        }.bind(this));
-                    }.bind(this));
+                        }, this);
+                    }, this);
                 }
 
                 if(operation == "edit" || operation == "create") {
@@ -1212,8 +1209,8 @@
                         group.events.forEach(function(event){
                             //console.log("Trigger redraw for new group event: " + event._cgaId + " of group " + group.from + " - " + group.to);
                             this._redrawEvent(event);
-                        }.bind(this));
-                    }.bind(this));
+                        }, this);
+                    }, this);
                 }else if(operation == "delete"){
                     for(var i = 0; i < this._events.length; i++){
                         if(this._events[i]._cgaId == event._cgaId) {

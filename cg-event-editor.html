@@ -216,7 +216,7 @@
         behaviors:[CG.BaseBehavior, CG.ApplicationDataSourceAwareBehavior],
         attached: function() {
             this._inputs = Polymer.dom(this.root).querySelectorAll('paper-input-container');
-            this.linkTemplates = Array.prototype.slice.call(Polymer.dom(this).querySelectorAll('template[link]'));
+            this.linkTemplates = CG.Utils.Objects.toArray(Polymer.dom(this).querySelectorAll('template[link]'));
         },
         links:function(links){
             if(!links) return [];
@@ -313,36 +313,34 @@
             }
         },
         bindLinkTemplates: function() {
-            if(this._editCopy) {
-                this.doWhenConditionIsMet(function(){ // todo kind of dodgy isn't ?
-                    this.linkTemplates.forEach(function(template){
-                        // TODO a bit dodgy.
-                        // TODO find a way to dynamically create dom-template rather than relying on user to use is="dom-template"
-                        var type = template.getAttribute("of");
-                        var link = this._editCopy.links[type];
-                        var event = this._editCopy;
-                        var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
+            this.async(function(){
+                if(!this._editCopy) return;
+                this.linkTemplates.forEach(function(template){
+                    // TODO a bit dodgy.
+                    // TODO find a way to dynamically create dom-template rather than relying on user to use is="dom-template"
+                    var type = template.getAttribute("of");
+                    var link = this._editCopy.links[type];
+                    var event = this._editCopy;
+                    var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
 
-                        if(!template.__cgInstance) {
-                            template._parentProps = {};
-                            parent.addEventListener("input", function (e) {
-                                this._editCopy.links[type] = e.detail;
-                                this.set("_editCopy.linksArray", this.links(this._editCopy.links))
-                            }.bind(this));
-                        }
+                    if(!template.__cgInstance) {
+                        template._parentProps = {};
+                        parent.addEventListener("input", function (e) {
+                            this._editCopy.links[type] = e.detail;
+                            this.set("_editCopy.linksArray", this.links(this._editCopy.links))
+                        }.bind(this));
+                    }
 
-                        var model = this.mixin({}, this.get("_config", this.linksScope) || this._config);
-                        model.link = link;
-                        model.event = event;
+                    var model = {};
+                    this.mixin(model, this.get("_config", this.linksScope) || this._config);
+                    model.link = link;
+                    model.event = event;
 
-                        template.__cgInstance = template.stamp(model);
-                        parent.innerHTML = "";
-                        Polymer.dom(parent).appendChild(template.__cgInstance.root)
-                    }.bind(this));
-                }, function(){
-                    return Polymer.dom(this.root).querySelector("[linktype]") != undefined
-                })
-            }
+                    template.__cgInstance = template.stamp(model);
+                    parent.innerHTML = "";
+                    Polymer.dom(parent).appendChild(template.__cgInstance.root)
+                }, this);
+            });
         },
         _editCopyChanged:function(){
             this.bindLinkTemplates();
@@ -391,7 +389,7 @@
                     if(params.deleteDocs === true && this.event.documents) {
                         this.event.documents.forEach(function(doc){
                             this.fireApplicationEvent("document-deleted", doc, this._callerScope);
-                        }.bind(this));
+                        }, this);
                     }
                     break;
             }
