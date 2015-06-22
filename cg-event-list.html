@@ -193,7 +193,7 @@
         },
         behaviors:[CG.BaseBehavior, CG.ApplicationEventListenerBehavior, CG.ApplicationContextBehavior],
         ready:function(){
-            this.$.eventEditor = this.context.eventEditor || this.importHref("./cg-event-editor.html", function(){
+            this.$.eventEditor = this.get("config.eventEditor", this.context) || this.importHref(this.resolveUrl("./cg-event-editor.html"), function(){
                 this.$.eventEditor = Polymer.dom(this.$.dialogWrapper).appendChild(this.create("cg-event-editor", {
                     categories:this.categories,
                     colors:this.colors,

@@ -726,10 +726,10 @@
             behaviors:[CG.BaseBehavior, CG.ApplicationEventListenerBehavior, CG.ApplicationDataSourceAwareBehavior, CG.ApplicationContextBehavior],
             _isEventOfDay:CG.Utils.Ranges.dateRangeIntersects,
             ready:function(){
-                this.$.datepicker = this.context.dateDialog || this.importHref("../cg-datetime-picker/cg-date-picker-dialog.html", function(){
+                this.$.datepicker = this.get("config.dateDialog", this.context) || this.importHref(this.resolveUrl("../cg-datetime-picker/cg-date-picker-dialog.html"), function(){
                     this.$.datepicker = Polymer.dom(this.$.dialogsWrapper).appendChild(this.create('cg-date-picker-dialog'));
                 });
-                this.$.eventEditor = this.context.eventEditor || this.importHref("./cg-event-editor.html", function(){
+                this.$.eventEditor = this.get("config.eventEditor", this.context) || this.importHref(this.resolveUrl("./cg-event-editor.html"), function(){
                     this.$.eventEditor = Polymer.dom(this.$.dialogsWrapper).appendChild(this.create("cg-event-editor", {
                         categories:this.categories,
                         colors:this.colors,
