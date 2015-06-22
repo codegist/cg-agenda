@@ -215,8 +215,8 @@
         },
         behaviors:[CG.BaseBehavior, CG.ApplicationDataSourceAwareBehavior],
         attached: function() {
-            this._inputs = Polymer.dom(this.root).querySelectorAll('paper-input-container');
-            this.linkTemplates = CG.Utils.Objects.toArray(Polymer.dom(this).querySelectorAll('template[link]'));
+            this._inputs = this.querySelectAllRoot('paper-input-container');
+            this.linkTemplates = this.querySelectAll('template[link]');
         },
         links:function(links){
             if(!links) return [];
@@ -321,7 +321,7 @@
                     var type = template.getAttribute("of");
                     var link = this._editCopy.links[type];
                     var event = this._editCopy;
-                    var parent = Polymer.dom(this.root).querySelector("[linktype=" + link.type + "]");
+                    var parent = this.querySelectRoot("[linktype=" + link.type + "]");
 
                     if(!template.__cgInstance) {
                         template._parentProps = {};

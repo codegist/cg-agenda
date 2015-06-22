@@ -95,7 +95,7 @@
                 <content select="[action]"></content>
                 <span class="result-count">[[_displayCount(events.total)}}</span>
             </div>
-            <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]" page-size="[[pageSize]]" pagination-pages="[[paginationPages]]"></cg-pagination>
+            <cg-pagination id="pagination" data="{{events}}" cg-name="[[cgName]]" page-size="[[pageSize]]" pagination-pages="[[paginationPages]]" owner="[[self]]"></cg-pagination>
             <div id="listScroller" hidden$="[[!isGreaterThan(events.results.length, 0)]]">
                 <template is="dom-repeat" id="list" items="[[events.results]]" class="flex multi layout" sort="sortEvent">
                     <div class="event layout horizontal">
@@ -235,6 +235,9 @@
             }
         },
         onContextChanged:function(){
+            this.reload();// todo inject conditions to reload on contextChangedPath
+        },
+        onDataContextChanged:function(){
             this.reload();// todo inject conditions to reload on contextChangedPath
         },
         reload:function(){
