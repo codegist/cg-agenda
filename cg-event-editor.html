@@ -302,13 +302,13 @@
         },
         eventChanged:function(){
             if(this.event) {
-                this.$.documentsEditor.dataContext = {event : this.event};
+                this.$.documentsEditor.setDataContext("event", this.event);
                 var editCopy = CG.Utils.Objects.deepClone(this.event);
                 editCopy.categories = editCopy.categories || [];
                 editCopy.linksArray = this.links(editCopy.links);
                 this._editCopy = editCopy;
             }else{
-                this.$.documentsEditor.dataContext && delete this.$.documentsEditor.dataContext.event;
+                this.$.documentsEditor.setDataContext("event", undefined);
                 this._editCopy = undefined;
             }
         },
